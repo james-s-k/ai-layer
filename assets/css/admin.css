@@ -1,0 +1,641 @@
+/* ==========================================================================
+   AI Layer — Admin Styles
+   ========================================================================== */
+
+/* Layout */
+.wpail-admin h2 {
+    border-bottom: 1px solid #dcdcde;
+    padding-bottom: 8px;
+    margin-top: 28px;
+}
+
+/* Field groups */
+.wpail-field-group {
+    background: #fff;
+    border: 1px solid #dcdcde;
+    border-radius: 4px;
+    padding: 0 20px 12px;
+    margin-bottom: 20px;
+}
+
+.wpail-field-group h2 {
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #50575e;
+    border-bottom-color: #f0f0f0;
+}
+
+/* Private field indicator */
+.wpail-field--private th label {
+    color: #646970;
+}
+
+.wpail-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 1px 5px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    vertical-align: middle;
+    margin-left: 4px;
+}
+
+.wpail-badge--private {
+    background: #f0f0f1;
+    color: #646970;
+    border: 1px solid #dcdcde;
+}
+
+/* Meta box */
+.wpail-meta-box {
+    padding: 4px 0;
+}
+
+.wpail-meta-box__group-title {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #646970;
+    margin: 16px 0 6px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.wpail-meta-box__table {
+    margin-top: 0;
+}
+
+.wpail-meta-box__table th {
+    width: 160px;
+    font-weight: 500;
+}
+
+/* Post checkbox list (relationship fields) */
+.wpail-post-checklist {
+    max-height: 180px;
+    overflow-y: auto;
+    border: 1px solid #dcdcde;
+    border-radius: 3px;
+    padding: 6px 10px;
+    background: #fafafa;
+}
+
+.wpail-post-check {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 0;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.wpail-post-check:hover {
+    color: #2271b1;
+}
+
+/* Form table row spacing */
+.wpail-admin .form-table th,
+.wpail-meta-box__table th {
+    padding: 10px 10px 10px 0;
+    vertical-align: top;
+}
+
+.wpail-admin .form-table td,
+.wpail-meta-box__table td {
+    padding: 8px 10px 8px 0;
+}
+
+/* Textarea sizing */
+.wpail-admin textarea,
+.wpail-meta-box textarea {
+    width: 100%;
+    max-width: 500px;
+}
+
+/* Checklist fieldset */
+.wpail-admin fieldset label,
+.wpail-meta-box fieldset label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+}
+
+/* Endpoint URL display */
+.wpail-admin code {
+    font-size: 12px;
+    background: #f6f7f7;
+    padding: 2px 6px;
+    border-radius: 3px;
+    border: 1px solid #dcdcde;
+}
+
+/* ==========================================================================
+   Pro badge — used in cards, menus, and endpoint tables
+   ========================================================================== */
+
+.wpail-pro-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    vertical-align: middle;
+    margin-left: 5px;
+    background: #2271b1;
+    color: #fff;
+    line-height: 1.4;
+}
+
+/* Locked card state */
+.wpail-card--locked {
+    opacity: 0.85;
+    border-style: dashed;
+}
+
+.wpail-card--locked .wpail-card__icon {
+    color: #8c8f94;
+}
+
+/* Pro endpoint row */
+.wpail-endpoint--pro td {
+    color: #646970;
+}
+
+.wpail-endpoint--pro code {
+    color: #646970;
+    background: #f0f0f1;
+}
+
+/* ==========================================================================
+   Overview / Dashboard page
+   ========================================================================== */
+
+/* Header banner */
+.wpail-overview__header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 16px 0 24px;
+    padding: 20px 24px;
+    background: #fff;
+    border: 1px solid #dcdcde;
+    border-radius: 4px;
+}
+
+.wpail-overview__icon {
+    font-size: 36px;
+    width: 36px;
+    height: 36px;
+    color: #2271b1;
+    flex-shrink: 0;
+}
+
+.wpail-overview__header h1 {
+    margin: 0 0 4px;
+    padding: 0;
+    font-size: 20px;
+    line-height: 1.2;
+}
+
+.wpail-overview__tagline {
+    margin: 0;
+    color: #50575e;
+    font-size: 14px;
+}
+
+/* Intro paragraph */
+.wpail-overview__intro {
+    max-width: 760px;
+    color: #3c434a;
+    line-height: 1.6;
+    margin-bottom: 8px;
+}
+
+.wpail-overview__content-intro {
+    max-width: 760px;
+    color: #3c434a;
+    line-height: 1.6;
+    margin: 0 0 16px;
+}
+
+.wpail-overview__schema-desc {
+    max-width: 760px;
+    color: #3c434a;
+    line-height: 1.6;
+    margin: 0 0 8px;
+}
+
+.wpail-overview__schema-status {
+    max-width: 760px;
+    margin: 0;
+    line-height: 1.6;
+}
+
+.wpail-overview__schema-status .wpail-status {
+    margin-right: 6px;
+}
+
+/* Content cards grid */
+.wpail-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 8px;
+}
+
+.wpail-card {
+    background: #fff;
+    border: 1px solid #dcdcde;
+    border-radius: 4px;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.wpail-card__header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.wpail-card__icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    color: #2271b1;
+    flex-shrink: 0;
+}
+
+.wpail-card__title {
+    flex: 1;
+    font-size: 14px;
+}
+
+.wpail-card__count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    background: #f0f0f1;
+    border-radius: 11px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #3c434a;
+}
+
+.wpail-card__status {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.wpail-card__status--ok {
+    background: #edfaef;
+    color: #00a32a;
+    border: 1px solid #b8e6bf;
+}
+
+.wpail-card__status--warn {
+    background: #fcf9e8;
+    color: #996800;
+    border: 1px solid #f5e6ab;
+}
+
+.wpail-card__desc {
+    margin: 0;
+    color: #50575e;
+    font-size: 13px;
+    line-height: 1.5;
+    flex: 1;
+}
+
+.wpail-card__actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+}
+
+/* Endpoint table */
+.wpail-overview__endpoint-legend {
+    margin: 0 0 12px;
+    font-size: 13px;
+    color: #50575e;
+    line-height: 1.5;
+}
+
+.wpail-endpoint-table {
+    width: 100%;
+    margin-bottom: 12px;
+}
+
+.wpail-endpoint-table code {
+    white-space: nowrap;
+}
+
+.wpail-endpoint-table__param {
+    vertical-align: top;
+    min-width: 140px;
+}
+
+.wpail-overview__api-url {
+    font-size: 13px;
+    color: #50575e;
+}
+
+/* Answer engine steps */
+.wpail-engine-steps {
+    max-width: 760px;
+    padding-left: 24px;
+}
+
+.wpail-engine-steps li {
+    margin-bottom: 6px;
+    line-height: 1.6;
+    color: #3c434a;
+}
+
+/* Schema status pill */
+.wpail-status {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-right: 6px;
+    vertical-align: middle;
+}
+
+.wpail-status--on {
+    background: #edfaef;
+    color: #00a32a;
+    border: 1px solid #b8e6bf;
+}
+
+.wpail-status--off {
+    background: #f0f0f1;
+    color: #646970;
+    border: 1px solid #dcdcde;
+}
+
+.wpail-status--warn {
+    background: #fcf9e8;
+    color: #996800;
+    border: 1px solid #f5e6ab;
+}
+
+/* ==========================================================================
+   llms.txt page
+   ========================================================================== */
+
+.wpail-llmstxt__layout {
+    display: grid;
+    grid-template-columns: 1fr 460px;
+    gap: 24px;
+    align-items: start;
+}
+
+@media ( max-width: 1100px ) {
+    .wpail-llmstxt__layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+.wpail-llmstxt__preview .wpail-field-group {
+    position: sticky;
+    top: 32px;
+}
+
+.wpail-llmstxt__preview-area {
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 320px;
+    font-family: Consolas, 'Courier New', monospace;
+    font-size: 12px;
+    line-height: 1.6;
+    background: #f6f7f7;
+    border: 1px solid #dcdcde;
+    border-radius: 3px;
+    padding: 10px 12px;
+    color: #3c434a;
+    resize: vertical;
+}
+
+.wpail-llmstxt__preview-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+/* ==========================================================================
+   Upgrade / locked-feature page
+   ========================================================================== */
+
+.wpail-upgrade__hero {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 16px 0 24px;
+    padding: 20px 24px;
+    background: #fff;
+    border: 1px solid #dcdcde;
+    border-radius: 4px;
+}
+
+.wpail-upgrade__icon {
+    font-size: 36px;
+    width: 36px;
+    height: 36px;
+    color: #2271b1;
+    flex-shrink: 0;
+}
+
+.wpail-upgrade__hero h1 {
+    margin: 0 0 4px;
+    padding: 0;
+    font-size: 20px;
+}
+
+.wpail-upgrade__tagline {
+    margin: 0;
+    color: #50575e;
+    font-size: 14px;
+}
+
+/* Two-column layout */
+.wpail-upgrade__body {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 24px;
+    align-items: start;
+}
+
+@media ( max-width: 960px ) {
+    .wpail-upgrade__body {
+        grid-template-columns: 1fr;
+    }
+}
+
+.wpail-upgrade__explainer h2 {
+    margin-top: 24px;
+}
+
+.wpail-upgrade__explainer p {
+    max-width: 640px;
+    line-height: 1.6;
+    color: #3c434a;
+}
+
+/* Steps list in explainer */
+.wpail-upgrade__steps {
+    max-width: 600px;
+    padding-left: 20px;
+}
+
+.wpail-upgrade__steps li {
+    margin-bottom: 8px;
+    line-height: 1.6;
+    color: #3c434a;
+}
+
+/* Code example block */
+.wpail-upgrade__code-example {
+    background: #f6f7f7;
+    border: 1px solid #dcdcde;
+    border-radius: 4px;
+    padding: 16px 20px;
+    max-width: 640px;
+    margin-top: 8px;
+}
+
+.wpail-upgrade__code-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #646970;
+    margin: 12px 0 4px;
+}
+
+.wpail-upgrade__code-label:first-child {
+    margin-top: 0;
+}
+
+.wpail-upgrade__code-example code {
+    display: block;
+    font-size: 12px;
+    word-break: break-all;
+}
+
+.wpail-upgrade__pre {
+    font-size: 12px;
+    line-height: 1.6;
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+    color: #3c434a;
+    white-space: pre-wrap;
+}
+
+/* CTA sidebar box */
+.wpail-upgrade__cta-box {
+    background: #fff;
+    border: 2px solid #2271b1;
+    border-radius: 6px;
+    padding: 20px 24px;
+    position: sticky;
+    top: 32px;
+}
+
+.wpail-upgrade__cta-box h3 {
+    margin: 0 0 16px;
+    font-size: 15px;
+}
+
+.wpail-upgrade__benefits {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 20px;
+}
+
+.wpail-upgrade__benefits li {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 10px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #3c434a;
+}
+
+.wpail-upgrade__benefits .dashicons {
+    color: #00a32a;
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.wpail-upgrade__btn {
+    display: block;
+    text-align: center;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px 16px;
+    font-size: 14px;
+    height: auto;
+}
+
+.wpail-upgrade__note {
+    margin: 10px 0 0;
+    font-size: 12px;
+    color: #646970;
+    text-align: center;
+}
+
+/* Free tier reminder box */
+.wpail-upgrade__free-reminder {
+    margin-top: 16px;
+    padding: 14px 16px;
+    background: #f6f7f7;
+    border: 1px solid #dcdcde;
+    border-radius: 4px;
+}
+
+.wpail-upgrade__free-reminder h4 {
+    margin: 0 0 8px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #646970;
+}
+
+.wpail-upgrade__free-reminder ul {
+    margin: 0;
+    padding-left: 16px;
+}
+
+.wpail-upgrade__free-reminder li {
+    font-size: 12px;
+    color: #50575e;
+    margin-bottom: 4px;
+    line-height: 1.4;
+}
