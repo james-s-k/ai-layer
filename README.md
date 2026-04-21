@@ -77,6 +77,56 @@ Same question. One hop. Structured answer with context and a next step attached.
 
 ---
 
+## Common questions & assumptions
+
+You will hear AI Layer compared to things you already know — REST, GraphQL, schema markup, MCP. That usually means you are in the right conversation. Below is a straight comparison so you can decide whether this plugin fits what you are building.
+
+**The short version:** AI Layer does not replace WordPress’s REST API, Schema.org JSON-LD, or MCP. It adds a **business layer** between your raw site data and anything that needs **meaning**: what you offer, how it fits together, and what someone should do next — without inferring that from pages and templates.
+
+### “Isn’t this just the REST API?”
+
+WordPress already gives you REST endpoints for posts, users, blocks, and more. Those are general-purpose **data access**. AI Layer adds **purpose-built surfaces**: a single business profile, typed entities (services, locations, FAQs, proof, actions), explicit relationships between them, and (with Pro) a **natural-language answer** built from that model — not whatever JSON happened to land in a page.
+
+So: ordinary REST answers “what records exist?” AI Layer helps answer “what should an agent **do** with this business, in one structured step, when someone asks a question.”
+
+### “This is like GraphQL / a headless CMS”
+
+GraphQL and headless stacks excel at **flexible queries** — you ask for the shape you need as a developer. AI Layer focuses on **predictable shapes for AI** — responses tuned for questions, next steps, and trust signals from **your** business model. You can use both; they address different layers of the stack.
+
+### “Schema.org already does this”
+
+Schema markup is mainly **page-level metadata for search** — great for rich results, not a full operational model of your business. It does not replace a graph of services, locations, FAQs, and actions, and it does not drive dynamic, query-shaped responses. When you enable JSON-LD Schema markup in AI Layer, it works **alongside** this plugin’s model; it does not duplicate it.
+
+### “MCP already solves this”
+
+MCP describes **how** an agent talks to tools. It does not define **what** your business objects are or how they relate. You can think of AI Layer as the **data and behaviour model** behind those tools; MCP (or similar) is how clients reach it — the two fit together.
+
+### “Why not just extend the default REST API?”
+
+Transport is not the hard part — **intent** is. Patching generic REST without a domain model still leaves every integration to reverse-engineer your content. AI Layer centralises **what matters**, how it is structured, and how responses are assembled (including the Pro answer engine), so consumers get a consistent story.
+
+### “This feels over-engineered — can’t agents just crawl the site?”
+
+Crawling works until layout changes, JavaScript gets in the way, or answers depend on information scattered across pages — and ambiguity makes bad answers more likely. AI Layer offers **stable, explicit inputs** instead of best-effort scraping; that is the same reason you prefer a database over parsing HTML when reliability counts.
+
+### “Isn’t this a lot to maintain?”
+
+Fair question. The plugin is designed around data you would manage for a serious site anyway (profile, offerings, FAQs, proof, next steps), with relationships wired in WordPress. The more AI Layer saves you from one-off integrations and brittle crawlers, the more that upfront structure pays off. If all you need is slightly tidier JSON with no real model behind it, plain REST may be enough — AI Layer is aimed at cases where **accuracy and structure** matter.
+
+### “What is it actually for?”
+
+Typical fits: AI chat or voice that must answer from **your** services and policies; assistants that need live offerings and locations; workflows where you want **grounded** answers and suggested actions; anything where guessing from page copy is not good enough.
+
+### Do these concerns mean you should skip AI Layer?
+
+**No single objection here should disqualify the plugin by itself** — but they point at what to validate for **your** project:
+
+- **Worth weighing:** how much structure you are willing to maintain, and whether agent or integration outputs need to be **noticeably better** than reading the site (for complex or accuracy-sensitive cases, they usually do).
+- **Often misunderstandings, not blockers:** comparisons to schema-only or “just use REST” usually clear up once you separate **transport** from **business shape**.
+- **The practical question** is simply: does a structured business layer plus our endpoints solve a problem **you** have?
+
+---
+
 ## Requirements
 
 - WordPress 6.0+
@@ -589,9 +639,9 @@ HTTP 400
 When enabled in Settings, the plugin outputs JSON-LD structured data in `<head>` on the front-end.
 
 - **Organization / LocalBusiness schema** — output on the front page, populated from the Business Profile. Schema type is configurable.
-- **FAQPage schema** — output site-wide, populated from all published public FAQs.
+- **FAQPage schema** — output site-wide or page-specific, populated from all published public FAQs.
 
-The plugin detects Yoast SEO and Rank Math and disables its own schema output to prevent duplication.
+The settings page detects Yoast SEO and Rank Math and shows a warning — schema output is not automatically suppressed, so review your pages to avoid duplication.
 
 ---
 

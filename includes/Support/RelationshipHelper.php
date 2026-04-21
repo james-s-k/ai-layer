@@ -30,22 +30,18 @@ class RelationshipHelper {
 			return [];
 		}
 
-		$posts = get_posts( [
-			'post__in'       => $ids,
-			'post_status'    => 'publish',
-			'posts_per_page' => count( $ids ),
-			'orderby'        => 'post__in',
-			'fields'         => 'all',
-		] );
-
-		return array_map(
-			fn( \WP_Post $p ) => [
-				'id'    => $p->ID,
-				'title' => $p->post_title,
-				'slug'  => $p->post_name,
-			],
-			$posts
-		);
+		$results = [];
+		foreach ( $ids as $id ) {
+			$post = get_post( (int) $id );
+			if ( $post instanceof \WP_Post && 'publish' === $post->post_status ) {
+				$results[] = [
+					'id'    => $post->ID,
+					'title' => $post->post_title,
+					'slug'  => $post->post_name,
+				];
+			}
+		}
+		return $results;
 	}
 
 	/**
