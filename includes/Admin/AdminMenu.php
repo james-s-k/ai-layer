@@ -53,6 +53,16 @@ class AdminMenu {
 			[ BusinessProfilePage::class, 'render' ]
 		);
 
+		// Setup Wizard sub-menu.
+		add_submenu_page(
+			'wpail_dashboard',
+			__( 'Setup Wizard',         'ai-ready-layer' ),
+			__( 'Setup Wizard',         'ai-ready-layer' ),
+			'manage_options',
+			'wpail_setup_wizard',
+			[ SetupWizardPage::class, 'render' ]
+		);
+
 		// Settings sub-menu.
 		add_submenu_page(
 			'wpail_dashboard',
@@ -103,6 +113,7 @@ class AdminMenu {
 
 		$overview = [];
 		$profile  = [];
+		$wizard   = [];
 		$middle   = [];
 		$settings = [];
 		$llmstxt  = [];
@@ -116,6 +127,8 @@ class AdminMenu {
 				$overview[] = $item;
 			} elseif ( 'wpail_business_profile' === $item[2] ) {
 				$profile[] = $item;
+			} elseif ( 'wpail_setup_wizard' === $item[2] ) {
+				$wizard[] = $item;
 			} elseif ( 'wpail_settings' === $item[2] ) {
 				$settings[] = $item;
 			} elseif ( 'wpail_llmstxt' === $item[2] ) {
@@ -129,7 +142,7 @@ class AdminMenu {
 			return;
 		}
 
-		$submenu['wpail_dashboard'] = array_merge( $overview, $profile, $middle, $settings, $llmstxt );
+		$submenu['wpail_dashboard'] = array_merge( $overview, $wizard, $profile, $middle, $settings, $llmstxt );
 	}
 
 	/**

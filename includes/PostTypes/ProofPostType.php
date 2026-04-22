@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace WPAIL\PostTypes;
 
+use WPAIL\Admin\SettingsPage;
+
 class ProofPostType {
 
 	const POST_TYPE = 'wpail_proof';
@@ -18,6 +20,12 @@ class ProofPostType {
 	}
 
 	public function register_post_type(): void {
+		$is_public = (bool) SettingsPage::get( SettingsPage::SETTING_PROOF_PUBLIC, false );
+		$slug      = (string) SettingsPage::get( SettingsPage::SETTING_PROOF_SLUG, 'proof' );
+		if ( $slug === '' ) {
+			$slug = 'proof';
+		}
+
 		register_post_type( self::POST_TYPE, [
 			'labels' => [
 				'name'               => __( 'Proof & Trust',          'ai-ready-layer' ),
@@ -31,14 +39,14 @@ class ProofPostType {
 				'not_found_in_trash' => __( 'No proof items in trash.','ai-ready-layer' ),
 				'menu_name'          => __( 'Proof & Trust',           'ai-ready-layer' ),
 			],
-			'public'              => false,
-			'publicly_queryable'  => false,
+			'public'              => $is_public,
+			'publicly_queryable'  => $is_public,
 			'show_ui'             => true,
 			'show_in_menu'        => 'wpail_dashboard',
 			'show_in_rest'        => false,
 			'supports'            => [ 'title', 'revisions' ],
-			'has_archive'         => false,
-			'rewrite'             => false,
+			'has_archive'         => $is_public ? $slug : false,
+			'rewrite'             => $is_public ? [ 'slug' => $slug, 'with_front' => false ] : false,
 			'capability_type'     => 'post',
 			'map_meta_cap'        => true,
 		] );

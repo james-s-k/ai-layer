@@ -13,6 +13,7 @@ use WPAIL\Admin\AdminMenu;
 use WPAIL\Admin\Assets;
 use WPAIL\Admin\BusinessProfilePage;
 use WPAIL\Admin\LLMsTxtPage;
+use WPAIL\Admin\SetupWizardPage;
 use WPAIL\Admin\SettingsPage;
 use WPAIL\Admin\MetaBoxes\ServiceMetaBox;
 use WPAIL\Admin\MetaBoxes\LocationMetaBox;
@@ -81,6 +82,17 @@ final class Plugin {
 		( new ProofPostType() )->register();
 		( new ActionPostType() )->register();
 		( new AnswerPostType() )->register();
+
+		// Flush rewrite rules on the first request after visibility settings change.
+		// Priority 11 ensures CPTs have already registered with the new settings (priority 10).
+		add_action( 'init', [ $this, 'maybe_flush_rewrites' ], 11 );
+	}
+
+	public function maybe_flush_rewrites(): void {
+		if ( get_transient( 'wpail_flush_rewrite' ) ) {
+			delete_transient( 'wpail_flush_rewrite' );
+			flush_rewrite_rules();
+		}
 	}
 
 	private function register_admin(): void {
@@ -90,6 +102,7 @@ final class Plugin {
 
 		( new AdminMenu() )->register();
 		( new BusinessProfilePage() )->register();
+		( new SetupWizardPage() )->register();
 		( new SettingsPage() )->register();
 		( new Assets() )->register();
 

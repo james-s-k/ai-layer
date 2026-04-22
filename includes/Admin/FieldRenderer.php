@@ -24,39 +24,42 @@ class FieldRenderer {
 	 * @param string               $prefix Optional prefix for the field name attribute.
 	 */
 	public static function render( string $key, array $def, mixed $value, string $prefix = '' ): void {
-		$name = $prefix ? "{$prefix}[{$key}]" : $key;
-		$id   = 'wpail_' . str_replace( [ '[', ']' ], '_', $name );
-		$type = $def['type'] ?? 'text';
+		$name        = $prefix ? "{$prefix}[{$key}]" : $key;
+		$id          = 'wpail_' . str_replace( [ '[', ']' ], '_', $name );
+		$type        = $def['type'] ?? 'text';
+		$placeholder = $def['placeholder'] ?? '';
 
 		match ( $type ) {
-			'textarea'   => self::textarea( $name, $id, (string) $value ),
+			'textarea'   => self::textarea( $name, $id, (string) $value, $placeholder ),
 			'select'     => self::select( $name, $id, $def['options'] ?? [], (string) $value ),
 			'checkboxes' => self::checkboxes( $name, $id, $def['options'] ?? [], (array) $value ),
 			'checkbox'   => self::checkbox( $name, $id, (bool) $value ),
 			'post_ids'   => self::post_ids( $name, $id, $def['post_type'] ?? '', (array) $value ),
-			'number'     => self::input( $name, $id, 'number', (string) ( $value ?? '' ) ),
-			'url'        => self::input( $name, $id, 'url', (string) $value ),
-			'email'      => self::input( $name, $id, 'email', (string) $value ),
-			'tel'        => self::input( $name, $id, 'tel', (string) $value ),
-			default      => self::input( $name, $id, 'text', (string) $value ),
+			'number'     => self::input( $name, $id, 'number', (string) ( $value ?? '' ), $placeholder ),
+			'url'        => self::input( $name, $id, 'url', (string) $value, $placeholder ),
+			'email'      => self::input( $name, $id, 'email', (string) $value, $placeholder ),
+			'tel'        => self::input( $name, $id, 'tel', (string) $value, $placeholder ),
+			default      => self::input( $name, $id, 'text', (string) $value, $placeholder ),
 		};
 	}
 
-	private static function input( string $name, string $id, string $type, string $value ): void {
+	private static function input( string $name, string $id, string $type, string $value, string $placeholder = '' ): void {
 		printf(
-			'<input type="%s" id="%s" name="%s" value="%s" class="regular-text">',
+			'<input type="%s" id="%s" name="%s" value="%s" class="regular-text"%s>',
 			esc_attr( $type ),
 			esc_attr( $id ),
 			esc_attr( $name ),
-			esc_attr( $value )
+			esc_attr( $value ),
+			$placeholder ? ' placeholder="' . esc_attr( $placeholder ) . '"' : ''
 		);
 	}
 
-	private static function textarea( string $name, string $id, string $value ): void {
+	private static function textarea( string $name, string $id, string $value, string $placeholder = '' ): void {
 		printf(
-			'<textarea id="%s" name="%s" rows="4" class="large-text">%s</textarea>',
+			'<textarea id="%s" name="%s" rows="4" class="large-text"%s>%s</textarea>',
 			esc_attr( $id ),
 			esc_attr( $name ),
+			$placeholder ? ' placeholder="' . esc_attr( $placeholder ) . '"' : '',
 			esc_textarea( $value )
 		);
 	}

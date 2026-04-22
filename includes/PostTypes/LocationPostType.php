@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace WPAIL\PostTypes;
 
+use WPAIL\Admin\SettingsPage;
+
 class LocationPostType {
 
 	const POST_TYPE = 'wpail_location';
@@ -22,6 +24,12 @@ class LocationPostType {
 	}
 
 	public function register_post_type(): void {
+		$is_public = (bool) SettingsPage::get( SettingsPage::SETTING_LOCATION_PUBLIC, false );
+		$slug      = (string) SettingsPage::get( SettingsPage::SETTING_LOCATION_SLUG, 'locations' );
+		if ( $slug === '' ) {
+			$slug = 'locations';
+		}
+
 		register_post_type( self::POST_TYPE, [
 			'labels' => [
 				'name'               => __( 'Locations',              'ai-ready-layer' ),
@@ -35,14 +43,14 @@ class LocationPostType {
 				'not_found_in_trash' => __( 'No locations in trash.',  'ai-ready-layer' ),
 				'menu_name'          => __( 'Locations',               'ai-ready-layer' ),
 			],
-			'public'              => false,
-			'publicly_queryable'  => false,
+			'public'              => $is_public,
+			'publicly_queryable'  => $is_public,
 			'show_ui'             => true,
 			'show_in_menu'        => 'wpail_dashboard',
 			'show_in_rest'        => false,
 			'supports'            => [ 'title', 'revisions' ],
-			'has_archive'         => false,
-			'rewrite'             => false,
+			'has_archive'         => $is_public ? $slug : false,
+			'rewrite'             => $is_public ? [ 'slug' => $slug, 'with_front' => false ] : false,
 			'capability_type'     => 'post',
 			'map_meta_cap'        => true,
 		] );

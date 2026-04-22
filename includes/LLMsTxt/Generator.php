@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace WPAIL\LLMsTxt;
 
 use WPAIL\Repositories\BusinessRepository;
+use WPAIL\Admin\SettingsPage;
 use WPAIL\Licensing\Features;
 
 class Generator {
@@ -58,6 +59,10 @@ class Generator {
 			$lines[] = "- [FAQs]({$base}/faqs): Frequently asked questions and answers.";
 			$lines[] = "- [Proof & Trust]({$base}/proof): Testimonials, case studies, and accreditations.";
 			$lines[] = "- [Actions]({$base}/actions): Recommended next steps and calls to action.";
+
+			if ( SettingsPage::get( SettingsPage::SETTING_PRODUCTS_ENABLED ) && class_exists( 'WooCommerce' ) ) {
+				$lines[] = "- [Products]({$base}/products): Product catalogue with pricing, availability, and categories.";
+			}
 
 			if ( $opts['include_answers'] && Features::answers_enabled() ) {
 				$lines[] = "- [Answers]({$base}/answers?query=...): Natural language question answering.";

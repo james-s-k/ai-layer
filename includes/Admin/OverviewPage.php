@@ -19,10 +19,12 @@ class OverviewPage {
 			return;
 		}
 
-		$profile_complete = self::is_profile_complete();
-		$counts           = self::get_counts();
-		$rest_base        = rest_url( WPAIL_REST_NS );
-		$schema_enabled   = (bool) SettingsPage::get( SettingsPage::SETTING_SCHEMA_ENABLED, false );
+		$profile_complete  = self::is_profile_complete();
+		$counts            = self::get_counts();
+		$rest_base         = rest_url( WPAIL_REST_NS );
+		$schema_enabled    = (bool) SettingsPage::get( SettingsPage::SETTING_SCHEMA_ENABLED, false );
+		$products_enabled  = (bool) SettingsPage::get( SettingsPage::SETTING_PRODUCTS_ENABLED, false );
+		$has_woocommerce   = class_exists( 'WooCommerce' );
 		?>
 		<div class="wrap wpail-admin wpail-overview">
 
@@ -42,9 +44,10 @@ class OverviewPage {
 						<strong><?php esc_html_e( 'Get started:', 'ai-ready-layer' ); ?></strong>
 						<?php
 						printf(
-							/* translators: %s: link to Business Profile page */
-							esc_html__( 'Fill in your %s so AI systems have a reliable description of your business.', 'ai-ready-layer' ),
-							'<a href="' . esc_url( admin_url( 'admin.php?page=wpail_business_profile' ) ) . '">' . esc_html__( 'Business Profile', 'ai-ready-layer' ) . '</a>'
+							/* translators: 1: link to Setup Wizard, 2: link to Business Profile */
+							esc_html__( 'Run the %1$s to auto-populate your Business Profile from existing plugins, or fill it in %2$s.', 'ai-ready-layer' ),
+							'<a href="' . esc_url( admin_url( 'admin.php?page=wpail_setup_wizard' ) ) . '">' . esc_html__( 'Setup Wizard', 'ai-ready-layer' ) . '</a>',
+							'<a href="' . esc_url( admin_url( 'admin.php?page=wpail_business_profile' ) ) . '">' . esc_html__( 'manually', 'ai-ready-layer' ) . '</a>'
 						);
 						?>
 					</p>
@@ -264,6 +267,26 @@ class OverviewPage {
 							'query_note' => __( 'Optional: service=N (post ID) to limit actions for that service.', 'ai-ready-layer' ),
 							'pro' => false,
 						],
+					];
+
+					if ( $has_woocommerce && $products_enabled ) {
+						$endpoints[] = [
+							'path'       => '/products',
+							'desc'       => __( 'WooCommerce product catalogue (summary list).', 'ai-ready-layer' ),
+							'path_note'  => $dash,
+							'query_note' => __( 'Optional: per_page (default 20, max 100), page, category=slug.', 'ai-ready-layer' ),
+							'pro'        => false,
+						];
+						$endpoints[] = [
+							'path'       => '/products/{slug}',
+							'desc'       => __( 'Full product detail with description, pricing, categories, and tags.', 'ai-ready-layer' ),
+							'path_note'  => __( 'Swap {slug} for the product\'s URL slug (lowercase, hyphens).', 'ai-ready-layer' ),
+							'query_note' => $dash,
+							'pro'        => false,
+						];
+					}
+
+					$endpoints = array_merge( $endpoints, [
 						[
 							'path' => '/answers',
 							'desc' => __( 'Assembled answer to a natural language query, with actions and supporting proof.', 'ai-ready-layer' ),
@@ -271,7 +294,7 @@ class OverviewPage {
 							'query_note' => __( 'Required: query=your question (URL-encoded). Optional hints: service=N, location=N (post IDs).', 'ai-ready-layer' ),
 							'pro' => true,
 						],
-					];
+					] );
 
 					foreach ( $endpoints as $row ) :
 						$pro_only = $row['pro'];

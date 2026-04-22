@@ -42,6 +42,7 @@ class Assets {
 		$wpail_pages = [
 			'wpail_dashboard',
 			'wpail_business_profile',
+			'wpail_setup_wizard',
 			'wpail_settings',
 			'wpail_llmstxt',
 			'wpail_answers_upgrade',

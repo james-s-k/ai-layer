@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace WPAIL\PostTypes;
 
+use WPAIL\Admin\SettingsPage;
+
 class ServicePostType {
 
 	const POST_TYPE = 'wpail_service';
@@ -18,6 +20,12 @@ class ServicePostType {
 	}
 
 	public function register_post_type(): void {
+		$is_public = (bool) SettingsPage::get( SettingsPage::SETTING_SERVICE_PUBLIC, false );
+		$slug      = (string) SettingsPage::get( SettingsPage::SETTING_SERVICE_SLUG, 'services' );
+		if ( $slug === '' ) {
+			$slug = 'services';
+		}
+
 		register_post_type( self::POST_TYPE, [
 			'labels' => [
 				'name'               => __( 'Services',              'ai-ready-layer' ),
@@ -31,14 +39,14 @@ class ServicePostType {
 				'not_found_in_trash' => __( 'No services in trash.',  'ai-ready-layer' ),
 				'menu_name'          => __( 'Services',               'ai-ready-layer' ),
 			],
-			'public'              => false,
-			'publicly_queryable'  => false,
+			'public'              => $is_public,
+			'publicly_queryable'  => $is_public,
 			'show_ui'             => true,
-			'show_in_menu'        => 'wpail_dashboard', // Attach to our custom menu.
-			'show_in_rest'        => false,             // We manage REST ourselves.
+			'show_in_menu'        => 'wpail_dashboard',
+			'show_in_rest'        => false,
 			'supports'            => [ 'title', 'revisions' ],
-			'has_archive'         => false,
-			'rewrite'             => false,
+			'has_archive'         => $is_public ? $slug : false,
+			'rewrite'             => $is_public ? [ 'slug' => $slug, 'with_front' => false ] : false,
 			'capability_type'     => 'post',
 			'map_meta_cap'        => true,
 			'menu_icon'           => 'dashicons-admin-generic',

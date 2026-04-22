@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace WPAIL\Rest;
 
+use WPAIL\Admin\SettingsPage;
+
 class RestRegistrar {
 
 	public function register(): void {
@@ -23,5 +25,9 @@ class RestRegistrar {
 		( new ProofController() )->register_routes();
 		( new ActionsController() )->register_routes();
 		( new AnswersController() )->register_routes();
+
+		if ( SettingsPage::get( SettingsPage::SETTING_PRODUCTS_ENABLED ) && class_exists( 'WooCommerce' ) ) {
+			( new ProductsController() )->register_routes();
+		}
 	}
 }

@@ -143,8 +143,10 @@ AI Layer is a free plugin with a Pro upgrade available via Freemius.
 - Business Profile
 - All six entity types: Services, Locations, FAQs, Proof & Trust, Actions, Answers CPT
 - REST API: `/profile`, `/services`, `/locations`, `/faqs`, `/proof`, `/actions`
+- `/products` endpoint — live WooCommerce product catalogue proxy (WooCommerce required; enabled in Settings)
 - Schema.org JSON-LD output (Organization, LocalBusiness, FAQPage)
 - llms.txt support
+- Setup Wizard — auto-populate Business Profile from WordPress, Yoast SEO, Rank Math, and WooCommerce
 
 **Pro** adds the intelligence layer:
 
@@ -169,10 +171,11 @@ Free users who call `/answers` receive an HTTP 402 with an upgrade URL rather th
 
 1. Upload the `ai-layer` folder to `/wp-content/plugins/`
 2. Activate via **Plugins → Installed Plugins**
-3. Fill in your **Business Profile** at **AI Layer → Business Profile**
+3. Run the **Setup Wizard** at **AI Layer → Setup Wizard** to auto-populate your Business Profile from existing plugins — or skip it and fill in **AI Layer → Business Profile** manually
 4. Add Services, Locations, FAQs, Proof & Trust signals, and Actions via the admin menu
 5. Optionally enable schema.org JSON-LD output at **AI Layer → Settings**
 6. Optionally enable llms.txt at **AI Layer → llms.txt**
+7. If WooCommerce is active, optionally enable the `/products` endpoint at **AI Layer → Settings**
 
 ---
 
@@ -199,6 +202,38 @@ Data is stored as a single JSON object in `wp_options` under the key `wpail_busi
 
 ---
 
+### Setup Wizard
+
+**AI Layer → Setup Wizard**
+
+A revisitable, step-by-step wizard that pre-populates your AI Layer data from existing WordPress settings and active plugins. Every suggestion requires explicit approval — nothing is written without your confirmation. The wizard can be re-run at any time from the menu.
+
+**Steps:**
+
+| Step | What it does |
+|------|--------------|
+| 1. Detect | Scans installed plugins and WordPress settings; shows a summary of available data sources and what was found |
+| 2. Business Profile | Lists suggested field values with source badges; tick what to apply, leave unticked to skip |
+| 3. WooCommerce *(shown only when WooCommerce is active)* | Prompts to enable the `/products` endpoint; shows current status if already enabled |
+| 4. Done | Completion summary with direct links to remaining setup tasks |
+
+**Data sources:**
+
+| Source | What it extracts |
+|--------|------------------|
+| WordPress | Site title → Business name; tagline → Short summary; admin email → Email; site URL → Website |
+| Yoast SEO | Company name; Facebook, Twitter, LinkedIn, Instagram, YouTube URLs; address fields (requires Yoast Local SEO) |
+| Rank Math | Knowledge Graph name; social profile URLs |
+| WooCommerce | Detects WooCommerce is active; offers to enable the `/products` endpoint |
+
+**Source priority for conflicting fields:** WordPress (lowest) → Rank Math → Yoast SEO (highest). When multiple sources suggest the same field, the more authoritative source wins.
+
+**Profile step behaviour:**
+- Fields with no current saved value are pre-ticked — applying is recommended
+- Fields that already have a saved value are unticked by default — tick to overwrite
+
+---
+
 ### Settings
 
 **AI Layer → Settings**
@@ -208,10 +243,82 @@ Data is stored as a single JSON object in `wp_options` under the key `wpail_busi
 | Enable schema.org output | Toggle JSON-LD output in `<head>` |
 | Schema type | Organization, LocalBusiness, ProfessionalService, HomeAndConstructionBusiness, LegalService, HealthAndBeautyBusiness |
 | Enable FAQPage schema | Output FAQPage JSON-LD from published FAQs |
+| FAQPage target pages | Output FAQPage schema on all pages, or restrict to specific pages |
+| Enable Products endpoint | Enable the `/products` endpoint (requires WooCommerce to be active) |
+| Endpoint Cache TTL | Cache lifetime in seconds for all REST endpoint responses; `0` disables caching |
+| **Post Type Visibility** | |
+| Services — Enable public | Make the Services CPT publicly accessible on the front-end |
+| Services — Rewrite slug | URL base for the Services archive and single posts (default: `services`) |
+| Locations — Enable public | Make the Locations CPT publicly accessible on the front-end |
+| Locations — Rewrite slug | URL base for the Locations archive and single posts (default: `locations`) |
+| FAQs — Enable public | Make the FAQs CPT publicly accessible on the front-end |
+| FAQs — Rewrite slug | URL base for the FAQs archive and single posts (default: `faqs`) |
+| Proof & Trust — Enable public | Make the Proof & Trust CPT publicly accessible on the front-end |
+| Proof & Trust — Rewrite slug | URL base for the Proof & Trust archive and single posts (default: `proof`) |
 
 The settings page detects Yoast SEO and Rank Math and warns you if their schema output will conflict.
 
+Permalink rewrite rules are flushed automatically after saving — no need to visit the Permalinks screen.
+
 Settings stored in `wp_options` under `wpail_settings`.
+
+---
+
+### Post Type Visibility
+
+By default, all AI Layer post types are private — they have no front-end URLs and are only accessible through the REST API. The Post Type Visibility section in Settings lets you make Services, Locations, FAQs, and Proof & Trust publicly available on the front-end, so your theme can use the same data the API exposes rather than managing it twice.
+
+Actions and Answers are excluded because they are inherently operational (CTAs, AI engine inputs) rather than browsable content.
+
+**What enabling public access does:**
+
+- Sets the CPT `public` and `publicly_queryable` flags to `true`
+- Creates a front-end archive at `/{slug}/` and single posts at `/{slug}/{post-slug}/`
+- Makes the posts appear in WordPress search and queries
+
+**Rewrite slug:**
+
+Each post type has an editable URL base, defaulting to the plural name. Changing it renames both the archive URL and the single-post URL prefix. Rewrite rules are regenerated automatically on the next page load after saving.
+
+| Post type | Default archive | Default single |
+|-----------|----------------|----------------|
+| Services | `/services/` | `/services/my-service/` |
+| Locations | `/locations/` | `/locations/my-location/` |
+| FAQs | `/faqs/` | `/faqs/my-faq/` |
+| Proof & Trust | `/proof/` | `/proof/my-testimonial/` |
+
+**Theme templates:**
+
+WordPress uses its standard template hierarchy. Create these files in your theme to control the output:
+
+| Template file | Used for |
+|--------------|---------|
+| `archive-wpail_service.php` | Services archive |
+| `single-wpail_service.php` | Single service |
+| `archive-wpail_location.php` | Locations archive |
+| `single-wpail_location.php` | Single location |
+| `archive-wpail_faq.php` | FAQs archive |
+| `single-wpail_faq.php` | Single FAQ |
+| `archive-wpail_proof.php` | Proof & Trust archive |
+| `single-wpail_proof.php` | Single proof item |
+
+If no template exists, WordPress falls back to `archive.php` / `single.php`, or `index.php`.
+
+**Accessing field data in templates:**
+
+All custom field data is stored as a JSON blob in `wp_postmeta` under `_wpail_data`. Use the repositories to retrieve typed model objects, or retrieve the raw meta for simple cases:
+
+```php
+// Via repository (recommended — returns a typed model).
+$repo    = new \WPAIL\Repositories\ServiceRepository();
+$service = $repo->find( get_the_ID() );
+echo esc_html( $service->name );
+echo esc_html( $service->short_summary );
+
+// Raw meta (for simple template access).
+$data = json_decode( get_post_meta( get_the_ID(), '_wpail_data', true ), true );
+echo esc_html( $data['short_summary'] ?? '' );
+```
 
 ---
 
@@ -231,6 +338,7 @@ This feature is fully free. It is implemented as a dynamic WordPress rewrite rou
 | Custom introduction | Optional paragraph inserted after the auto-generated header |
 | Include AI Layer endpoints | Include the full REST endpoints section |
 | Include /answers endpoint | Shown only when Pro is active; includes the `/answers` endpoint |
+| Include /products endpoint | Shown only when WooCommerce is active and the Products endpoint is enabled in Settings; includes the `/products` entry |
 | Include key pages | Include a Key Pages section |
 | Page URLs | One entry per line in markdown link format: `[Page Title](https://example.com/page)` |
 
@@ -251,6 +359,7 @@ Structured, machine-readable business data is available at the following endpoin
 - [FAQs](https://example.com/wp-json/ai-layer/v1/faqs): Frequently asked questions and answers.
 - [Proof & Trust](https://example.com/wp-json/ai-layer/v1/proof): Testimonials, case studies, and accreditations.
 - [Actions](https://example.com/wp-json/ai-layer/v1/actions): Recommended next steps and calls to action.
+- [Products](https://example.com/wp-json/ai-layer/v1/products): Product catalogue with pricing, availability, and categories. *(included when WooCommerce is active and Products endpoint is enabled)*
 
 ## Notes
 
@@ -571,6 +680,114 @@ Returns published calls-to-action, optionally filtered. When no `service` filter
 
 ---
 
+### GET `/products` *(requires WooCommerce + Products endpoint enabled in Settings)*
+
+A read-only proxy over WooCommerce's native product data. No data is duplicated or stored separately — every request reads live from WooCommerce. Only registered when WooCommerce is active and the Products endpoint setting is enabled in **AI Layer → Settings**.
+
+**Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `per_page` | integer | No | Products per page (default 20, max 100) |
+| `page` | integer | No | Page number (default 1) |
+| `category` | string | No | Filter by product category slug |
+
+**Example response:**
+```json
+{
+  "data": [
+    {
+      "id": 123,
+      "slug": "widget-pro",
+      "name": "Widget Pro",
+      "type": "simple",
+      "sku": "WGT-PRO-001",
+      "price": "39.99",
+      "regular_price": "49.99",
+      "sale_price": "39.99",
+      "currency": "GBP",
+      "on_sale": true,
+      "in_stock": true,
+      "short_description": "The professional-grade widget.",
+      "categories": ["widgets", "pro"],
+      "image": "https://example.com/wp-content/uploads/widget-pro.jpg",
+      "url": "https://example.com/product/widget-pro"
+    }
+  ],
+  "meta": {
+    "count": 1,
+    "total": 47,
+    "page": 1,
+    "per_page": 20,
+    "total_pages": 3
+  }
+}
+```
+
+---
+
+### GET `/products/{slug}` *(requires WooCommerce + Products endpoint enabled in Settings)*
+
+Returns full detail for a single product.
+
+**Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `slug` | string | Yes | Product URL slug |
+
+**Example response:**
+```json
+{
+  "data": {
+    "id": 123,
+    "slug": "widget-pro",
+    "name": "Widget Pro",
+    "type": "simple",
+    "sku": "WGT-PRO-001",
+    "price": "39.99",
+    "regular_price": "49.99",
+    "sale_price": "39.99",
+    "currency": "GBP",
+    "on_sale": true,
+    "in_stock": true,
+    "short_description": "The professional-grade widget.",
+    "categories": [{ "id": 5, "name": "Widgets", "slug": "widgets" }],
+    "image": "https://example.com/wp-content/uploads/widget-pro.jpg",
+    "url": "https://example.com/product/widget-pro",
+    "description": "Widget Pro is built for demanding workflows...",
+    "is_virtual": false,
+    "is_downloadable": false,
+    "tags": ["featured", "bestseller"],
+    "gallery": [
+      "https://example.com/wp-content/uploads/widget-pro-alt.jpg"
+    ],
+    "weight": "0.5",
+    "weight_unit": "kg",
+    "dimensions": {
+      "length": "10",
+      "width": "5",
+      "height": "3",
+      "unit": "cm"
+    },
+    "stock_quantity": 42
+  }
+}
+```
+
+For variable products, `price_range` and `attributes` are also returned:
+
+```json
+{
+  "price_range": { "min": "29.99", "max": "79.99" },
+  "attributes": [
+    { "name": "Size", "options": ["small", "medium", "large"] }
+  ]
+}
+```
+
+---
+
 ### GET `/answers` *(Pro)*
 
 The intelligent answer engine. Takes a natural language query and returns an assembled, structured response.
@@ -661,10 +878,12 @@ All CPT metadata is stored as a single JSON blob per post. Schema versioning is 
 ### Patterns
 
 - **Model–Repository–Transformer** — `WP_Post` → Transformer → immutable readonly Model → Repository provides query access
-- **Centralised field definitions** — `FieldDefinitions` is the single source of truth for field types, labels, defaults, validation rules, and visibility across admin forms, REST, and sanitization
+- **Centralised field definitions** — `FieldDefinitions` is the single source of truth for field types, labels, placeholders, help text, defaults, validation rules, and visibility across admin forms, REST, and sanitization
 - **Visibility control** — Fields are tagged `public`, `private` (admin-only), or `ai_only` (reserved). Private fields are automatically excluded from REST responses
 - **Relationship resolution** — Post IDs are stored as arrays and resolved to lightweight summaries on demand, preventing bloated responses
 - **Sanitization by type** — All POST data is validated and sanitized against field definitions before storage
+- **Live proxy (WooCommerce)** — The `/products` endpoint reads directly from WooCommerce on every request via `wc_get_products()`; no AI Layer CPT or extra database writes are involved, so the endpoint is always in sync and scales to any catalogue size
+- **Configurable CPT visibility** — Services, Locations, FAQs, and Proof & Trust are private by default; a settings toggle promotes them to public with a custom rewrite slug, enabling theme templates to consume the same data the API exposes
 
 ### Constants
 
@@ -689,6 +908,8 @@ WPAIL\Transformers\
 WPAIL\Repositories\
 WPAIL\Rest\
 WPAIL\Schema\
+WPAIL\Setup\
+WPAIL\Setup\Sources\
 WPAIL\Integrations\
 WPAIL\LLMsTxt\
 WPAIL\Licensing\
@@ -699,6 +920,16 @@ WPAIL\PostTypes\
 ---
 
 ## Changelog
+
+### 1.1.0
+
+- **Setup Wizard** — revisitable wizard at AI Layer → Setup Wizard; auto-populates Business Profile from WordPress core settings, Yoast SEO, Rank Math, and WooCommerce; source priority system ensures the most authoritative source wins; every suggestion requires explicit approval before anything is saved
+- **Field UX** — placeholders and contextual help text added to all admin fields across the Business Profile and all six CPTs, sourced from the centralised `FieldDefinitions` class
+- **Products endpoint** — `GET /products` and `GET /products/{slug}`: a live, read-only proxy over WooCommerce product data with pagination and category filtering; no data duplication or extra database writes; gated behind a Settings toggle and a WooCommerce active check
+- **Settings** — added Products endpoint toggle (disabled and greyed out when WooCommerce is not active); added Endpoint Cache TTL field; added FAQPage target pages control (all pages or specific pages)
+- **llms.txt** — Products endpoint conditionally included in generated output when WooCommerce is active and Products endpoint is enabled
+- **Overview** — Products endpoint rows appear conditionally in the REST API endpoint table; Setup Wizard linked from the incomplete profile notice
+- **Post Type Visibility** — Settings controls to make Services, Locations, FAQs, and Proof & Trust publicly accessible on the front-end with a configurable rewrite slug; permalink rules flushed automatically after save
 
 ### 1.0.0
 - Initial release
