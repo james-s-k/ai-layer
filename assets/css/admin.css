@@ -809,6 +809,76 @@
 }
 
 /* ==========================================================================
+   AI.txt page
+   ========================================================================== */
+
+.wpail-badge--beta {
+    background: #fcf9e8;
+    color: #996800;
+    border: 1px solid #f5e6ab;
+}
+
+.wpail-aitxt__beta-notice {
+    max-width: 760px;
+}
+
+.wpail-aitxt__agents {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.wpail-aitxt__agent-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px 12px;
+    background: #fafafa;
+    border: 1px solid #dcdcde;
+    border-radius: 3px;
+}
+
+.wpail-aitxt__agent-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.wpail-aitxt__agent-name {
+    width: 220px !important;
+    flex-shrink: 0;
+}
+
+.wpail-aitxt__agent-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding-left: 2px;
+}
+
+.wpail-aitxt__agent-controls label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin: 0;
+    font-size: 13px;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.wpail-aitxt__agent-remove {
+    margin-left: auto !important;
+    color: #a00 !important;
+    font-size: 12px;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.wpail-aitxt__agent-remove:hover {
+    color: #d63638 !important;
+}
+
+/* ==========================================================================
    Upgrade / locked-feature page
    ========================================================================== */
 

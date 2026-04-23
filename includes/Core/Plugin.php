@@ -13,6 +13,7 @@ use WPAIL\Admin\AdminMenu;
 use WPAIL\Admin\Assets;
 use WPAIL\Admin\BusinessProfilePage;
 use WPAIL\Admin\LLMsTxtPage;
+use WPAIL\Admin\AiTxtPage;
 use WPAIL\Admin\SetupWizardPage;
 use WPAIL\Admin\SettingsPage;
 use WPAIL\Admin\MetaBoxes\ServiceMetaBox;
@@ -32,7 +33,10 @@ use WPAIL\Rest\RestRegistrar;
 use WPAIL\Schema\SchemaManager;
 use WPAIL\Integrations\YoastIntegration;
 use WPAIL\Integrations\RankMathIntegration;
+use WPAIL\Head\AiDiscoveryLinks;
 use WPAIL\LLMsTxt\LLMsTxtController;
+use WPAIL\WellKnown\AiLayerController;
+use WPAIL\AiTxt\AiTxtController;
 
 /**
  * Central plugin class. Lightweight service locator.
@@ -65,6 +69,9 @@ final class Plugin {
 		$this->register_schema();
 		$this->register_integrations();
 		$this->register_llmstxt();
+		$this->register_wellknown();
+		$this->register_aitxt();
+		$this->register_head_links();
 	}
 
 	private function load_textdomain(): void {
@@ -119,6 +126,7 @@ final class Plugin {
 		}
 
 		( new LLMsTxtPage() )->register();
+		( new AiTxtPage() )->register();
 	}
 
 	private function register_rest(): void {
@@ -136,6 +144,18 @@ final class Plugin {
 
 	private function register_llmstxt(): void {
 		( new LLMsTxtController() )->register();
+	}
+
+	private function register_wellknown(): void {
+		( new AiLayerController() )->register();
+	}
+
+	private function register_aitxt(): void {
+		( new AiTxtController() )->register();
+	}
+
+	private function register_head_links(): void {
+		( new AiDiscoveryLinks() )->register();
 	}
 
 	// -------------------------------------------------------------------

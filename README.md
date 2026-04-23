@@ -138,32 +138,21 @@ Typical fits: AI chat or voice that must answer from **your** services and polic
 
 AI Layer is a free plugin with a Pro upgrade available via Freemius.
 
-**Free** includes the full structured data layer:
+**Free** includes the full structured data and intelligence layer:
 
 - Business Profile
 - All six entity types: Services, Locations, FAQs, Proof & Trust, Actions, Answers CPT
 - REST API: `/profile`, `/services`, `/locations`, `/faqs`, `/proof`, `/actions`
+- `/answers` endpoint — rules-based answer engine; author guaranteed responses to predictable queries with confidence scoring, source attribution, and proof attachment
 - `/products` endpoint — live WooCommerce product catalogue proxy (WooCommerce required; enabled in Settings)
 - Schema.org JSON-LD output (Organization, LocalBusiness, FAQPage)
 - llms.txt support
+- `/.well-known/ai-layer` machine-readable discovery document
+- AI discovery `<link>` tags — `rel="ai-layer"` and `rel="llms-txt"` injected in every page `<head>` (enabled by default; toggle in Settings)
+- AI.txt support *(beta)* — signal crawling, training, and attribution preferences to AI systems
 - Setup Wizard — auto-populate Business Profile from WordPress, Yoast SEO, Rank Math, and WooCommerce
 
-**Pro** adds the intelligence layer:
-
-- `/answers` REST endpoint — the rules-based answer engine
-- Answers CPT admin UI — author guaranteed responses to predictable queries
-- Confidence scoring, source attribution, and proof attachment on every response
-- 14-day free trial, no commitment required
-
-Free users who call `/answers` receive an HTTP 402 with an upgrade URL rather than a generic 403, so API consumers get a meaningful, actionable response:
-
-```json
-{
-  "code": "upgrade_required",
-  "message": "The /answers endpoint requires AI Layer Pro.",
-  "data": { "status": 402, "upgrade_url": "https://..." }
-}
-```
+**Pro** — pro features are being revised. The licensing infrastructure is in place for future paid tiers.
 
 ---
 
@@ -246,6 +235,9 @@ A revisitable, step-by-step wizard that pre-populates your AI Layer data from ex
 | FAQPage target pages | Output FAQPage schema on all pages, or restrict to specific pages |
 | Enable Products endpoint | Enable the `/products` endpoint (requires WooCommerce to be active) |
 | Endpoint Cache TTL | Cache lifetime in seconds for all REST endpoint responses; `0` disables caching |
+| **AI Discovery** | |
+| Endpoint discovery mode | **/.well-known/ai-layer (recommended)** — machine-readable JSON is the source of truth; /llms.txt links to it. **llms.txt only** — endpoints listed in /llms.txt; `/.well-known/ai-layer` returns 404 |
+| Discovery link tags | Output `<link rel="ai-layer">` and `<link rel="llms-txt">` in every page `<head>`. Enabled by default — uncheck to suppress |
 | **Post Type Visibility** | |
 | Services — Enable public | Make the Services CPT publicly accessible on the front-end |
 | Services — Rewrite slug | URL base for the Services archive and single posts (default: `services`) |
@@ -336,13 +328,35 @@ This feature is fully free. It is implemented as a dynamic WordPress rewrite rou
 |---------|-------------|
 | Enable llms.txt | Toggle dynamic serving on/off |
 | Custom introduction | Optional paragraph inserted after the auto-generated header |
-| Include AI Layer endpoints | Include the full REST endpoints section |
-| Include /answers endpoint | Shown only when Pro is active; includes the `/answers` endpoint |
-| Include /products endpoint | Shown only when WooCommerce is active and the Products endpoint is enabled in Settings; includes the `/products` entry |
+| Include AI Layer endpoints | Toggle the endpoints section. What this produces depends on the **Endpoint discovery mode** set in **AI Layer → Settings** (see below) |
+| Include /answers endpoint | Shown only in llms.txt-only discovery mode and only when Pro is active |
 | Include key pages | Include a Key Pages section |
 | Page URLs | One entry per line in markdown link format: `[Page Title](https://example.com/page)` |
 
-**Generated file format** (llms.txt specification):
+The Products endpoint is not a separate llms.txt toggle — it appears automatically in the endpoint listing when the Products endpoint is enabled in **AI Layer → Settings** and WooCommerce is active.
+
+**Endpoint discovery mode affects llms.txt output:**
+
+- **`/.well-known/ai-layer` mode (recommended):** The endpoints section contains a single line pointing to the JSON discovery document. llms.txt is a human-readable pointer; the machine-readable source of truth lives at `/.well-known/ai-layer`.
+- **`llms.txt only` mode:** The endpoints section lists all active endpoints directly. `/.well-known/ai-layer` is disabled.
+
+**Generated file format — `/.well-known/ai-layer` mode (recommended):**
+
+```
+# Business Name
+
+> Short business summary
+
+## AI Layer Structured Endpoints
+
+Machine-readable endpoint index (JSON): https://example.com/.well-known/ai-layer
+
+## Notes
+
+This site exposes structured business data via AI Layer for machine-readable access by AI systems, agents, and search tools.
+```
+
+**Generated file format — `llms.txt only` mode:**
 
 ```
 # Business Name
@@ -359,14 +373,14 @@ Structured, machine-readable business data is available at the following endpoin
 - [FAQs](https://example.com/wp-json/ai-layer/v1/faqs): Frequently asked questions and answers.
 - [Proof & Trust](https://example.com/wp-json/ai-layer/v1/proof): Testimonials, case studies, and accreditations.
 - [Actions](https://example.com/wp-json/ai-layer/v1/actions): Recommended next steps and calls to action.
-- [Products](https://example.com/wp-json/ai-layer/v1/products): Product catalogue with pricing, availability, and categories. *(included when WooCommerce is active and Products endpoint is enabled)*
+- [Products](https://example.com/wp-json/ai-layer/v1/products): Product catalogue with pricing, availability, and categories.
 
 ## Notes
 
 This site exposes structured business data via AI Layer for machine-readable access by AI systems, agents, and search tools.
 ```
 
-The business name and summary are pulled from your Business Profile. The `/answers` endpoint is only included when Pro is active.
+The business name and summary are pulled from your Business Profile.
 
 **Conflict detection:**
 
@@ -384,6 +398,81 @@ If a physical file conflict is detected, the settings page remains fully functio
 **Caching:** Generated output is cached in a WordPress transient for one hour. The cache is flushed automatically on every settings save.
 
 **Settings stored in `wp_options` under `wpail_llmstxt`.**
+
+---
+
+### AI.txt *(Beta)*
+
+**AI Layer → AI.txt (Beta)**
+
+> ⚠ This feature is experimental. The AI.txt standard is still evolving and has not been formally adopted by major AI providers. Settings may have no effect on some systems. Use with caution.
+
+Optionally expose an `ai.txt` file at your site root (`https://example.com/ai.txt`). The file signals to AI systems how they are permitted to interact with your content — crawling, training, and attribution.
+
+Implemented as a dynamic WordPress rewrite route. No filesystem writes required.
+
+**Settings:**
+
+| Setting | Description |
+|---------|-------------|
+| Enable AI.txt | Toggle dynamic serving on/off. When disabled, `/ai.txt` returns 404 |
+| **Global Rules** | |
+| Allow AI crawling | On (default): outputs `Allow: /` — Off: outputs `Disallow: /` |
+| Allow AI training | On: outputs `Training: allow` — Off (default): outputs `Training: disallow` |
+| Require attribution | When on: outputs `Attribution: required` |
+| **Agent-Specific Rules** | |
+| Agent name | Name of the AI crawler (e.g. `GPTBot`, `ClaudeBot`, `Google-Extended`) |
+| Allow crawling | Per-agent Allow: / or Disallow: / — defaults to allow for new rows |
+| Allow training | Per-agent Training: allow or Training: disallow |
+| Require attribution | Per-agent Attribution: required |
+
+**Preview:** The preview pane updates in real time as you change settings without requiring a save.
+
+**Generated file example:**
+
+```
+User-agent: *
+Allow: /
+
+Training: disallow
+Attribution: required
+
+User-agent: GPTBot
+Disallow: /
+Training: disallow
+```
+
+Each agent block fully overrides the global `*` block for that agent, so all applicable directives are repeated explicitly.
+
+**Conflict detection:** If a physical `ai.txt` file exists at the site root, the dynamic route is bypassed and a notice is shown. Plain permalink structures prevent WordPress from intercepting the request.
+
+**Known AI agent names:** `GPTBot` (OpenAI), `ClaudeBot` (Anthropic), `Google-Extended` (Google), `CCBot` (Common Crawl), `FacebookBot` (Meta).
+
+**Settings stored in `wp_options` under `wpail_aitxt`.**
+
+---
+
+### AI Discovery Link Tags
+
+**AI Layer → Settings → AI Discovery → Discovery link tags**
+
+When enabled (the default), AI Layer injects two `<link>` tags into the `<head>` of every front-end page:
+
+```html
+<link rel="ai-layer" href="https://example.com/.well-known/ai-layer" type="application/json">
+<link rel="llms-txt" href="https://example.com/llms.txt" type="text/plain">
+```
+
+Each tag is only output when its corresponding feature is active:
+
+| Tag | Output when |
+|-----|-------------|
+| `rel="ai-layer"` | Discovery mode is set to `/.well-known/ai-layer` (the default) |
+| `rel="llms-txt"` | llms.txt is enabled in **AI Layer → llms.txt** |
+
+**Why this matters:** AI crawlers and agents that index page source — including search-grounded tools like Perplexity and Bing Copilot — can read `<link>` tags to discover where structured data lives without needing prior knowledge of the URL. This follows the same convention as `rel="canonical"` and `rel="alternate"` used for search engines today.
+
+**To disable:** uncheck **Discovery link tags** in **AI Layer → Settings → AI Discovery** and save.
 
 ---
 
@@ -474,6 +563,50 @@ All endpoints are public and read-only. No authentication required in v1.
   "meta": { "count": 5 }
 }
 ```
+
+---
+
+### GET `/.well-known/ai-layer`
+
+The machine-readable discovery document for this plugin. Returns a JSON object listing all active endpoints, their full URLs, descriptions, and accepted parameters. Designed for agents and tools that need to discover available capabilities without prior knowledge of the site.
+
+This is the **single source of truth** for what AI Layer exposes. `/llms.txt` links here; agents should query this document directly.
+
+**Example response:**
+```json
+{
+  "schema_version": "1.0",
+  "name": "Acme Co",
+  "description": "We make the best widgets.",
+  "api": {
+    "base": "https://example.com/wp-json/ai-layer/v1",
+    "endpoints": [
+      {
+        "path": "/profile",
+        "url": "https://example.com/wp-json/ai-layer/v1/profile",
+        "description": "Business name, contact details, and description.",
+        "methods": ["GET"]
+      },
+      {
+        "path": "/products",
+        "url": "https://example.com/wp-json/ai-layer/v1/products",
+        "description": "Product catalogue with pricing and availability.",
+        "methods": ["GET"],
+        "params": {
+          "per_page": "integer — products per page (max 100, default 20)",
+          "page": "integer — page number",
+          "category": "string — filter by category slug"
+        }
+      }
+    ]
+  },
+  "llms_txt": "https://example.com/llms.txt"
+}
+```
+
+The `endpoints` array only includes entries that are currently active — the `/products` entries appear only when WooCommerce is active and the Products endpoint is enabled; `/answers` appears only when Pro is active.
+
+No WordPress rewrite flush is required after enabling this — the route is always registered.
 
 ---
 
@@ -701,14 +834,10 @@ A read-only proxy over WooCommerce's native product data. No data is duplicated 
       "slug": "widget-pro",
       "name": "Widget Pro",
       "type": "simple",
-      "sku": "WGT-PRO-001",
       "price": "39.99",
-      "regular_price": "49.99",
-      "sale_price": "39.99",
       "currency": "GBP",
       "on_sale": true,
       "in_stock": true,
-      "short_description": "The professional-grade widget.",
       "categories": ["widgets", "pro"],
       "image": "https://example.com/wp-content/uploads/widget-pro.jpg",
       "url": "https://example.com/product/widget-pro"
@@ -723,6 +852,8 @@ A read-only proxy over WooCommerce's native product data. No data is duplicated 
   }
 }
 ```
+
+The list shape is intentionally lean. For pricing detail, descriptions, gallery, and physical attributes, fetch the individual product via `/products/{slug}`.
 
 ---
 
@@ -744,17 +875,17 @@ Returns full detail for a single product.
     "slug": "widget-pro",
     "name": "Widget Pro",
     "type": "simple",
-    "sku": "WGT-PRO-001",
     "price": "39.99",
-    "regular_price": "49.99",
-    "sale_price": "39.99",
     "currency": "GBP",
     "on_sale": true,
     "in_stock": true,
-    "short_description": "The professional-grade widget.",
     "categories": [{ "id": 5, "name": "Widgets", "slug": "widgets" }],
     "image": "https://example.com/wp-content/uploads/widget-pro.jpg",
     "url": "https://example.com/product/widget-pro",
+    "sku": "WGT-PRO-001",
+    "regular_price": "49.99",
+    "sale_price": "39.99",
+    "short_description": "The professional-grade widget.",
     "description": "Widget Pro is built for demanding workflows...",
     "is_virtual": false,
     "is_downloadable": false,
@@ -930,6 +1061,10 @@ WPAIL\PostTypes\
 - **llms.txt** — Products endpoint conditionally included in generated output when WooCommerce is active and Products endpoint is enabled
 - **Overview** — Products endpoint rows appear conditionally in the REST API endpoint table; Setup Wizard linked from the incomplete profile notice
 - **Post Type Visibility** — Settings controls to make Services, Locations, FAQs, and Proof & Trust publicly accessible on the front-end with a configurable rewrite slug; permalink rules flushed automatically after save
+- **`/.well-known/ai-layer`** — machine-readable JSON discovery document listing all active endpoints and capabilities; new **Endpoint discovery mode** setting in Settings chooses between `/.well-known/ai-layer` (recommended, default) and `llms.txt only`; in well-known mode llms.txt outputs a single pointer line; in llms.txt-only mode well-known returns 404; both caches invalidated automatically when settings change
+- **Products endpoint shape** — list (`/products`) returns a lean summary (id, slug, name, type, price, currency, on_sale, in_stock, categories, image, url); detail (`/products/{slug}`) adds sku, regular_price, sale_price, short_description, description, gallery, weight, dimensions, stock_quantity
+- **AI.txt (Beta)** — new admin page at AI Layer → AI.txt; generates a dynamic `/ai.txt` file with global crawling, training, and attribution controls; agent-specific rules repeater; live preview; conflict detection for physical files and plain permalinks
+- **Answers moved to free** — `/answers` endpoint and Answers CPT admin UI are now free features; Pro gating preserved in `Features::answers_enabled()` and can be re-enabled at any time
 
 ### 1.0.0
 - Initial release

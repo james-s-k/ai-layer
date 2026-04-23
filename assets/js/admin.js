@@ -77,6 +77,126 @@
             } );
         }
 
+        // ----------------------------------------------------------------
+        // AI.txt page — live preview + agent repeater.
+        // ----------------------------------------------------------------
+
+        var aiTxtPreview = document.getElementById( 'wpail-aitxt-preview' );
+        if ( aiTxtPreview ) {
+            initAiTxtPage();
+        }
+
+        function initAiTxtPage() {
+            var form          = document.getElementById( 'wpail-aitxt-form' );
+            var agentsContainer = document.getElementById( 'wpail-aitxt-agents' );
+            var addAgentBtn   = document.getElementById( 'wpail-aitxt-add-agent' );
+            var copyBtn       = document.getElementById( 'wpail-aitxt-copy' );
+            var template      = document.getElementById( 'wpail-aitxt-agent-template' );
+
+            // Counter starts after existing server-rendered rows.
+            var rowCounter = ( window.wpailAiTxtAgentCount || 0 );
+
+            function buildPreview() {
+                var lines = [];
+                var allowCrawling  = document.getElementById( 'wpail_aitxt_allow_crawling' ).checked;
+                var allowTraining  = document.getElementById( 'wpail_aitxt_allow_training' ).checked;
+                var requireAttr    = document.getElementById( 'wpail_aitxt_require_attribution' ).checked;
+
+                lines.push( 'User-agent: *' );
+                lines.push( allowCrawling ? 'Allow: /' : 'Disallow: /' );
+                lines.push( '' );
+                lines.push( allowTraining ? 'Training: allow' : 'Training: disallow' );
+                if ( requireAttr ) {
+                    lines.push( 'Attribution: required' );
+                }
+
+                agentsContainer.querySelectorAll( '.wpail-aitxt__agent-row' ).forEach( function ( row ) {
+                    var nameInput  = row.querySelector( '.wpail-aitxt__agent-name' );
+                    var allowInput = row.querySelector( '.wpail-aitxt__agent-allow' );
+                    var trainInput = row.querySelector( '.wpail-aitxt__agent-training' );
+                    var attrInput  = row.querySelector( '.wpail-aitxt__agent-attribution' );
+                    if ( ! nameInput ) { return; }
+                    var name = nameInput.value.trim();
+                    if ( ! name ) { return; }
+                    lines.push( '' );
+                    lines.push( 'User-agent: ' + name );
+                    lines.push( allowInput && allowInput.checked ? 'Allow: /' : 'Disallow: /' );
+                    lines.push( trainInput && trainInput.checked ? 'Training: allow' : 'Training: disallow' );
+                    if ( attrInput && attrInput.checked ) {
+                        lines.push( 'Attribution: required' );
+                    }
+                } );
+
+                aiTxtPreview.value = lines.join( '\n' ) + '\n';
+            }
+
+            function reindexAgentRows() {
+                agentsContainer.querySelectorAll( '.wpail-aitxt__agent-row' ).forEach( function ( row, i ) {
+                    var nameInput  = row.querySelector( '.wpail-aitxt__agent-name' );
+                    var allowInput = row.querySelector( '.wpail-aitxt__agent-allow' );
+                    var trainInput = row.querySelector( '.wpail-aitxt__agent-training' );
+                    var attrInput  = row.querySelector( '.wpail-aitxt__agent-attribution' );
+                    if ( nameInput )  { nameInput.name  = 'wpail_aitxt[agents][' + i + '][name]'; }
+                    if ( allowInput ) { allowInput.name = 'wpail_aitxt[agents][' + i + '][allow]'; }
+                    if ( trainInput ) { trainInput.name = 'wpail_aitxt[agents][' + i + '][allow_training]'; }
+                    if ( attrInput )  { attrInput.name  = 'wpail_aitxt[agents][' + i + '][require_attribution]'; }
+                } );
+            }
+
+            function attachRowListeners( row ) {
+                row.querySelector( '.wpail-aitxt__agent-remove' ).addEventListener( 'click', function () {
+                    row.remove();
+                    reindexAgentRows();
+                    buildPreview();
+                } );
+                row.querySelector( '.wpail-aitxt__agent-name' ).addEventListener( 'input', buildPreview );
+                [ '.wpail-aitxt__agent-allow', '.wpail-aitxt__agent-training', '.wpail-aitxt__agent-attribution' ].forEach( function ( sel ) {
+                    var el = row.querySelector( sel );
+                    if ( el ) { el.addEventListener( 'change', buildPreview ); }
+                } );
+            }
+
+            // Attach listeners to server-rendered rows.
+            agentsContainer.querySelectorAll( '.wpail-aitxt__agent-row' ).forEach( attachRowListeners );
+
+            // Add Agent button.
+            if ( addAgentBtn && template ) {
+                addAgentBtn.addEventListener( 'click', function () {
+                    var idx  = rowCounter++;
+                    var clone = template.content.cloneNode( true );
+                    var row   = clone.querySelector( '.wpail-aitxt__agent-row' );
+                    row.querySelector( '.wpail-aitxt__agent-name' ).name        = 'wpail_aitxt[agents][' + idx + '][name]';
+                    row.querySelector( '.wpail-aitxt__agent-allow' ).name       = 'wpail_aitxt[agents][' + idx + '][allow]';
+                    row.querySelector( '.wpail-aitxt__agent-training' ).name    = 'wpail_aitxt[agents][' + idx + '][allow_training]';
+                    row.querySelector( '.wpail-aitxt__agent-attribution' ).name = 'wpail_aitxt[agents][' + idx + '][require_attribution]';
+                    agentsContainer.appendChild( row );
+                    attachRowListeners( row );
+                    row.querySelector( '.wpail-aitxt__agent-name' ).focus();
+                    buildPreview();
+                } );
+            }
+
+            // Global toggle listeners.
+            [ 'wpail_aitxt_allow_crawling', 'wpail_aitxt_allow_training', 'wpail_aitxt_require_attribution' ].forEach( function ( id ) {
+                var el = document.getElementById( id );
+                if ( el ) { el.addEventListener( 'change', buildPreview ); }
+            } );
+
+            // Copy to clipboard.
+            if ( copyBtn ) {
+                copyBtn.addEventListener( 'click', function () {
+                    navigator.clipboard.writeText( aiTxtPreview.value ).then( function () {
+                        var original = copyBtn.textContent;
+                        copyBtn.textContent = 'Copied!';
+                        setTimeout( function () { copyBtn.textContent = original; }, 2000 );
+                    } );
+                } );
+            }
+
+            // Initial render.
+            buildPreview();
+        }
+
     } );
 
 } )();

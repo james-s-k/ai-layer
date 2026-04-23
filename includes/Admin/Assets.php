@@ -45,6 +45,7 @@ class Assets {
 			'wpail_setup_wizard',
 			'wpail_settings',
 			'wpail_llmstxt',
+			'wpail_aitxt',
 			'wpail_answers_upgrade',
 		];
 		foreach ( $wpail_pages as $page ) {

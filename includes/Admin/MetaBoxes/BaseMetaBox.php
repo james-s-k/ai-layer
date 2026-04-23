@@ -16,6 +16,7 @@ namespace WPAIL\Admin\MetaBoxes;
 use WPAIL\Admin\FieldRenderer;
 use WPAIL\Support\FieldDefinitions;
 use WPAIL\Support\RelationshipHelper;
+use WPAIL\Support\RelationshipSync;
 use WPAIL\Support\Sanitizer;
 
 abstract class BaseMetaBox {
@@ -143,9 +144,11 @@ abstract class BaseMetaBox {
 			return;
 		}
 
-		$raw  = wp_unslash( $_POST );
-		$data = Sanitizer::sanitize_fields( $raw, $this->field_definitions() );
+		$raw      = wp_unslash( $_POST );
+		$data     = Sanitizer::sanitize_fields( $raw, $this->field_definitions() );
+		$old_data = RelationshipHelper::get_meta( $post_id );
 
 		RelationshipHelper::save_meta( $post_id, $data );
+		RelationshipSync::sync( $post_id, $this->post_type(), $old_data, $data );
 	}
 }

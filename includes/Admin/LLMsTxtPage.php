@@ -13,7 +13,9 @@ use WPAIL\LLMsTxt\ConflictDetector;
 use WPAIL\LLMsTxt\Generator;
 use WPAIL\LLMsTxt\LLMsTxtSettings;
 use WPAIL\LLMsTxt\LLMsTxtController;
+use WPAIL\WellKnown\AiLayerController;
 use WPAIL\Licensing\Features;
+use WPAIL\Admin\SettingsPage;
 
 class LLMsTxtPage {
 
@@ -44,9 +46,11 @@ class LLMsTxtPage {
 		$generator  = new Generator();
 		$preview    = $generator->generate();
 
-		$is_enabled   = (bool) $settings['enabled'];
-		$has_error    = $detector->has_physical_file() || $detector->has_plain_permalinks();
-		$llms_url     = home_url( '/llms.txt' );
+		$is_enabled        = (bool) $settings['enabled'];
+		$has_error         = $detector->has_physical_file() || $detector->has_plain_permalinks();
+		$llms_url          = home_url( '/llms.txt' );
+		$discovery_mode    = SettingsPage::get( SettingsPage::SETTING_AI_DISCOVERY_MODE, SettingsPage::AI_DISCOVERY_WELL_KNOWN );
+		$is_well_known_mode = $discovery_mode === SettingsPage::AI_DISCOVERY_WELL_KNOWN;
 
 		if ( $is_enabled && ! $has_error ) {
 			$status_class = 'wpail-status--on';
@@ -142,11 +146,24 @@ class LLMsTxtPage {
 										<label>
 											<input type="checkbox" name="wpail_llmstxt[include_endpoints]" value="1"
 												<?php checked( $settings['include_endpoints'] ); ?>>
-											<?php esc_html_e( 'Include the AI Layer structured data endpoints section', 'ai-ready-layer' ); ?>
+											<?php esc_html_e( 'Include the AI Layer endpoints section', 'ai-ready-layer' ); ?>
 										</label>
+										<p class="description">
+											<?php if ( $is_well_known_mode ) : ?>
+												<?php
+												printf(
+													/* translators: %s: well-known URL */
+													esc_html__( 'Inserts a single line pointing to %s (the machine-readable source of truth). Discovery mode is set to /.well-known/ai-layer — change it in Settings to list endpoints directly here instead.', 'ai-ready-layer' ),
+													'<code>' . esc_html( home_url( '/.well-known/ai-layer' ) ) . '</code>'
+												);
+												?>
+											<?php else : ?>
+												<?php esc_html_e( 'Lists all active AI Layer endpoints directly in llms.txt. Products appear automatically when the Products endpoint is enabled in Settings and WooCommerce is active.', 'ai-ready-layer' ); ?>
+											<?php endif; ?>
+										</p>
 									</td>
 								</tr>
-								<?php if ( Features::answers_enabled() ): ?>
+								<?php if ( ! $is_well_known_mode && Features::answers_enabled() ): ?>
 								<tr>
 									<th><?php esc_html_e( '/answers endpoint', 'ai-ready-layer' ); ?></th>
 									<td>
@@ -233,6 +250,7 @@ class LLMsTxtPage {
 
 		LLMsTxtSettings::save( $data );
 		LLMsTxtController::flush_cache();
+		AiLayerController::flush_cache();
 
 		// Ensure rewrite rules include the llms.txt route immediately.
 		flush_rewrite_rules();

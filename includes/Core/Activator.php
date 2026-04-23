@@ -23,6 +23,10 @@ class Activator {
 		( new \WPAIL\PostTypes\ActionPostType() )->register();
 		( new \WPAIL\PostTypes\AnswerPostType() )->register();
 
+		// Register virtual route rewrite rules so they survive the flush.
+		add_rewrite_rule( '^\.well-known/ai-layer$', 'index.php?wpail_wellknown_ai=1', 'top' );
+		add_rewrite_rule( '^ai\.txt$', 'index.php?wpail_aitxt=1', 'top' );
+
 		flush_rewrite_rules();
 
 		$installed = get_option( 'wpail_version', '' );

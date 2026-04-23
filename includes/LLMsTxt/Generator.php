@@ -49,23 +49,33 @@ class Generator {
 
 		// AI Layer endpoints section.
 		if ( $opts['include_endpoints'] ) {
+			$discovery_mode = SettingsPage::get( SettingsPage::SETTING_AI_DISCOVERY_MODE, SettingsPage::AI_DISCOVERY_WELL_KNOWN );
+
 			$lines[] = '## AI Layer Structured Endpoints';
 			$lines[] = '';
-			$lines[] = 'Structured, machine-readable business data is available at the following endpoints:';
-			$lines[] = '';
-			$lines[] = "- [Business Profile]({$base}/profile): Business name, contact details, and description.";
-			$lines[] = "- [Services]({$base}/services): Services and products offered.";
-			$lines[] = "- [Locations]({$base}/locations): Locations and service areas.";
-			$lines[] = "- [FAQs]({$base}/faqs): Frequently asked questions and answers.";
-			$lines[] = "- [Proof & Trust]({$base}/proof): Testimonials, case studies, and accreditations.";
-			$lines[] = "- [Actions]({$base}/actions): Recommended next steps and calls to action.";
 
-			if ( SettingsPage::get( SettingsPage::SETTING_PRODUCTS_ENABLED ) && class_exists( 'WooCommerce' ) ) {
-				$lines[] = "- [Products]({$base}/products): Product catalogue with pricing, availability, and categories.";
-			}
+			if ( $discovery_mode === SettingsPage::AI_DISCOVERY_WELL_KNOWN ) {
+				// Well-known mode: llms.txt is a pointer only — the JSON document is the source of truth.
+				$well_known_url = home_url( '/.well-known/ai-layer' );
+				$lines[] = "Machine-readable endpoint index (JSON): [/.well-known/ai-layer]({$well_known_url})";
+			} else {
+				// llms.txt-only mode: list all endpoints directly.
+				$lines[] = 'Structured, machine-readable business data is available at the following endpoints:';
+				$lines[] = '';
+				$lines[] = "- [Business Profile]({$base}/profile): Business name, contact details, and description.";
+				$lines[] = "- [Services]({$base}/services): Services and products offered.";
+				$lines[] = "- [Locations]({$base}/locations): Locations and service areas.";
+				$lines[] = "- [FAQs]({$base}/faqs): Frequently asked questions and answers.";
+				$lines[] = "- [Proof & Trust]({$base}/proof): Testimonials, case studies, and accreditations.";
+				$lines[] = "- [Actions]({$base}/actions): Recommended next steps and calls to action.";
 
-			if ( $opts['include_answers'] && Features::answers_enabled() ) {
-				$lines[] = "- [Answers]({$base}/answers?query=...): Natural language question answering.";
+				if ( SettingsPage::get( SettingsPage::SETTING_PRODUCTS_ENABLED ) && class_exists( 'WooCommerce' ) ) {
+					$lines[] = "- [Products]({$base}/products): Product catalogue with pricing, availability, and categories.";
+				}
+
+				if ( $opts['include_answers'] && Features::answers_enabled() ) {
+					$lines[] = "- [Answers]({$base}/answers?query=...): Natural language question answering.";
+				}
 			}
 
 			$lines[] = '';

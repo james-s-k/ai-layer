@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace WPAIL\Admin;
 
 use WPAIL\Licensing\Features;
+use WPAIL\Admin\AiTxtPage;
 
 class AdminMenu {
 
@@ -83,6 +84,16 @@ class AdminMenu {
 			[ LLMsTxtPage::class, 'render' ]
 		);
 
+		// AI.txt sub-menu.
+		add_submenu_page(
+			'wpail_dashboard',
+			__( 'ai.txt (Beta)',         'ai-ready-layer' ),
+			__( 'ai.txt (Beta)',         'ai-ready-layer' ),
+			'manage_options',
+			'wpail_aitxt',
+			[ AiTxtPage::class, 'render' ]
+		);
+
 		// In free: add a locked Answers placeholder so users can discover the
 		// feature and reach the upgrade page. In pro the real CPT menu item is
 		// registered automatically by WordPress via show_in_menu.
@@ -102,7 +113,7 @@ class AdminMenu {
 	/**
 	 * CPT sub-menus register on admin_menu before our add_menus callback, so they
 	 * appear above Overview and Business Profile. Force order:
-	 * Overview → Business Profile → middle (CPTs, Answers) → Settings → llms.txt
+	 * Overview → Wizard → Profile → middle (CPTs, Answers) → Settings → llms.txt → AI.txt
 	 */
 	public function order_wpail_submenu(): void {
 		global $submenu;
@@ -117,6 +128,7 @@ class AdminMenu {
 		$middle   = [];
 		$settings = [];
 		$llmstxt  = [];
+		$aitxt    = [];
 
 		foreach ( $submenu['wpail_dashboard'] as $item ) {
 			if ( ! isset( $item[2] ) ) {
@@ -133,6 +145,8 @@ class AdminMenu {
 				$settings[] = $item;
 			} elseif ( 'wpail_llmstxt' === $item[2] ) {
 				$llmstxt[] = $item;
+			} elseif ( 'wpail_aitxt' === $item[2] ) {
+				$aitxt[] = $item;
 			} else {
 				$middle[] = $item;
 			}
@@ -142,7 +156,7 @@ class AdminMenu {
 			return;
 		}
 
-		$submenu['wpail_dashboard'] = array_merge( $overview, $wizard, $profile, $middle, $settings, $llmstxt );
+		$submenu['wpail_dashboard'] = array_merge( $overview, $wizard, $profile, $middle, $settings, $llmstxt, $aitxt );
 	}
 
 	/**

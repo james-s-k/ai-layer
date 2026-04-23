@@ -16,14 +16,16 @@ namespace WPAIL\Licensing;
 class Features {
 
 	// ------------------------------------------------------------------
-	// Current Pro features
+	// Current free features (previously Pro — revisit gating later)
 	// ------------------------------------------------------------------
 
 	/**
 	 * Answers CPT, /answers endpoint, and the rules-based answer engine.
+	 * Currently free. The Freemius gate is preserved — change the return
+	 * value to License::is_pro() to re-enable Pro gating at any time.
 	 */
 	public static function answers_enabled(): bool {
-		return License::is_pro();
+		return true;
 	}
 
 	// ------------------------------------------------------------------

@@ -62,13 +62,18 @@ class LLMsTxtController {
 	}
 
 	private function get_cached_content(): string {
+		$current_mode = \WPAIL\Admin\SettingsPage::get(
+			\WPAIL\Admin\SettingsPage::SETTING_AI_DISCOVERY_MODE,
+			\WPAIL\Admin\SettingsPage::AI_DISCOVERY_WELL_KNOWN
+		);
+
 		$cached = get_transient( 'wpail_llmstxt_content' );
-		if ( false !== $cached ) {
-			return (string) $cached;
+		if ( is_array( $cached ) && ( $cached['mode'] ?? '' ) === $current_mode ) {
+			return (string) ( $cached['content'] ?? '' );
 		}
 
 		$content = $this->generator->generate();
-		set_transient( 'wpail_llmstxt_content', $content, HOUR_IN_SECONDS );
+		set_transient( 'wpail_llmstxt_content', [ 'mode' => $current_mode, 'content' => $content ], HOUR_IN_SECONDS );
 		return $content;
 	}
 

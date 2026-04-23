@@ -11,6 +11,9 @@ declare(strict_types=1);
 
 namespace WPAIL\Admin;
 
+use WPAIL\WellKnown\AiLayerController;
+use WPAIL\LLMsTxt\LLMsTxtController;
+
 class SettingsPage {
 
 	const NONCE_ACTION = 'wpail_save_settings';
@@ -24,6 +27,15 @@ class SettingsPage {
 	const SETTING_SCHEMA_FAQ_PAGE_IDS     = 'schema_faq_page_ids';   // int[]
 	const SETTING_ENDPOINT_CACHE_TTL      = 'endpoint_cache_ttl';
 	const SETTING_PRODUCTS_ENABLED        = 'products_enabled';
+
+	// AI discovery mode.
+	const SETTING_AI_DISCOVERY_MODE  = 'ai_discovery_mode';
+	const AI_DISCOVERY_WELL_KNOWN    = 'well_known'; // /.well-known/ai-layer is canonical; llms.txt links to it
+	const AI_DISCOVERY_LLMSTXT       = 'llmstxt';    // Endpoints listed in /llms.txt; /.well-known/ai-layer disabled
+	const SETTING_HEAD_LINKS_ENABLED = 'head_links_enabled'; // Output <link> tags in <head>
+
+	// Data management.
+	const SETTING_DELETE_ON_UNINSTALL = 'delete_data_on_uninstall';
 
 	// Post type visibility.
 	const SETTING_SERVICE_PUBLIC          = 'service_public';
@@ -79,6 +91,11 @@ class SettingsPage {
 			self::SETTING_FAQ_SLUG              => self::sanitize_rewrite_slug( $_POST[ self::SETTING_FAQ_SLUG ] ?? '', 'faqs' ),
 			self::SETTING_PROOF_PUBLIC          => isset( $_POST[ self::SETTING_PROOF_PUBLIC ] ),
 			self::SETTING_PROOF_SLUG            => self::sanitize_rewrite_slug( $_POST[ self::SETTING_PROOF_SLUG ] ?? '', 'proof' ),
+			self::SETTING_AI_DISCOVERY_MODE     => in_array( $_POST[ self::SETTING_AI_DISCOVERY_MODE ] ?? '', [ self::AI_DISCOVERY_WELL_KNOWN, self::AI_DISCOVERY_LLMSTXT ], true )
+				? $_POST[ self::SETTING_AI_DISCOVERY_MODE ]
+				: self::AI_DISCOVERY_WELL_KNOWN,
+			self::SETTING_HEAD_LINKS_ENABLED    => isset( $_POST[ self::SETTING_HEAD_LINKS_ENABLED ] ),
+			self::SETTING_DELETE_ON_UNINSTALL   => isset( $_POST[ self::SETTING_DELETE_ON_UNINSTALL ] ),
 		];
 
 		update_option( WPAIL_OPT_SETTINGS, $settings );
@@ -86,6 +103,10 @@ class SettingsPage {
 		// Schedule a rewrite flush for the next request — CPTs will register with
 		// the new visibility settings and the rules will be regenerated cleanly.
 		set_transient( 'wpail_flush_rewrite', true, MINUTE_IN_SECONDS );
+
+		// Settings that affect discovery output — invalidate both caches.
+		AiLayerController::flush_cache();
+		LLMsTxtController::flush_cache();
 
 		add_action( 'admin_notices', function (): void {
 			echo '<div class="notice notice-success is-dismissible"><p>';
@@ -107,6 +128,8 @@ class SettingsPage {
 		$cache_ttl           = (int) self::get( self::SETTING_ENDPOINT_CACHE_TTL, 0 );
 		$products_enabled    = (bool) self::get( self::SETTING_PRODUCTS_ENABLED, false );
 		$has_woocommerce     = class_exists( 'WooCommerce' );
+		$ai_discovery_mode   = (string) self::get( self::SETTING_AI_DISCOVERY_MODE, self::AI_DISCOVERY_WELL_KNOWN );
+		$head_links_enabled  = (bool) self::get( self::SETTING_HEAD_LINKS_ENABLED, true );
 
 		$service_public      = (bool) self::get( self::SETTING_SERVICE_PUBLIC, false );
 		$service_slug        = (string) self::get( self::SETTING_SERVICE_SLUG, 'services' );
@@ -116,6 +139,7 @@ class SettingsPage {
 		$faq_slug            = (string) self::get( self::SETTING_FAQ_SLUG, 'faqs' );
 		$proof_public        = (bool) self::get( self::SETTING_PROOF_PUBLIC, false );
 		$proof_slug          = (string) self::get( self::SETTING_PROOF_SLUG, 'proof' );
+		$delete_on_uninstall = (bool) self::get( self::SETTING_DELETE_ON_UNINSTALL, false );
 
 		// Detect conflicting SEO plugins.
 		$has_yoast     = defined( 'WPSEO_VERSION' );
@@ -256,6 +280,64 @@ class SettingsPage {
 					</tr>
 				</table>
 
+				<h2><?php esc_html_e( 'AI Discovery', 'ai-ready-layer' ); ?></h2>
+				<p class="description" style="margin-bottom:12px;">
+					<?php esc_html_e( 'Controls how AI systems and agents discover your AI Layer endpoints. This affects both /.well-known/ai-layer and the endpoints section of /llms.txt.', 'ai-ready-layer' ); ?>
+				</p>
+				<table class="form-table" role="presentation">
+					<tr>
+						<th scope="row"><?php esc_html_e( 'Endpoint discovery mode', 'ai-ready-layer' ); ?></th>
+						<td>
+							<fieldset>
+								<label style="display:block; margin-bottom:12px;">
+									<input type="radio"
+									       name="<?php echo esc_attr( self::SETTING_AI_DISCOVERY_MODE ); ?>"
+									       value="<?php echo esc_attr( self::AI_DISCOVERY_WELL_KNOWN ); ?>"
+									       <?php checked( $ai_discovery_mode, self::AI_DISCOVERY_WELL_KNOWN ); ?>>
+									<strong><?php esc_html_e( '/.well-known/ai-layer — recommended', 'ai-ready-layer' ); ?></strong>
+									<span class="description" style="display:block; margin-left:22px; margin-top:3px;">
+										<?php
+										printf(
+											/* translators: %s: well-known URL */
+											esc_html__( 'Endpoints defined as machine-readable JSON at %s — the single source of truth. /llms.txt links to it. Best for agents and tools that query the discovery document directly.', 'ai-ready-layer' ),
+											'<code>' . esc_html( home_url( '/.well-known/ai-layer' ) ) . '</code>'
+										);
+										?>
+									</span>
+								</label>
+								<label style="display:block;">
+									<input type="radio"
+									       name="<?php echo esc_attr( self::SETTING_AI_DISCOVERY_MODE ); ?>"
+									       value="<?php echo esc_attr( self::AI_DISCOVERY_LLMSTXT ); ?>"
+									       <?php checked( $ai_discovery_mode, self::AI_DISCOVERY_LLMSTXT ); ?>>
+									<strong><?php esc_html_e( '/llms.txt only', 'ai-ready-layer' ); ?></strong>
+									<span class="description" style="display:block; margin-left:22px; margin-top:3px;">
+										<?php esc_html_e( 'Endpoints listed directly in /llms.txt. /.well-known/ai-layer returns 404. Use this if you prefer a single plain-text discovery file.', 'ai-ready-layer' ); ?>
+									</span>
+								</label>
+							</fieldset>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><?php esc_html_e( 'Discovery link tags', 'ai-ready-layer' ); ?></th>
+						<td>
+							<label>
+								<input type="checkbox"
+								       name="<?php echo esc_attr( self::SETTING_HEAD_LINKS_ENABLED ); ?>"
+								       value="1"
+								       <?php checked( $head_links_enabled ); ?>>
+								<?php esc_html_e( 'Output AI discovery', 'ai-ready-layer' ); ?>
+								<code>&lt;link&gt;</code>
+								<?php esc_html_e( 'tags in every page', 'ai-ready-layer' ); ?>
+								<code>&lt;head&gt;</code>
+							</label>
+							<p class="description">
+								<?php esc_html_e( 'Signals to AI crawlers and agents where to find machine-readable business data. Outputs a rel="ai-layer" link for /.well-known/ai-layer (when active) and a rel="llms-txt" link for /llms.txt (when enabled). Enabled by default.', 'ai-ready-layer' ); ?>
+							</p>
+						</td>
+					</tr>
+				</table>
+
 				<h2><?php esc_html_e( 'Post Type Visibility', 'ai-ready-layer' ); ?></h2>
 				<p>
 					<?php esc_html_e( 'By default, all AI Layer post types are private — they serve the REST API only and have no front-end URLs. Enable public access to make a post type available in your theme so your content and API layer share a single source of data.', 'ai-ready-layer' ); ?>
@@ -338,6 +420,25 @@ class SettingsPage {
 						</td>
 					</tr>
 					<?php endforeach; ?>
+				</table>
+
+				<h2><?php esc_html_e( 'Data Management', 'ai-ready-layer' ); ?></h2>
+				<table class="form-table" role="presentation">
+					<tr>
+						<th scope="row"><?php esc_html_e( 'Remove data on deletion', 'ai-ready-layer' ); ?></th>
+						<td>
+							<label>
+								<input type="checkbox"
+								       name="<?php echo esc_attr( self::SETTING_DELETE_ON_UNINSTALL ); ?>"
+								       value="1"
+								       <?php checked( $delete_on_uninstall ); ?>>
+								<?php esc_html_e( 'Delete all AI Layer data when the plugin is removed', 'ai-ready-layer' ); ?>
+							</label>
+							<p class="description">
+								<?php esc_html_e( 'When enabled, deleting this plugin will permanently erase all posts (services, locations, FAQs, proof, actions, answers), the business profile, all settings, and all cached data. This cannot be undone. Leave disabled if you may reinstall the plugin later.', 'ai-ready-layer' ); ?>
+							</p>
+						</td>
+					</tr>
 				</table>
 
 				<p class="submit">

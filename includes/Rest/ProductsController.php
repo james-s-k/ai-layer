@@ -138,34 +138,37 @@ class ProductsController extends BaseController {
 		$image_id = $product->get_image_id();
 
 		return [
-			'id'                => $product->get_id(),
-			'slug'              => $product->get_slug(),
-			'name'              => $product->get_name(),
-			'type'              => $product->get_type(),
-			'sku'               => $product->get_sku(),
-			'price'             => $product->get_price(),
-			'regular_price'     => $product->get_regular_price(),
-			'sale_price'        => $product->get_sale_price() ?: null,
-			'currency'          => get_woocommerce_currency(),
-			'on_sale'           => $product->is_on_sale(),
-			'in_stock'          => $product->is_in_stock(),
-			'short_description' => wp_strip_all_tags( $product->get_short_description() ),
-			'categories'        => $this->get_term_slugs( $product->get_id(), 'product_cat' ),
-			'image'             => $image_id ? wp_get_attachment_url( $image_id ) : null,
-			'url'               => get_permalink( $product->get_id() ),
+			'id'         => $product->get_id(),
+			'slug'       => $product->get_slug(),
+			'name'       => $product->get_name(),
+			'type'       => $product->get_type(),
+			'price'      => $product->get_price(),
+			'currency'   => get_woocommerce_currency(),
+			'on_sale'    => $product->is_on_sale(),
+			'in_stock'   => $product->is_in_stock(),
+			'categories' => $this->get_term_slugs( $product->get_id(), 'product_cat' ),
+			'image'      => $image_id ? wp_get_attachment_url( $image_id ) : null,
+			'url'        => get_permalink( $product->get_id() ),
 		];
 	}
 
 	/**
-	 * Full detail shape for single-product responses.
+	 * Extended shape for single-product responses.
+	 * Adds pricing detail, descriptions, gallery, and physical attributes
+	 * that are omitted from the lean summary shape.
 	 *
 	 * @return array<string, mixed>
 	 */
 	private function product_to_detail( \WC_Product $product ): array {
 		$data = $this->product_to_summary( $product );
 
-		// Full description with block rendering (summary has short_description already).
-		$data['description']  = wp_strip_all_tags( do_blocks( $product->get_description() ) );
+		// Pricing detail (omitted from summary for brevity).
+		$data['sku']           = $product->get_sku();
+		$data['regular_price'] = $product->get_regular_price();
+		$data['sale_price']    = $product->get_sale_price() ?: null;
+
+		$data['short_description'] = wp_strip_all_tags( $product->get_short_description() );
+		$data['description']       = wp_strip_all_tags( do_blocks( $product->get_description() ) );
 
 		$data['is_virtual']   = $product->is_virtual();
 		$data['is_downloadable']   = $product->is_downloadable();

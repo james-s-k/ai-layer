@@ -33,7 +33,16 @@ class LLMsTxtSettings {
 			'include_answers'   => true,
 			'include_pages'     => false,
 			'custom_intro'      => '',
-			'custom_pages'      => '',
+			'pages'             => [
+				'common' => [
+					'about'   => 0,
+					'contact' => 0,
+					'privacy' => 0,
+					'terms'   => 0,
+					'blog'    => 0,
+				],
+				'custom' => [],
+			],
 		];
 	}
 }
