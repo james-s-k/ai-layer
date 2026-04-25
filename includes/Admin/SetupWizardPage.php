@@ -9,6 +9,7 @@
  *   scan        — detect available sources, show summary of what was found
  *   profile     — review and selectively apply Business Profile suggestions
  *   woocommerce — enable /products endpoint (shown only when WooCommerce is active)
+ *   discovery   — configure endpoint discovery mode, link tags, llms.txt, and AI.txt
  *   done        — completion summary with next-step links
  *
  * @package WPAIL\Admin
@@ -21,16 +22,24 @@ namespace WPAIL\Admin;
 use WPAIL\Setup\Extractor;
 use WPAIL\Support\FieldDefinitions;
 use WPAIL\Support\Sanitizer;
+use WPAIL\Licensing\Features;
+use WPAIL\LLMsTxt\LLMsTxtSettings;
+use WPAIL\LLMsTxt\LLMsTxtController;
+use WPAIL\AiTxt\AiTxtSettings;
+use WPAIL\AiTxt\AiTxtController;
+use WPAIL\WellKnown\AiLayerController;
 
 class SetupWizardPage {
 
 	const STEP_SCAN        = 'scan';
 	const STEP_PROFILE     = 'profile';
 	const STEP_WOOCOMMERCE = 'woocommerce';
+	const STEP_DISCOVERY   = 'discovery';
 	const STEP_DONE        = 'done';
 
 	const NONCE_PROFILE     = 'wpail_wizard_profile';
 	const NONCE_WOOCOMMERCE = 'wpail_wizard_woo';
+	const NONCE_DISCOVERY   = 'wpail_wizard_discovery';
 
 	public function register(): void {
 		add_action( 'admin_init', [ $this, 'handle_save' ] );
@@ -47,6 +56,8 @@ class SetupWizardPage {
 			$this->handle_profile_save();
 		} elseif ( 'enable_products' === $action ) {
 			$this->handle_enable_products();
+		} elseif ( 'save_discovery' === $action ) {
+			$this->handle_discovery_save();
 		}
 	}
 
@@ -86,7 +97,7 @@ class SetupWizardPage {
 		update_option( WPAIL_OPT_BUSINESS, $current );
 
 		$extractor = new Extractor();
-		$next_step = $extractor->has_woocommerce_products() ? self::STEP_WOOCOMMERCE : self::STEP_DONE;
+		$next_step = $extractor->has_woocommerce_products() ? self::STEP_WOOCOMMERCE : self::STEP_DISCOVERY;
 
 		wp_safe_redirect(
 			add_query_arg(
@@ -124,7 +135,61 @@ class SetupWizardPage {
 
 		wp_safe_redirect(
 			add_query_arg(
-				[ 'page' => 'wpail_setup_wizard', 'step' => self::STEP_DONE, 'products_enabled' => isset( $_POST['wpail_enable_products'] ) ? '1' : '0' ],
+				[ 'page' => 'wpail_setup_wizard', 'step' => self::STEP_DISCOVERY ],
+				admin_url( 'admin.php' )
+			)
+		);
+		exit;
+	}
+
+	private function handle_discovery_save(): void {
+		if ( ! isset( $_POST['wpail_wizard_discovery_nonce'] ) ) {
+			return;
+		}
+
+		if ( ! wp_verify_nonce(
+			sanitize_text_field( wp_unslash( $_POST['wpail_wizard_discovery_nonce'] ) ),
+			self::NONCE_DISCOVERY
+		) ) {
+			return;
+		}
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		// Discovery mode + head links (main settings option).
+		$settings = get_option( WPAIL_OPT_SETTINGS, [] );
+		if ( ! is_array( $settings ) ) {
+			$settings = [];
+		}
+		$mode = sanitize_key( $_POST['ai_discovery_mode'] ?? '' );
+		$settings[ SettingsPage::SETTING_AI_DISCOVERY_MODE ] = in_array(
+			$mode,
+			[ SettingsPage::AI_DISCOVERY_WELL_KNOWN, SettingsPage::AI_DISCOVERY_LLMSTXT ],
+			true
+		) ? $mode : SettingsPage::AI_DISCOVERY_WELL_KNOWN;
+		$settings[ SettingsPage::SETTING_HEAD_LINKS_ENABLED ] = ! empty( $_POST['head_links_enabled'] );
+		update_option( WPAIL_OPT_SETTINGS, $settings );
+
+		// llms.txt — merge enabled flag into existing settings.
+		$llms            = LLMsTxtSettings::get_all();
+		$llms['enabled'] = ! empty( $_POST['llmstxt_enabled'] );
+		LLMsTxtSettings::save( $llms );
+
+		// AI.txt — merge enabled flag into existing settings.
+		$aitxt            = AiTxtSettings::get_all();
+		$aitxt['enabled'] = ! empty( $_POST['aitxt_enabled'] );
+		AiTxtSettings::save( $aitxt );
+
+		LLMsTxtController::flush_cache();
+		AiLayerController::flush_cache();
+		AiTxtController::flush_cache();
+		flush_rewrite_rules();
+
+		wp_safe_redirect(
+			add_query_arg(
+				[ 'page' => 'wpail_setup_wizard', 'step' => self::STEP_DONE ],
 				admin_url( 'admin.php' )
 			)
 		);
@@ -189,6 +254,7 @@ class SetupWizardPage {
 			match ( $step ) {
 				self::STEP_PROFILE     => self::render_profile( $suggestions, $current ),
 				self::STEP_WOOCOMMERCE => self::render_woocommerce(),
+				self::STEP_DISCOVERY   => self::render_discovery( $has_woo ),
 				self::STEP_DONE        => self::render_done(),
 				default                => self::render_scan( $sources, $suggestions, $has_woo ),
 			};
@@ -417,6 +483,116 @@ class SetupWizardPage {
 		<?php
 	}
 
+	private static function render_discovery( bool $has_woo ): void {
+		$discovery_mode  = SettingsPage::get( SettingsPage::SETTING_AI_DISCOVERY_MODE, SettingsPage::AI_DISCOVERY_WELL_KNOWN );
+		$head_links      = SettingsPage::get( SettingsPage::SETTING_HEAD_LINKS_ENABLED, true );
+		$llmstxt_enabled = LLMsTxtSettings::get( 'enabled', false );
+		$aitxt_enabled   = AiTxtSettings::get( 'enabled', false );
+		$back_step       = $has_woo ? self::STEP_WOOCOMMERCE : self::STEP_PROFILE;
+		?>
+		<div class="wpail-wizard__body">
+
+			<h2><?php esc_html_e( 'Discovery &amp; AI Files', 'ai-ready-layer' ); ?></h2>
+			<p><?php esc_html_e( 'Choose how AI agents and crawlers find your structured data, and which standard files your site serves.', 'ai-ready-layer' ); ?></p>
+
+			<form method="post" action="">
+				<?php wp_nonce_field( self::NONCE_DISCOVERY, 'wpail_wizard_discovery_nonce' ); ?>
+				<input type="hidden" name="wpail_wizard_action" value="save_discovery">
+
+				<h3 style="margin-top: 20px;"><?php esc_html_e( 'Endpoint discovery mode', 'ai-ready-layer' ); ?></h3>
+
+				<div class="wpail-wizard__field" style="align-items: flex-start;">
+					<label class="wpail-wizard__field-check" style="align-items: flex-start; padding-top: 2px;">
+						<input type="radio" name="ai_discovery_mode" value="<?php echo esc_attr( SettingsPage::AI_DISCOVERY_WELL_KNOWN ); ?>"
+							<?php checked( $discovery_mode, SettingsPage::AI_DISCOVERY_WELL_KNOWN ); ?>>
+						<span class="wpail-wizard__field-label">
+							<?php esc_html_e( '/.well-known/ai-layer', 'ai-ready-layer' ); ?>
+							<span class="wpail-badge wpail-badge--new" style="background:#edfaef;color:#00a32a;border:1px solid #b8e6bf;"><?php esc_html_e( 'Recommended', 'ai-ready-layer' ); ?></span>
+						</span>
+					</label>
+					<div class="wpail-wizard__field-body">
+						<p class="description"><?php esc_html_e( 'Serves a canonical JSON document at a standard well-known URL. llms.txt links to it as a pointer rather than duplicating all endpoints.', 'ai-ready-layer' ); ?></p>
+					</div>
+				</div>
+
+				<div class="wpail-wizard__field" style="align-items: flex-start;">
+					<label class="wpail-wizard__field-check" style="align-items: flex-start; padding-top: 2px;">
+						<input type="radio" name="ai_discovery_mode" value="<?php echo esc_attr( SettingsPage::AI_DISCOVERY_LLMSTXT ); ?>"
+							<?php checked( $discovery_mode, SettingsPage::AI_DISCOVERY_LLMSTXT ); ?>>
+						<span class="wpail-wizard__field-label"><?php esc_html_e( 'llms.txt only', 'ai-ready-layer' ); ?></span>
+					</label>
+					<div class="wpail-wizard__field-body">
+						<p class="description"><?php esc_html_e( 'Lists all endpoints directly inside llms.txt. The /.well-known/ai-layer URL will not respond.', 'ai-ready-layer' ); ?></p>
+					</div>
+				</div>
+
+				<hr style="margin: 4px 0 8px; border: none; border-top: 1px solid #f0f0f1;">
+
+				<div class="wpail-wizard__field">
+					<label class="wpail-wizard__field-check">
+						<input type="checkbox" name="head_links_enabled" value="1"
+							<?php checked( $head_links ); ?>>
+						<span class="wpail-wizard__field-label"><?php esc_html_e( 'Add discovery link tags to every page', 'ai-ready-layer' ); ?></span>
+					</label>
+					<div class="wpail-wizard__field-body">
+						<p class="description">
+							<?php
+							printf(
+								/* translators: 1: rel="ai-layer" 2: rel="llms-txt" 3: <head> */
+								esc_html__( 'Injects %1$s and %2$s tags into the page %3$s. Helps crawlers find your data without needing to know the URLs in advance.', 'ai-ready-layer' ),
+								'<code>rel="ai-layer"</code>',
+								'<code>rel="llms-txt"</code>',
+								'<code>&lt;head&gt;</code>'
+							);
+							?>
+						</p>
+					</div>
+				</div>
+
+				<hr style="margin: 4px 0 8px; border: none; border-top: 1px solid #f0f0f1;">
+				<h3 style="margin: 12px 0 4px;"><?php esc_html_e( 'AI files', 'ai-ready-layer' ); ?></h3>
+
+				<div class="wpail-wizard__field">
+					<label class="wpail-wizard__field-check">
+						<input type="checkbox" name="llmstxt_enabled" value="1"
+							<?php checked( $llmstxt_enabled ); ?>>
+						<span class="wpail-wizard__field-label"><?php esc_html_e( 'Enable llms.txt', 'ai-ready-layer' ); ?></span>
+					</label>
+					<div class="wpail-wizard__field-body">
+						<p class="description"><?php esc_html_e( 'Serves a generated /llms.txt file pointing AI systems to your structured data endpoints. Follows the emerging llms.txt standard.', 'ai-ready-layer' ); ?></p>
+					</div>
+				</div>
+
+				<div class="wpail-wizard__field">
+					<label class="wpail-wizard__field-check">
+						<input type="checkbox" name="aitxt_enabled" value="1"
+							<?php checked( $aitxt_enabled ); ?>>
+						<span class="wpail-wizard__field-label"><?php esc_html_e( 'Enable AI.txt', 'ai-ready-layer' ); ?></span>
+					</label>
+					<div class="wpail-wizard__field-body">
+						<p class="description"><?php esc_html_e( 'Serves an /ai.txt file declaring your crawling and training permissions for AI agents. Fine-tune per-agent rules on the AI.txt settings page.', 'ai-ready-layer' ); ?></p>
+					</div>
+				</div>
+
+				<div class="wpail-wizard__nav">
+					<button type="submit" class="button button-primary">
+						<?php esc_html_e( 'Save and continue', 'ai-ready-layer' ); ?> &rarr;
+					</button>
+					<a href="<?php echo esc_url( add_query_arg( [ 'page' => 'wpail_setup_wizard', 'step' => $back_step ], admin_url( 'admin.php' ) ) ); ?>"
+					   class="button button-secondary">
+						&larr; <?php esc_html_e( 'Back', 'ai-ready-layer' ); ?>
+					</a>
+					<a href="<?php echo esc_url( add_query_arg( [ 'page' => 'wpail_setup_wizard', 'step' => self::STEP_DONE ], admin_url( 'admin.php' ) ) ); ?>"
+					   class="wpail-wizard__text-link">
+						<?php esc_html_e( 'Skip this step', 'ai-ready-layer' ); ?>
+					</a>
+				</div>
+
+			</form>
+		</div>
+		<?php
+	}
+
 	private static function render_done(): void {
 		$products_enabled = isset( $_GET['products_enabled'] ) && '1' === $_GET['products_enabled'];
 		?>
@@ -436,7 +612,7 @@ class SetupWizardPage {
 			</div>
 
 			<h2><?php esc_html_e( 'What to do next', 'ai-ready-layer' ); ?></h2>
-			<p><?php esc_html_e( 'The wizard covers Business Profile and Services. These sections still need your attention:', 'ai-ready-layer' ); ?></p>
+			<p><?php esc_html_e( 'The wizard covers Business Profile and discovery settings. These sections still need your attention:', 'ai-ready-layer' ); ?></p>
 
 			<div class="wpail-wizard__next-steps">
 				<?php
@@ -476,13 +652,32 @@ class SetupWizardPage {
 						'url'   => admin_url( 'post-new.php?post_type=wpail_action' ),
 						'cta'   => __( 'Add first Action', 'ai-ready-layer' ),
 					],
+					[
+						'icon'  => 'dashicons-format-chat',
+						'label' => __( 'Add Answers', 'ai-ready-layer' ),
+						'desc'  => Features::answers_enabled()
+							? __( 'Pre-written answers are returned when an agent queries your data. Pair each one with Services, Locations, FAQs, and call-to-actions.', 'ai-ready-layer' )
+							: __( 'Pre-written answers power the /answers endpoint. Upgrade to AI Layer Pro to unlock this feature.', 'ai-ready-layer' ),
+						'url'   => Features::answers_enabled()
+							? admin_url( 'post-new.php?post_type=wpail_answer' )
+							: admin_url( 'admin.php?page=wpail_answers' ),
+						'cta'   => Features::answers_enabled()
+							? __( 'Add first Answer', 'ai-ready-layer' )
+							: __( 'Learn about Answers', 'ai-ready-layer' ),
+						'pro'   => ! Features::answers_enabled(),
+					]
 				];
 
 				foreach ( $next as $item ) : ?>
 					<div class="wpail-wizard__next-step">
 						<span class="dashicons <?php echo esc_attr( $item['icon'] ); ?> wpail-wizard__next-icon"></span>
 						<div>
-							<strong><?php echo esc_html( $item['label'] ); ?></strong>
+							<strong>
+								<?php echo esc_html( $item['label'] ); ?>
+								<?php if ( ! empty( $item['pro'] ) ) : ?>
+									<span class="wpail-pro-badge">Pro</span>
+								<?php endif; ?>
+							</strong>
 							<p><?php echo esc_html( $item['desc'] ); ?></p>
 							<a href="<?php echo esc_url( $item['url'] ); ?>" class="button">
 								<?php echo esc_html( $item['cta'] ); ?>
@@ -515,17 +710,18 @@ class SetupWizardPage {
 	 * @return array<string, string>
 	 */
 	private static function build_steps( bool $has_woo ): array {
+		$n     = 1;
 		$steps = [
-			self::STEP_SCAN    => __( '1. Detect', 'ai-ready-layer' ),
-			self::STEP_PROFILE => __( '2. Business Profile', 'ai-ready-layer' ),
+			self::STEP_SCAN    => $n++ . '. ' . __( 'Detect', 'ai-ready-layer' ),
+			self::STEP_PROFILE => $n++ . '. ' . __( 'Business Profile', 'ai-ready-layer' ),
 		];
 
 		if ( $has_woo ) {
-			$steps[ self::STEP_WOOCOMMERCE ] = __( '3. WooCommerce', 'ai-ready-layer' );
-			$steps[ self::STEP_DONE ]        = __( '4. Done', 'ai-ready-layer' );
-		} else {
-			$steps[ self::STEP_DONE ] = __( '3. Done', 'ai-ready-layer' );
+			$steps[ self::STEP_WOOCOMMERCE ] = $n++ . '. ' . __( 'WooCommerce', 'ai-ready-layer' );
 		}
+
+		$steps[ self::STEP_DISCOVERY ] = $n++ . '. ' . __( 'Discovery', 'ai-ready-layer' );
+		$steps[ self::STEP_DONE ]      = $n . '. ' . __( 'Done', 'ai-ready-layer' );
 
 		return $steps;
 	}

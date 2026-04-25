@@ -41,6 +41,14 @@ class LLMsTxtPage {
 		}
 
 		$settings   = LLMsTxtSettings::get_all();
+		$pages_data = $settings['pages'];
+		$common_labels = [
+			'about'   => __( 'About', 'ai-ready-layer' ),
+			'contact' => __( 'Contact', 'ai-ready-layer' ),
+			'privacy' => __( 'Privacy policy', 'ai-ready-layer' ),
+			'terms'   => __( 'Terms', 'ai-ready-layer' ),
+			'blog'    => __( 'Blog', 'ai-ready-layer' ),
+		];
 		$detector   = new ConflictDetector();
 		$conflicts  = $detector->get_conflicts();
 		$generator  = new Generator();
@@ -185,21 +193,101 @@ class LLMsTxtPage {
 										</label>
 									</td>
 								</tr>
-								<tr id="wpail_llmstxt_pages_row" <?php echo $settings['include_pages'] ? '' : 'style="display:none"'; ?>>
-									<th>
-										<label for="wpail_llmstxt_custom_pages">
-											<?php esc_html_e( 'Page URLs', 'ai-ready-layer' ); ?>
-										</label>
-									</th>
-									<td>
-										<textarea name="wpail_llmstxt[custom_pages]" id="wpail_llmstxt_custom_pages"
-											rows="5" class="large-text"><?php echo esc_textarea( $settings['custom_pages'] ); ?></textarea>
-										<p class="description">
-											<?php esc_html_e( 'One entry per line. Use markdown link format: [Page Title](https://example.com/page)', 'ai-ready-layer' ); ?>
-										</p>
-									</td>
-								</tr>
 							</table>
+
+							<div id="wpail_llmstxt_pages_section" <?php echo $settings['include_pages'] ? '' : 'style="display:none"'; ?>>
+
+								<table class="form-table wpail-meta-box__table wpail-pages-table">
+									<?php foreach ( $common_labels as $key => $label ) :
+										$page_id    = (int) ( $pages_data['common'][ $key ] ?? 0 );
+										$page_title = $page_id > 0 ? get_the_title( $page_id ) : '';
+									?>
+									<tr>
+										<th><?php echo esc_html( $label ); ?></th>
+										<td>
+											<div class="wpail-page-picker">
+												<div class="wpail-page-picker__search-wrap">
+													<input type="text"
+														class="wpail-page-picker__search regular-text"
+														placeholder="<?php esc_attr_e( 'Search to select a page…', 'ai-ready-layer' ); ?>"
+														value="<?php echo esc_attr( $page_title ); ?>"
+														autocomplete="off">
+													<div class="wpail-page-picker__dropdown"></div>
+												</div>
+												<input type="hidden"
+													name="wpail_llmstxt[pages][common][<?php echo esc_attr( $key ); ?>]"
+													class="wpail-page-picker__id"
+													value="<?php echo esc_attr( $page_id ); ?>">
+												<button type="button" class="wpail-page-picker__clear button-link"
+													<?php echo $page_id > 0 ? '' : 'style="display:none"'; ?>>
+													<?php esc_html_e( 'Clear', 'ai-ready-layer' ); ?>
+												</button>
+											</div>
+										</td>
+									</tr>
+									<?php endforeach; ?>
+								</table>
+
+								<div class="wpail-pages-custom">
+									<div class="wpail-pages-section__header">
+										<p class="wpail-pages-section__label">
+											<?php esc_html_e( 'Custom pages', 'ai-ready-layer' ); ?>
+										</p>
+									</div>
+									<div class="wpail-page-repeater" id="wpail-page-repeater">
+										<?php foreach ( $pages_data['custom'] as $i => $row ) :
+											$page_id    = (int) ( $row['id'] ?? 0 );
+											$page_title = $page_id > 0 ? get_the_title( $page_id ) : '';
+										?>
+										<div class="wpail-page-repeater__row">
+											<div class="wpail-page-picker">
+												<div class="wpail-page-picker__search-wrap">
+													<input type="text"
+														class="wpail-page-picker__search regular-text"
+														placeholder="<?php esc_attr_e( 'Search to select a page…', 'ai-ready-layer' ); ?>"
+														value="<?php echo esc_attr( $page_title ); ?>"
+														autocomplete="off">
+													<div class="wpail-page-picker__dropdown"></div>
+												</div>
+												<input type="hidden"
+													name="wpail_llmstxt[pages][custom][<?php echo (int) $i; ?>][id]"
+													class="wpail-page-picker__id"
+													value="<?php echo esc_attr( $page_id ); ?>">
+												<button type="button" class="wpail-page-picker__clear button-link"
+													<?php echo $page_id > 0 ? '' : 'style="display:none"'; ?>>
+													<?php esc_html_e( 'Clear', 'ai-ready-layer' ); ?>
+												</button>
+											</div>
+											<button type="button" class="wpail-page-repeater__remove button-link">
+												<?php esc_html_e( 'Remove', 'ai-ready-layer' ); ?>
+											</button>
+										</div>
+										<?php endforeach; ?>
+									</div>
+									<button type="button" id="wpail-add-custom-page" class="button">
+										<?php esc_html_e( '+ Add page', 'ai-ready-layer' ); ?>
+									</button>
+								</div>
+
+								<template id="wpail-custom-page-template">
+									<div class="wpail-page-repeater__row">
+										<div class="wpail-page-picker">
+											<div class="wpail-page-picker__search-wrap">
+												<input type="text"
+													class="wpail-page-picker__search regular-text"
+													placeholder="Search to select a page&hellip;"
+													autocomplete="off">
+												<div class="wpail-page-picker__dropdown"></div>
+											</div>
+											<input type="hidden" class="wpail-page-picker__id" name="" value="0">
+											<button type="button" class="wpail-page-picker__clear button-link" style="display:none">Clear</button>
+										</div>
+										<button type="button" class="wpail-page-repeater__remove button-link">Remove</button>
+									</div>
+								</template>
+
+							</div><!-- /#wpail_llmstxt_pages_section -->
+
 						</div>
 
 						<?php submit_button( __( 'Save Settings', 'ai-ready-layer' ) ); ?>
@@ -230,6 +318,13 @@ class LLMsTxtPage {
 
 			</form>
 
+			<script>
+			window.wpailLlmsTxt = {
+				nonce:   <?php echo wp_json_encode( wp_create_nonce( 'wp_rest' ) ); ?>,
+				restUrl: <?php echo wp_json_encode( rest_url() ); ?>
+			};
+			</script>
+
 		</div>
 		<?php
 	}
@@ -239,13 +334,31 @@ class LLMsTxtPage {
 			? $_POST['wpail_llmstxt']
 			: [];
 
+		$common = [];
+		foreach ( [ 'about', 'contact', 'privacy', 'terms', 'blog' ] as $key ) {
+			$common[ $key ] = absint( $raw['pages']['common'][ $key ] ?? 0 );
+		}
+
+		$custom = [];
+		if ( isset( $raw['pages']['custom'] ) && is_array( $raw['pages']['custom'] ) ) {
+			foreach ( $raw['pages']['custom'] as $row ) {
+				$id = absint( $row['id'] ?? 0 );
+				if ( $id > 0 ) {
+					$custom[] = [ 'id' => $id ];
+				}
+			}
+		}
+
 		$data = [
 			'enabled'           => ! empty( $raw['enabled'] ),
 			'include_endpoints' => ! empty( $raw['include_endpoints'] ),
 			'include_answers'   => ! empty( $raw['include_answers'] ),
 			'include_pages'     => ! empty( $raw['include_pages'] ),
 			'custom_intro'      => sanitize_textarea_field( $raw['custom_intro'] ?? '' ),
-			'custom_pages'      => sanitize_textarea_field( $raw['custom_pages'] ?? '' ),
+			'pages'             => [
+				'common' => $common,
+				'custom' => $custom,
+			],
 		];
 
 		LLMsTxtSettings::save( $data );

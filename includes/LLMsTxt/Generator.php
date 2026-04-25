@@ -83,7 +83,7 @@ class Generator {
 
 		// Optional key pages section.
 		if ( $opts['include_pages'] ) {
-			$page_lines = $this->parse_page_lines( $opts['custom_pages'] );
+			$page_lines = $this->build_page_lines( $opts['pages'] ?? [] );
 			if ( ! empty( $page_lines ) ) {
 				$lines[] = '## Key Pages';
 				$lines[] = '';
@@ -103,13 +103,41 @@ class Generator {
 	}
 
 	/** @return array<string> */
-	private function parse_page_lines( string $raw ): array {
-		if ( trim( $raw ) === '' ) {
-			return [];
+	private function build_page_lines( array $pages ): array {
+		$lines = [];
+
+		foreach ( [ 'about', 'contact', 'privacy', 'terms', 'blog' ] as $key ) {
+			$id = absint( $pages['common'][ $key ] ?? 0 );
+			if ( $id > 0 ) {
+				$line = $this->page_id_to_link( $id );
+				if ( $line !== '' ) {
+					$lines[] = $line;
+				}
+			}
 		}
-		return array_values( array_filter(
-			array_map( 'trim', explode( "\n", $raw ) ),
-			fn( string $line ) => $line !== ''
-		) );
+
+		foreach ( (array) ( $pages['custom'] ?? [] ) as $row ) {
+			$id = absint( $row['id'] ?? 0 );
+			if ( $id > 0 ) {
+				$line = $this->page_id_to_link( $id );
+				if ( $line !== '' ) {
+					$lines[] = $line;
+				}
+			}
+		}
+
+		return $lines;
+	}
+
+	private function page_id_to_link( int $id ): string {
+		$post = get_post( $id );
+		if ( ! $post instanceof \WP_Post || 'publish' !== $post->post_status ) {
+			return '';
+		}
+		$url = get_permalink( $post );
+		if ( ! $url ) {
+			return '';
+		}
+		return '[' . get_the_title( $post ) . '](' . $url . ')';
 	}
 }

@@ -808,6 +808,121 @@
     margin-top: 10px;
 }
 
+/* Key pages — picker table sits flush under the Content table */
+.wpail-pages-table {
+    margin-top: 0;
+    border-top: 1px solid #f0f0f1;
+}
+
+/* Page picker widget */
+.wpail-page-picker {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    max-width: 420px;
+}
+
+.wpail-page-picker__search-wrap {
+    position: relative;
+    flex: 1;
+}
+
+.wpail-page-picker__search {
+    width: 100% !important;
+    box-sizing: border-box;
+}
+
+.wpail-page-picker__dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    background: #fff;
+    border: 1px solid #8c8f94;
+    border-top: none;
+    border-radius: 0 0 3px 3px;
+    box-shadow: 0 3px 8px rgba(0,0,0,.12);
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.wpail-page-picker__option {
+    padding: 7px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    color: #1d2327;
+}
+
+.wpail-page-picker__option:hover {
+    background: #f0f0f1;
+}
+
+.wpail-page-picker__option--empty {
+    color: #8c8f94;
+    cursor: default;
+}
+
+.wpail-page-picker__option--empty:hover {
+    background: none;
+}
+
+.wpail-page-picker__clear {
+    color: #a00 !important;
+    font-size: 12px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.wpail-page-picker__clear:hover {
+    color: #d63638 !important;
+}
+
+/* Custom pages repeater */
+.wpail-pages-custom {
+    padding: 0 0 12px;
+}
+
+.wpail-pages-section__header {
+    display: flex;
+    align-items: center;
+    margin: 4px 0 8px;
+    padding-top: 12px;
+    border-top: 1px solid #f0f0f1;
+}
+
+.wpail-pages-section__label {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1d2327;
+}
+
+.wpail-page-repeater {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+.wpail-page-repeater__row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.wpail-page-repeater__remove {
+    color: #a00 !important;
+    font-size: 12px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.wpail-page-repeater__remove:hover {
+    color: #d63638 !important;
+}
+
 /* ==========================================================================
    AI.txt page
    ========================================================================== */
