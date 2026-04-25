@@ -1,5 +1,5 @@
 === AI Layer ===
-Contributors:      ailayer
+Contributors:      JamesKoussertari, strivewp
 Tags:              ai, structured data, rest api, llms.txt, ai discovery
 Requires at least: 6.0
 Tested up to:      6.7
