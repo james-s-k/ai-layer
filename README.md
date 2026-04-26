@@ -325,6 +325,27 @@ echo esc_html( $data['short_summary'] ?? '' );
 
 ---
 
+### Test Answer Engine
+
+**AI Layer → Test Answer Engine**
+
+A built-in test console for verifying that your answer engine is configured correctly. Enter any natural language question and see exactly what the engine returns — confidence level, matched source, detected service and location, the short and long answer, any matched FAQ, suggested actions, and supporting proof items.
+
+Optional **service** and **location** hints let you simulate a query that arrives with context already attached (for example, from a chatbot widget that knows which service page the user is on).
+
+The console is useful for:
+
+- Checking that keyword and synonym matching works as expected for your services
+- Verifying that FAQs are linked to the right services and surface for the right queries
+- Confirming that manual Answers take priority over engine-assembled responses
+- Debugging unexpected results without making API calls from outside WordPress
+
+The raw JSON response is shown in a collapsible section at the bottom of each result — this is exactly what the `/answers` REST endpoint returns.
+
+Requires `edit_posts` capability.
+
+---
+
 ### llms.txt
 
 **AI Layer → llms.txt**

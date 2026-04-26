@@ -83,6 +83,10 @@ When you link a Service to a Location, the relationship is automatically written
 
 A revisitable wizard at AI Layer → Setup Wizard auto-populates your Business Profile from WordPress settings, Yoast SEO, Rank Math, and WooCommerce. Every suggestion requires your explicit approval before anything is saved.
 
+**Test Answer Engine**
+
+A built-in test console at AI Layer → Test Answer Engine. Enter any natural language question and see exactly what the engine returns — confidence level, matched source, detected service and location, matched FAQ, suggested actions, supporting proof, and the raw JSON response. Useful for verifying keyword matching, FAQ linking, and manual Answer priority without making external API calls.
+
 **Schema.org JSON-LD**
 
 Optional Organization, LocalBusiness, and FAQPage structured data output in `<head>`. Works alongside Yoast SEO and Rank Math with conflict detection.
