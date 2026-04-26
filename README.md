@@ -627,6 +627,57 @@ This is the **single source of truth** for what AI Layer exposes. `/llms.txt` li
         "methods": ["GET"]
       },
       {
+        "path": "/services",
+        "url": "https://example.com/wp-json/ai-layer/v1/services",
+        "description": "Services and products offered.",
+        "methods": ["GET"]
+      },
+      {
+        "path": "/locations",
+        "url": "https://example.com/wp-json/ai-layer/v1/locations",
+        "description": "Locations and service areas.",
+        "methods": ["GET"]
+      },
+      {
+        "path": "/faqs",
+        "url": "https://example.com/wp-json/ai-layer/v1/faqs",
+        "description": "Frequently asked questions and answers.",
+        "methods": ["GET"],
+        "params": {
+          "service": "integer — filter by service ID",
+          "location": "integer — filter by location ID"
+        }
+      },
+      {
+        "path": "/proof",
+        "url": "https://example.com/wp-json/ai-layer/v1/proof",
+        "description": "Testimonials, case studies, and accreditations.",
+        "methods": ["GET"],
+        "params": {
+          "service": "integer — filter by service ID"
+        }
+      },
+      {
+        "path": "/actions",
+        "url": "https://example.com/wp-json/ai-layer/v1/actions",
+        "description": "Recommended next steps and calls to action.",
+        "methods": ["GET"],
+        "params": {
+          "service": "integer — filter by service ID"
+        }
+      },
+      {
+        "path": "/answers",
+        "url": "https://example.com/wp-json/ai-layer/v1/answers",
+        "description": "Natural language question answering.",
+        "methods": ["GET"],
+        "params": {
+          "query": "string — the natural language question to answer",
+          "service": "integer — optional service ID hint",
+          "location": "integer — optional location ID hint"
+        }
+      },
+      {
         "path": "/products",
         "url": "https://example.com/wp-json/ai-layer/v1/products",
         "description": "Product catalogue with pricing and availability.",
@@ -636,6 +687,12 @@ This is the **single source of truth** for what AI Layer exposes. `/llms.txt` li
           "page": "integer — page number",
           "category": "string — filter by category slug"
         }
+      },
+      {
+        "path": "/products/{slug}",
+        "url": "https://example.com/wp-json/ai-layer/v1/products/{slug}",
+        "description": "Full detail for a single product.",
+        "methods": ["GET"]
       }
     ]
   },
@@ -643,7 +700,7 @@ This is the **single source of truth** for what AI Layer exposes. `/llms.txt` li
 }
 ```
 
-The `endpoints` array only includes entries that are currently active — the `/products` entries appear only when WooCommerce is active and the Products endpoint is enabled; `/answers` appears only when Pro is active.
+The `endpoints` array only includes entries that are currently active — the `/products` entries appear only when WooCommerce is active and the Products endpoint is enabled; `/answers` only appears when the answers engine is enabled.
 
 No WordPress rewrite flush is required after enabling this — the route is always registered.
 
