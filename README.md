@@ -55,23 +55,36 @@ This is what turns your site from something that can be browsed into something t
 **With AI Layer** — one request, one structured response:
 
 ```
-GET /wp-json/ai-layer/v1/answers?query=Do+you+offer+SEO+in+London
+GET /wp-json/ai-layer/v1/answers?query=Do+you+offer+SEO+audits+in+Manchester
 ```
 
 ```json
 {
   "data": {
-    "answer_short": "Yes, we offer SEO Consultancy in London and surrounding areas.",
+    "answer_short": "Our SEO audits cover 100+ points including technical health, crawlability, page speed, on-page SEO, content quality, and backlink profile — delivered as a prioritised action plan.",
+    "answer_long": "The audit covers six core areas: (1) Technical — crawl errors, site speed, Core Web Vitals, HTTPS, structured data; (2) On-page — title tags, meta descriptions, header structure; (3) Content — thin content, duplication, E-E-A-T signals; (4) Backlinks — profile health, toxic links; (5) Competitor analysis; (6) Local — GBP, citations, local schema. You receive a PDF report and optionally a walkthrough call.",
     "confidence": "high",
-    "service": { "name": "SEO Consultancy", "from_price": 500, "currency": "GBP" },
-    "location": { "name": "London", "region": "Greater London" },
-    "actions": [{ "type": "book", "label": "Book a free call", "url": "https://..." }],
-    "supporting_data": [{ "type": "testimonial", "headline": "Doubled our traffic in 6 months" }]
+    "source": "faq",
+    "service": { "id": 12, "slug": "seo-audit", "name": "SEO Audit" },
+    "location": { "id": 5, "slug": "manchester", "name": "Manchester" },
+    "actions": [
+      { "id": 30, "type": "book", "label": "Book a Free Consultation", "phone": null, "url": "https://example.com/contact", "method": "form" },
+      { "id": 31, "type": "call", "label": "Call Us Now", "phone": "0207 946 0312", "url": null, "method": "phone" },
+      { "id": 32, "type": "download", "label": "Download Free SEO Checklist", "phone": null, "url": "https://example.com/seo-checklist", "method": "link" }
+    ],
+    "source_faqs": [
+      { "id": 20, "question": "What does an SEO audit include?", "short_answer": "Our SEO audits cover 100+ points including technical health, crawlability, page speed..." }
+    ],
+    "supporting_data": [
+      { "id": 40, "type": "statistic", "headline": "Our clients see an average 214% increase in organic traffic within 12 months." },
+      { "id": 41, "type": "testimonial", "headline": "The audit identified issues we'd missed for years — rankings improved within 8 weeks." },
+      { "id": 42, "type": "accreditation", "headline": "Certified Google Partner since 2019." }
+    ]
   }
 }
 ```
 
-Same question. One hop. Structured answer with context and a next step attached.
+Same question. One hop. The right service and location detected automatically, the matching FAQ used as the answer, three CTAs attached, and supporting proof included.
 
 ---
 
@@ -1304,27 +1317,31 @@ Requires AI Layer Pro. Free users receive HTTP 402 with an upgrade URL (see [Fre
 
 **Example request:**
 ```
-GET /wp-json/ai-layer/v1/answers?query=How+much+does+SEO+cost+in+London
+GET /wp-json/ai-layer/v1/answers?query=Do+you+offer+SEO+audits+in+Manchester
 ```
 
 **Example response:**
 ```json
 {
   "data": {
-    "answer_short": "Our SEO retainers start from £500/month.",
-    "answer_long": "SEO pricing depends on your goals and competition...",
+    "answer_short": "Our SEO audits cover 100+ points including technical health, crawlability, page speed, on-page SEO, content quality, and backlink profile — delivered as a prioritised action plan.",
+    "answer_long": "The audit covers six core areas: (1) Technical — crawl errors, site speed, Core Web Vitals, HTTPS, structured data; (2) On-page — title tags, meta descriptions, header structure; (3) Content — thin content, duplication, E-E-A-T signals; (4) Backlinks — profile health, toxic links; (5) Competitor analysis; (6) Local — GBP, citations, local schema. You receive a PDF report and optionally a walkthrough call.",
     "confidence": "high",
     "source": "faq",
-    "service": { "id": 42, "name": "SEO Consultancy", "slug": "seo-consultancy" },
-    "location": { "id": 5, "name": "London", "slug": "london" },
+    "service": { "id": 12, "slug": "seo-audit", "name": "SEO Audit" },
+    "location": { "id": 5, "slug": "manchester", "name": "Manchester" },
     "actions": [
-      { "id": 30, "type": "book", "label": "Book a free call", "url": "https://..." }
+      { "id": 30, "type": "book", "label": "Book a Free Consultation", "phone": null, "url": "https://example.com/contact", "method": "form" },
+      { "id": 31, "type": "call", "label": "Call Us Now", "phone": "0207 946 0312", "url": null, "method": "phone" },
+      { "id": 32, "type": "download", "label": "Download Free SEO Checklist", "phone": null, "url": "https://example.com/seo-checklist", "method": "link" }
     ],
     "source_faqs": [
-      { "id": 10, "question": "How long does SEO take?" }
+      { "id": 20, "question": "What does an SEO audit include?", "short_answer": "Our SEO audits cover 100+ points including technical health, crawlability, page speed..." }
     ],
     "supporting_data": [
-      { "id": 20, "type": "testimonial", "headline": "Doubled our traffic" }
+      { "id": 40, "type": "statistic", "headline": "Our clients see an average 214% increase in organic traffic within 12 months." },
+      { "id": 41, "type": "testimonial", "headline": "The audit identified issues we'd missed for years — rankings improved within 8 weeks." },
+      { "id": 42, "type": "accreditation", "headline": "Certified Google Partner since 2019." }
     ]
   }
 }

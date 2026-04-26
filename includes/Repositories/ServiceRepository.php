@@ -114,29 +114,37 @@ class ServiceRepository {
 	private function score_service( ServiceModel $service, array $terms ): int {
 		$score        = 0;
 		$search_terms = array_map( 'strtolower', $terms );
+		$search_set   = array_flip( $search_terms );
 
-		$title_words   = array_map( 'strtolower', explode( ' ', $service->name ) );
-		$all_keywords  = array_map( 'strtolower', $service->keywords );
-		$all_synonyms  = array_map( 'strtolower', $service->synonyms );
+		$title_words  = array_map( 'strtolower', explode( ' ', $service->name ) );
+		$all_keywords = array_map( 'strtolower', $service->keywords );
+		$all_synonyms = array_map( 'strtolower', $service->synonyms );
 
+		// Name: per-term matching against individual name words.
 		foreach ( $search_terms as $term ) {
-			// Name match = highest value.
 			foreach ( $title_words as $word ) {
 				if ( str_contains( $word, $term ) || str_contains( $term, $word ) ) {
 					$score += 10;
 				}
 			}
-			// Keyword match.
-			foreach ( $all_keywords as $kw ) {
-				if ( str_contains( $kw, $term ) || str_contains( $term, $kw ) ) {
-					$score += 5;
-				}
+		}
+
+		// Keywords/synonyms: treat as phrases — ALL words in the phrase must be
+		// present in the query. This prevents "ecommerce seo" from scoring just
+		// because "seo" appears in the query when "ecommerce" does not.
+		foreach ( $all_keywords as $kw ) {
+			$kw_words = preg_split( '/\s+/', $kw ) ?: [];
+			$matched  = array_filter( $kw_words, fn( string $w ) => isset( $search_set[ $w ] ) );
+			if ( count( $matched ) === count( $kw_words ) ) {
+				$score += 5 * count( $matched );
 			}
-			// Synonym match.
-			foreach ( $all_synonyms as $syn ) {
-				if ( str_contains( $syn, $term ) || str_contains( $term, $syn ) ) {
-					$score += 3;
-				}
+		}
+
+		foreach ( $all_synonyms as $syn ) {
+			$syn_words = preg_split( '/\s+/', $syn ) ?: [];
+			$matched   = array_filter( $syn_words, fn( string $w ) => isset( $search_set[ $w ] ) );
+			if ( count( $matched ) === count( $syn_words ) ) {
+				$score += 3 * count( $matched );
 			}
 		}
 

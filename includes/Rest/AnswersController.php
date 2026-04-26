@@ -128,7 +128,7 @@ class AnswersController extends BaseController {
 		return $this->success( $data, [ 'count' => count( $data ) ] );
 	}
 
-	private function run_query( string $query, $request ): \WP_REST_Response {
+	private function run_query( string $query, $request ): \WP_REST_Response|\WP_Error {
 		$result = ( new AnswerEngine() )->query(
 			$query,
 			(int) $request->get_param( 'service' ),
