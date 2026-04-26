@@ -38,6 +38,27 @@ class Sanitizer {
 	}
 
 	/**
+	 * Sanitise only the keys present in $data against the definition map.
+	 *
+	 * Unlike sanitize_fields(), absent keys are skipped rather than defaulted.
+	 * Suitable for PATCH / JSON API inputs where every value is explicit.
+	 *
+	 * @param array<string, mixed> $data        Partial input (only keys to update).
+	 * @param array<string, array<string, mixed>> $definitions Field definitions.
+	 * @return array<string, mixed>
+	 */
+	public static function sanitize_partial( array $data, array $definitions ): array {
+		$clean = [];
+		foreach ( $definitions as $key => $def ) {
+			if ( ! array_key_exists( $key, $data ) ) {
+				continue;
+			}
+			$clean[ $key ] = self::sanitize_by_type( $data[ $key ], $def['type'] ?? 'text' );
+		}
+		return $clean;
+	}
+
+	/**
 	 * Sanitise an entire fields array against a definition map.
 	 *
 	 * @param array<string, mixed> $data   Raw submitted data.

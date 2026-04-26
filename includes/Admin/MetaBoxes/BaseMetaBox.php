@@ -37,6 +37,14 @@ abstract class BaseMetaBox {
 		return [ '' => array_keys( $this->field_definitions() ) ];
 	}
 
+	/**
+	 * Optional intro paragraph rendered above the fields.
+	 * Override in sub-classes to add contextual guidance.
+	 */
+	protected function description(): string {
+		return '';
+	}
+
 	public function register(): void {
 		add_action( 'add_meta_boxes',           [ $this, 'add_meta_box' ] );
 		add_action( 'save_post_' . $this->post_type(), [ $this, 'save_meta' ], 10, 2 );
@@ -68,6 +76,11 @@ abstract class BaseMetaBox {
 		wp_nonce_field( 'wpail_save_' . $this->box_id(), 'wpail_' . $this->box_id() . '_nonce' );
 
 		echo '<div class="wpail-meta-box">';
+
+		$description = $this->description();
+		if ( '' !== $description ) {
+			echo '<p class="wpail-meta-box__description">' . wp_kses_post( $description ) . '</p>';
+		}
 
 		foreach ( $groups as $group_label => $keys ) {
 			if ( '' !== $group_label ) {

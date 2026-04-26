@@ -28,14 +28,24 @@ AI Layer does not modify your front-end. It operates as a pure data and API laye
 
 **REST API endpoints (base: /wp-json/ai-layer/v1/)**
 
+Read endpoints are public. Write endpoints (POST, PATCH, DELETE) require authentication via WordPress Application Passwords.
+
 * `/profile` — Canonical business profile: name, contact, address, opening hours, social links
 * `/services` — All services; `/services/{slug}` for full detail with relationships
 * `/locations` — Service areas and locations; `/locations/{slug}` for full detail
-* `/faqs` — FAQs, filterable by service or location
-* `/proof` — Testimonials, case studies, accreditations, and other trust signals
-* `/actions` — Calls-to-action; booking links, phone numbers, contact forms
-* `/answers?query=...` — Rules-based answer engine (see below)
+* `/faqs` — FAQs, filterable by service or location; `/faqs/{id}` for single item
+* `/proof` — Testimonials, case studies, accreditations, and other trust signals; `/proof/{id}` for single item
+* `/actions` — Calls-to-action; booking links, phone numbers, contact forms; `/actions/{id}` for single item
+* `/answers` — List all manually-authored Answers; `/answers?query=...` runs the rules-based engine (Pro); `/answers/{id}` for single item; POST/PATCH/DELETE for full CRUD management
 * `/products` — Live WooCommerce product catalogue (requires WooCommerce + setting enabled)
+
+**MCP integration (WordPress 6.9+ with WordPress MCP Adapter plugin)**
+
+AI Layer registers 33 WordPress Abilities that the MCP Adapter plugin automatically exposes as MCP tools. Connect any MCP-compatible AI client to your site with a single command and manage all AI Layer content without touching the admin UI.
+
+Tools cover: read and update for the business profile; full CRUD (list, get, create, update, delete) for Services, Locations, FAQs, Proof & Trust, Actions, and Answers; and a natural-language answer engine query tool. Read tools require a logged-in user. Write tools require `edit_posts`. Delete tools require `delete_posts`.
+
+`claude mcp add --transport http ai-layer https://yoursite.com/wp-json/mcp/mcp-adapter-default-server --header "Authorization: Basic <base64-credential>"`
 
 **The answer engine**
 
@@ -161,6 +171,18 @@ Single-site only in the current version. Multisite support is not explicitly blo
 8. Settings page — AI Discovery section
 
 == Changelog ==
+
+= 1.2.0 =
+* **MCP integration** — 33 WordPress Abilities registered under the `ai-layer/` namespace; the WordPress MCP Adapter plugin exposes them as MCP tools automatically; any MCP-compatible AI client can connect and fully manage AI Layer content; requires WordPress 6.9+ (Abilities API is in core) and the WordPress MCP Adapter plugin
+* **MCP tools** — full CRUD for Services, Locations, FAQs, Proof & Trust, Actions, and Answers; read and partial-update for Business Profile; natural-language query via `ai-layer-query-answers`
+* **Answers CRUD** — `POST /answers`, `GET /answers/{id}`, `PATCH /answers/{id}`, `DELETE /answers/{id}` added; `GET /answers` (no `?query`) now lists all authored Answers for management; five new MCP tools (`ai-layer-list-answers`, `ai-layer-get-answer`, `ai-layer-create-answer`, `ai-layer-update-answer`, `ai-layer-delete-answer`)
+* **Write endpoints** — POST, PATCH, and DELETE added for all six entity CPTs via the REST API; authenticated with WordPress Application Passwords
+* **Single-item GET** — `GET /faqs/{id}`, `GET /proof/{id}`, `GET /actions/{id}`, and `GET /answers/{id}` added
+* **Authentication** — write endpoints use WordPress Application Passwords (HTTP Basic Auth); `edit_posts` required; 401 for missing credentials, 403 for insufficient permissions
+* **Relationship sync on write** — POST and PATCH maintain bidirectional relationships; DELETE cleans up all inverse references before removing the post
+* **Partial updates** — PATCH and MCP update tools only change fields present in the request; omitted fields are untouched
+* **Answer engine extracted** — `AnswerEngine` class shared by the REST endpoint and MCP ability
+* **Application Password fix** — filters ensure Application Passwords work on non-SSL localhost without `WP_ENVIRONMENT_TYPE=local`
 
 = 1.1.0 =
 * **Setup Wizard** — revisitable wizard at AI Layer → Setup Wizard; auto-populates Business Profile from WordPress core, Yoast SEO, Rank Math, and WooCommerce; source priority system ensures the most authoritative source wins; explicit approval required before any data is written; new Discovery step to configure endpoint mode, link tags, llms.txt, and AI.txt in one place

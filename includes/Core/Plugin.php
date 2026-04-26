@@ -29,6 +29,7 @@ use WPAIL\PostTypes\FaqPostType;
 use WPAIL\PostTypes\ProofPostType;
 use WPAIL\PostTypes\ActionPostType;
 use WPAIL\PostTypes\AnswerPostType;
+use WPAIL\Abilities\AbilitiesRegistrar;
 use WPAIL\Rest\RestRegistrar;
 use WPAIL\Schema\SchemaManager;
 use WPAIL\Integrations\YoastIntegration;
@@ -66,6 +67,7 @@ final class Plugin {
 		$this->register_post_types();
 		$this->register_admin();
 		$this->register_rest();
+		$this->register_abilities();
 		$this->register_schema();
 		$this->register_integrations();
 		$this->register_llmstxt();
@@ -131,6 +133,10 @@ final class Plugin {
 
 	private function register_rest(): void {
 		( new RestRegistrar() )->register();
+	}
+
+	private function register_abilities(): void {
+		( new AbilitiesRegistrar() )->register();
 	}
 
 	private function register_schema(): void {

@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace WPAIL\Rest;
 
+use WPAIL\Support\Sanitizer;
+
 abstract class BaseController extends \WP_REST_Controller {
 
 	// $namespace is declared (untyped) in WP_REST_Controller — we set it in __construct
@@ -37,6 +39,10 @@ abstract class BaseController extends \WP_REST_Controller {
 		return new \WP_REST_Response( $body, 200 );
 	}
 
+	protected function created( mixed $data ): \WP_REST_Response {
+		return new \WP_REST_Response( [ 'data' => $data ], 201 );
+	}
+
 	protected function not_found( string $message = 'Not found.' ): \WP_Error {
 		return new \WP_Error( 'wpail_not_found', $message, [ 'status' => 404 ] );
 	}
@@ -45,15 +51,44 @@ abstract class BaseController extends \WP_REST_Controller {
 		return new \WP_Error( 'wpail_bad_request', $message, [ 'status' => 400 ] );
 	}
 
-	/**
-	 * All endpoints are public (read-only) in v1.
-	 * Future: add authenticated write endpoints here.
-	 */
 	public function get_items_permissions_check( $request ) {
 		return true;
 	}
 
 	public function get_item_permissions_check( $request ) {
 		return true;
+	}
+
+	/**
+	 * Require an authenticated user with edit_posts capability.
+	 * Used as the permission_callback for all write endpoints.
+	 */
+	public function write_permissions_check( $request ): bool|\WP_Error {
+		if ( ! is_user_logged_in() ) {
+			return new \WP_Error( 'wpail_unauthorized', 'Authentication required.', [ 'status' => 401 ] );
+		}
+		if ( ! current_user_can( 'edit_posts' ) ) {
+			return new \WP_Error( 'wpail_forbidden', 'You do not have permission to perform this action.', [ 'status' => 403 ] );
+		}
+		return true;
+	}
+
+	/**
+	 * Sanitize only the fields that are explicitly present in $data.
+	 * Used by PATCH endpoints to avoid overwriting omitted fields with defaults.
+	 *
+	 * @param array<string, mixed>                $data        Raw request params.
+	 * @param array<string, array<string, mixed>> $definitions FieldDefinitions map.
+	 * @return array<string, mixed>
+	 */
+	protected function sanitize_partial( array $data, array $definitions ): array {
+		$clean = [];
+		foreach ( $definitions as $key => $def ) {
+			if ( ! array_key_exists( $key, $data ) ) {
+				continue;
+			}
+			$clean[ $key ] = Sanitizer::sanitize_by_type( $data[ $key ], $def['type'] ?? 'text' );
+		}
+		return $clean;
 	}
 }

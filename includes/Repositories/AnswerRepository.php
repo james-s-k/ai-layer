@@ -41,6 +41,14 @@ class AnswerRepository {
 		return null;
 	}
 
+	public function find_by_id( int $id ): ?AnswerModel {
+		$post = get_post( $id );
+		if ( ! $post instanceof \WP_Post || AnswerPostType::POST_TYPE !== $post->post_type ) {
+			return null;
+		}
+		return AnswerTransformer::from_post( $post );
+	}
+
 	/** @return array<AnswerModel> */
 	public function get_all(): array {
 		$posts = get_posts( [

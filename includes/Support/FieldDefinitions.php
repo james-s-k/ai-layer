@@ -214,7 +214,7 @@ class FieldDefinitions {
 			                         'help' => 'Write the question as a user would naturally ask it.' ],
 			'short_answer'      => [ 'type' => 'textarea',   'label' => 'Short Answer',          'visibility' => self::VISIBILITY_PUBLIC, 'required' => true,
 			                         'placeholder' => 'e.g. Most clients see meaningful results within 3–6 months.',
-			                         'help' => '1–2 sentences. This is what the /answers endpoint returns directly in AI responses.' ],
+			                         'help' => '1–2 sentences. When the engine selects this FAQ as the best match for a query, this is returned as the primary answer.' ],
 			'long_answer'       => [ 'type' => 'textarea',   'label' => 'Long Answer',           'visibility' => self::VISIBILITY_PUBLIC,
 			                         'placeholder' => 'Detailed answer with supporting context, examples, or caveats for users who want more depth.',
 			                         'help' => 'Optional. Provides more detail than the short answer — included in full FAQ responses.' ],

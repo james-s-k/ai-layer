@@ -1,19 +1,13 @@
 <?php
 /**
- * REST endpoint: /answers
+ * REST endpoints: /answers, /answers/{id}
  *
- * GET /wp-json/ai-layer/v1/answers?query=...
- * GET /wp-json/ai-layer/v1/answers?query=...&service={id}&location={id}
- *
- * Answer assembly pipeline (rules-based, v1):
- *
- * 1. Check for manual (authored) answer matching query patterns — highest priority.
- * 2. Detect service intent via keyword/synonym matching.
- * 3. Detect location intent via name/region/postcode matching.
- * 4. Find matching FAQs by query terms + service/location filter.
- * 5. Assemble answer from best FAQ + service + location.
- * 6. Attach relevant actions.
- * 7. Attach proof as supporting data.
+ * GET    /wp-json/ai-layer/v1/answers              — query engine (requires ?query=; Pro)
+ *                                                     OR list authored answers (no ?query)
+ * POST   /wp-json/ai-layer/v1/answers              — create an authored answer (auth required)
+ * GET    /wp-json/ai-layer/v1/answers/{id}         — get a single authored answer
+ * PATCH  /wp-json/ai-layer/v1/answers/{id}         — update an authored answer (auth required)
+ * DELETE /wp-json/ai-layer/v1/answers/{id}         — delete an authored answer (auth required)
  *
  * @package WPAIL\Rest
  */
@@ -22,17 +16,11 @@ declare(strict_types=1);
 
 namespace WPAIL\Rest;
 
-use WPAIL\Models\AnswerModel;
-use WPAIL\Models\FaqModel;
-use WPAIL\Models\ServiceModel;
-use WPAIL\Models\LocationModel;
 use WPAIL\Repositories\AnswerRepository;
-use WPAIL\Repositories\ServiceRepository;
-use WPAIL\Repositories\LocationRepository;
-use WPAIL\Repositories\FaqRepository;
-use WPAIL\Repositories\ActionRepository;
-use WPAIL\Repositories\ProofRepository;
+use WPAIL\Support\AnswerEngine;
+use WPAIL\Support\FieldDefinitions;
 use WPAIL\Support\RelationshipHelper;
+use WPAIL\Support\RelationshipSync;
 use WPAIL\Support\Sanitizer;
 use WPAIL\Licensing\Features;
 use WPAIL\Licensing\License;
@@ -43,46 +31,74 @@ class AnswersController extends BaseController {
 		register_rest_route( $this->namespace, '/answers', [
 			[
 				'methods'             => \WP_REST_Server::READABLE,
-				'callback'            => [ $this, 'get_item' ],
-				// get_item_permissions_check runs before the callback and returns
-				// a 402 WP_Error in free mode. `query` is intentionally NOT marked
-				// required here — WP validates required params before permission
-				// checks, which would produce a misleading 400 for free users.
-				// The empty-query guard lives inside get_item for pro mode.
-				'permission_callback' => [ $this, 'get_item_permissions_check' ],
+				'callback'            => [ $this, 'get_items' ],
+				// Permission check is conditional: the ?query engine requires Pro;
+				// listing authored answers has no Pro gate.
+				'permission_callback' => [ $this, 'get_items_permissions_check' ],
 				'args'                => [
 					'query'    => [
-						'description'       => 'Natural language query.',
+						'description'       => 'Natural language query. When present, runs the answer engine (Pro). When absent, lists all authored answers.',
 						'type'              => 'string',
 						'sanitize_callback' => 'sanitize_text_field',
 					],
 					'service'  => [
-						'description'       => 'Optional service ID hint.',
+						'description'       => 'Service ID hint for the query engine.',
 						'type'              => 'integer',
 						'sanitize_callback' => 'absint',
 					],
 					'location' => [
-						'description'       => 'Optional location ID hint.',
+						'description'       => 'Location ID hint for the query engine.',
 						'type'              => 'integer',
 						'sanitize_callback' => 'absint',
 					],
+				],
+			],
+			[
+				'methods'             => \WP_REST_Server::CREATABLE,
+				'callback'            => [ $this, 'create_item' ],
+				'permission_callback' => [ $this, 'write_permissions_check' ],
+			],
+		] );
+
+		register_rest_route( $this->namespace, '/answers/(?P<id>\d+)', [
+			[
+				'methods'             => \WP_REST_Server::READABLE,
+				'callback'            => [ $this, 'get_item' ],
+				'permission_callback' => [ $this, 'get_item_permissions_check' ],
+				'args'                => [
+					'id' => [ 'type' => 'integer', 'sanitize_callback' => 'absint' ],
+				],
+			],
+			[
+				'methods'             => 'PATCH',
+				'callback'            => [ $this, 'update_item' ],
+				'permission_callback' => [ $this, 'write_permissions_check' ],
+				'args'                => [
+					'id' => [ 'type' => 'integer', 'sanitize_callback' => 'absint' ],
+				],
+			],
+			[
+				'methods'             => \WP_REST_Server::DELETABLE,
+				'callback'            => [ $this, 'delete_item' ],
+				'permission_callback' => [ $this, 'write_permissions_check' ],
+				'args'                => [
+					'id' => [ 'type' => 'integer', 'sanitize_callback' => 'absint' ],
 				],
 			],
 		] );
 	}
 
 	/**
-	 * Returns a 402 WP_Error in free mode so API consumers get a meaningful,
-	 * actionable response rather than a generic 403. Pro mode passes through.
-	 *
-	 * @param \WP_REST_Request $request
-	 * @return true|\WP_Error
+	 * Permission check for GET /answers.
+	 * Running the engine requires Pro; listing authored answers does not.
 	 */
-	public function get_item_permissions_check( $request ): true|\WP_Error {
-		if ( ! Features::answers_enabled() ) {
+	public function get_items_permissions_check( $request ): bool|\WP_Error {
+		$query = trim( (string) $request->get_param( 'query' ) );
+
+		if ( '' !== $query && ! Features::answers_enabled() ) {
 			return new \WP_Error(
 				'upgrade_required',
-				__( 'The /answers endpoint requires AI Layer Pro.', 'ai-ready-layer' ),
+				__( 'The /answers query engine requires AI Layer Pro.', 'ai-ready-layer' ),
 				[
 					'status'      => 402,
 					'upgrade_url' => License::upgrade_url(),
@@ -93,204 +109,155 @@ class AnswersController extends BaseController {
 		return true;
 	}
 
-	public function get_item( $request ) {
-		// Guard for missing/empty query — enforced here (not via route args) so
-		// the permission_callback Pro gate fires first for free-tier callers.
+	/**
+	 * GET /answers — branches on whether ?query is present.
+	 */
+	public function get_items( $request ) {
 		$query = trim( (string) $request->get_param( 'query' ) );
 
-		if ( '' === $query ) {
-			return $this->bad_request( 'A query parameter is required.' );
+		if ( '' !== $query ) {
+			return $this->run_query( $query, $request );
 		}
 
-		$terms = $this->tokenise( $query );
+		return $this->list_authored();
+	}
 
-		// --- Step 1: Manual answer match ---
-		$answer_repo = new AnswerRepository();
-		$manual      = $answer_repo->find_by_query( $query );
+	private function list_authored(): \WP_REST_Response {
+		$answers = ( new AnswerRepository() )->get_all();
+		$data    = array_map( fn( $a ) => $this->resolve( $a ), $answers );
+		return $this->success( $data, [ 'count' => count( $data ) ] );
+	}
 
-		if ( $manual !== null ) {
-			return $this->build_response( $manual );
-		}
+	private function run_query( string $query, $request ): \WP_REST_Response {
+		$result = ( new AnswerEngine() )->query(
+			$query,
+			(int) $request->get_param( 'service' ),
+			(int) $request->get_param( 'location' )
+		);
 
-		// --- Step 2: Detect service ---
-		$service_id   = (int) $request->get_param( 'service' );
-		$service_repo = new ServiceRepository();
-		$service      = null;
-
-		if ( $service_id > 0 ) {
-			$service = $service_repo->find_by_id( $service_id );
-		}
-
-		if ( null === $service ) {
-			$matched_services = $service_repo->find_by_terms( $terms );
-			$service          = $matched_services[0] ?? null;
-		}
-
-		// --- Step 3: Detect location ---
-		$location_id   = (int) $request->get_param( 'location' );
-		$location_repo = new LocationRepository();
-		$location      = null;
-
-		if ( $location_id > 0 ) {
-			$location = $location_repo->find_by_id( $location_id );
-		}
-
-		if ( null === $location ) {
-			// Check each term for a location match.
-			foreach ( $terms as $term ) {
-				$matched = $location_repo->find_by_term( $term );
-				if ( ! empty( $matched ) ) {
-					$location = $matched[0];
-					break;
-				}
-			}
-		}
-
-		// --- Step 4: Find matching FAQs ---
-		$faq_repo = new FaqRepository();
-		$faqs     = $faq_repo->find_by_terms( $terms );
-
-		// Filter FAQs by service/location if detected.
-		if ( $service !== null ) {
-			$service_faqs = array_filter(
-				$faqs,
-				fn( FaqModel $f ) => in_array( $service->id, $f->related_service_ids, true )
-			);
-			if ( ! empty( $service_faqs ) ) {
-				$faqs = array_values( $service_faqs );
-			}
-		}
-
-		$best_faq = $faqs[0] ?? null;
-
-		// --- Step 5: Assemble dynamic answer ---
-		if ( $best_faq !== null ) {
-			$answer = $this->assemble_from_faq( $best_faq, $service, $location );
-		} elseif ( $service !== null ) {
-			$answer = $this->assemble_from_service( $service, $location );
-		} else {
+		if ( null === $result ) {
 			return $this->not_found( 'No matching answer found for this query.' );
 		}
 
-		return $this->build_response( $answer, $service, $location, $best_faq );
+		return $this->success( $result );
+	}
+
+	public function get_item( $request ) {
+		$answer = ( new AnswerRepository() )->find_by_id( (int) $request->get_param( 'id' ) );
+
+		if ( null === $answer ) {
+			return $this->not_found( 'Answer not found.' );
+		}
+
+		return $this->success( $this->resolve( $answer ) );
+	}
+
+	public function create_item( $request ) {
+		$params       = (array) ( $request->get_json_params() ?? [] );
+		$short_answer = trim( $params['short_answer'] ?? '' );
+
+		if ( '' === $short_answer ) {
+			return $this->bad_request( 'short_answer is required.' );
+		}
+
+		// Derive an internal post title from the first query pattern or the answer itself.
+		$patterns    = $this->normalise_patterns( $params['query_patterns'] ?? [] );
+		$post_title  = sanitize_text_field( $params['title'] ?? ( $patterns[0] ?? substr( $short_answer, 0, 80 ) ) );
+
+		$post_id = wp_insert_post( [
+			'post_type'   => 'wpail_answer',
+			'post_title'  => $post_title,
+			'post_status' => 'publish',
+			'post_author' => get_current_user_id(),
+		], true );
+
+		if ( is_wp_error( $post_id ) ) {
+			return $post_id;
+		}
+
+		$params = $this->coerce_patterns( $params );
+		$meta   = Sanitizer::sanitize_partial( $params, FieldDefinitions::answer() );
+		RelationshipHelper::save_meta( $post_id, $meta );
+		RelationshipSync::sync( $post_id, 'wpail_answer', [], $meta );
+
+		$answer = ( new AnswerRepository() )->find_by_id( $post_id );
+		return $this->created( $answer ? $this->resolve( $answer ) : null );
+	}
+
+	public function update_item( $request ) {
+		$repo   = new AnswerRepository();
+		$answer = $repo->find_by_id( (int) $request->get_param( 'id' ) );
+
+		if ( null === $answer ) {
+			return $this->not_found( 'Answer not found.' );
+		}
+
+		$post_id  = $answer->post_id;
+		$params   = (array) ( $request->get_json_params() ?? [] );
+		$old_meta = RelationshipHelper::get_meta( $post_id );
+
+		if ( isset( $params['title'] ) ) {
+			wp_update_post( [ 'ID' => $post_id, 'post_title' => sanitize_text_field( $params['title'] ) ] );
+		}
+
+		$params   = $this->coerce_patterns( $params );
+		$new_meta = array_merge( $old_meta, Sanitizer::sanitize_partial( $params, FieldDefinitions::answer() ) );
+		RelationshipHelper::save_meta( $post_id, $new_meta );
+		RelationshipSync::sync( $post_id, 'wpail_answer', $old_meta, $new_meta );
+
+		$updated = $repo->find_by_id( $post_id );
+		return $this->success( $updated ? $this->resolve( $updated ) : null );
+	}
+
+	public function delete_item( $request ) {
+		$answer = ( new AnswerRepository() )->find_by_id( (int) $request->get_param( 'id' ) );
+
+		if ( null === $answer ) {
+			return $this->not_found( 'Answer not found.' );
+		}
+
+		$post_id  = $answer->post_id;
+		$old_meta = RelationshipHelper::get_meta( $post_id );
+		RelationshipSync::sync( $post_id, 'wpail_answer', $old_meta, [] );
+		wp_delete_post( $post_id, true );
+
+		return $this->success( [ 'deleted' => true, 'id' => $post_id ] );
 	}
 
 	// ------------------------------------------------------------------
-	// Assembly helpers.
+	// Helpers.
 	// ------------------------------------------------------------------
 
-	/**
-	 * Build an AnswerModel from a matched FAQ.
-	 */
-	private function assemble_from_faq( FaqModel $faq, ?ServiceModel $service, ?LocationModel $location ): AnswerModel {
-		$action_repo    = new ActionRepository();
-		$actions        = $service ? $action_repo->find_by_service( $service->id ) : $action_repo->get_global();
-		$action_ids     = array_map( fn( $a ) => $a->id, $actions );
-
-		return new AnswerModel(
-			short_answer:         $faq->short_answer,
-			long_answer:          $faq->long_answer ?: $faq->short_answer,
-			confidence:           'high',
-			source:               'faq',
-			related_service_ids:  $service  ? [ $service->id ]  : [],
-			related_location_ids: $location ? [ $location->id ] : [],
-			next_action_ids:      array_slice( $action_ids, 0, 3 ),
-			source_faq_ids:       [ $faq->id ],
-		);
-	}
-
-	/**
-	 * Build a fallback answer from service data when no FAQ matches.
-	 */
-	private function assemble_from_service( ServiceModel $service, ?LocationModel $location ): AnswerModel {
-		$action_repo = new ActionRepository();
-		$actions     = $action_repo->find_by_service( $service->id );
-		$action_ids  = array_map( fn( $a ) => $a->id, $actions );
-
-		$short = $service->short_summary ?: "We offer {$service->name}.";
-
-		$long = $service->long_summary ?: $short;
-		if ( $location !== null ) {
-			$long .= " Available in {$location->name}.";
-		}
-
-		return new AnswerModel(
-			short_answer:         $short,
-			long_answer:          $long,
-			confidence:           'medium',
-			source:               'dynamic',
-			related_service_ids:  [ $service->id ],
-			related_location_ids: $location ? [ $location->id ] : [],
-			next_action_ids:      array_slice( $action_ids, 0, 3 ),
-		);
-	}
-
-	/**
-	 * Build the REST response from an AnswerModel.
-	 */
-	private function build_response(
-		AnswerModel   $answer,
-		?ServiceModel  $service  = null,
-		?LocationModel $location = null,
-		?FaqModel      $faq      = null
-	): \WP_REST_Response {
-		$action_repo = new ActionRepository();
-		$proof_repo  = new ProofRepository();
-
-		$actions = array_map(
-			fn( int $id ) => $action_repo->find_by_id( $id )?->to_summary_array(),
-			$answer->next_action_ids
-		);
-		$actions = array_values( array_filter( $actions ) );
-
-		$source_faqs = array_map(
-			fn( int $id ) => ( new \WPAIL\Repositories\FaqRepository() )->find_by_id( $id )?->to_summary_array(),
-			$answer->source_faq_ids
-		);
-		$source_faqs = array_values( array_filter( $source_faqs ) );
-
-		// Proof supporting data — pull from service if available.
-		$supporting_data = [];
-		if ( $service !== null ) {
-			$proof_items = $proof_repo->find_by_service( $service->id );
-			foreach ( array_slice( $proof_items, 0, 3 ) as $p ) {
-				$supporting_data[] = $p->to_summary_array();
-			}
-		}
-
-		$service_arr  = $service  ? $service->to_summary_array()  : null;
-		$location_arr = $location ? $location->to_summary_array() : null;
-
-		$data = $answer->to_public_array(
-			services:       $service_arr  ? [ $service_arr ]  : [],
-			locations:      $location_arr ? [ $location_arr ] : [],
-			actions:        $actions,
-			source_faqs:    $source_faqs,
-			supporting_data: $supporting_data,
-		);
-
-		return $this->success( $data );
-	}
-
-	/**
-	 * Tokenise a query into searchable terms.
-	 * Strips stop words and returns unique, lowercased tokens of 3+ chars.
-	 *
-	 * @return array<string>
-	 */
-	private function tokenise( string $query ): array {
-		$stop_words = [
-			'the', 'and', 'for', 'are', 'but', 'not', 'you', 'all', 'any',
-			'can', 'was', 'has', 'had', 'did', 'its', 'our', 'who', 'what',
-			'this', 'that', 'with', 'your', 'they', 'from', 'have', 'will',
-			'been', 'does', 'into', 'more', 'also', 'how', 'much', 'about',
-			'is', 'in', 'do', 'to', 'of', 'it', 'be', 'as', 'at', 'by',
-			'we', 'or', 'an', 'if', 'up', 'so', 'no', 'me', 'my',
+	private function resolve( $answer ): array {
+		return [
+			'id'             => $answer->post_id,
+			'short_answer'   => $answer->short_answer,
+			'long_answer'    => $answer->long_answer,
+			'confidence'     => $answer->confidence,
+			'query_patterns' => $answer->query_patterns,
+			'services'       => RelationshipHelper::resolve_summaries( $answer->related_service_ids ),
+			'locations'      => RelationshipHelper::resolve_summaries( $answer->related_location_ids ),
+			'next_actions'   => RelationshipHelper::resolve_summaries( $answer->next_action_ids ),
+			'source_faqs'    => RelationshipHelper::resolve_summaries( $answer->source_faq_ids ),
 		];
+	}
 
-		$words = preg_split( '/\s+/', strtolower( $query ) ) ?: [];
-		$words = array_filter( $words, fn( string $w ) => strlen( $w ) >= 3 && ! in_array( $w, $stop_words, true ) );
+	/** Allow query_patterns to arrive as an array; FieldDefinitions stores it as textarea (newline string). */
+	private function coerce_patterns( array $params ): array {
+		if ( isset( $params['query_patterns'] ) && is_array( $params['query_patterns'] ) ) {
+			$params['query_patterns'] = implode( "\n", $params['query_patterns'] );
+		}
+		return $params;
+	}
 
-		return array_values( array_unique( $words ) );
+	/** @return array<string> */
+	private function normalise_patterns( mixed $patterns ): array {
+		if ( is_array( $patterns ) ) {
+			return array_values( array_filter( array_map( 'trim', $patterns ) ) );
+		}
+		if ( is_string( $patterns ) && '' !== trim( $patterns ) ) {
+			return array_values( array_filter( array_map( 'trim', explode( "\n", $patterns ) ) ) );
+		}
+		return [];
 	}
 }

@@ -28,4 +28,8 @@ class AnswerMetaBox extends BaseMetaBox {
 			'Relationships'  => [ 'related_services', 'related_locations', 'next_actions', 'source_faq_ids' ],
 		];
 	}
+
+	protected function description(): string {
+		return __( 'Authored Answers bypass the engine entirely. When an incoming query contains any of the Query Patterns below, this answer is returned immediately at highest priority — no scoring, no assembly. Use these for your most predictable, high-stakes questions where you need to guarantee a specific response. For general coverage, add <a href="edit.php?post_type=wpail_faq">FAQs</a> instead and let the engine assemble answers automatically.', 'ai-ready-layer' );
+	}
 }

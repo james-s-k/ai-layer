@@ -55,6 +55,16 @@
     padding: 4px 0;
 }
 
+.wpail-meta-box__description {
+    margin: 8px 0 16px;
+    padding: 10px 12px;
+    background: #f6f7f7;
+    border-left: 3px solid #72aee6;
+    color: #3c434a;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
 .wpail-meta-box__group-title {
     font-size: 12px;
     font-weight: 600;

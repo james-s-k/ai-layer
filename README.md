@@ -503,7 +503,7 @@ A physical or virtual business location. Implemented as a CPT (not a taxonomy) b
 
 #### FAQs (`wpail_faq`)
 
-Frequently asked questions and their answers.
+Frequently asked questions and their answers. FAQs are the engine's **source material** — when a query arrives and no Authored Answer matches, the engine scores your FAQs by keyword overlap, intent tags, and service/location relationships, then builds a structured response from the best match. Write FAQs for the questions your customers actually ask. For questions where you need to guarantee a specific response word-for-word, use an Authored Answer instead (see below).
 
 | Field Group | Fields |
 |-------------|--------|
@@ -537,7 +537,9 @@ Calls-to-action — the next steps you want a visitor or AI system to offer.
 
 #### Answers (`wpail_answer`)
 
-Manually authored structured answers that take priority in the answer engine. Use these to guarantee specific responses to predictable queries.
+Manually authored structured answers that take **guaranteed priority** in the answer engine — they are checked before FAQs. When an incoming query contains any of the `query_patterns`, this answer is returned immediately at highest confidence, bypassing the auto-assembly engine entirely. Use these for your most predictable, high-stakes questions (pricing, location coverage, specific service queries) where you cannot afford the engine to guess. For general question coverage, use FAQs and let the engine assemble answers automatically.
+
+Managed via the WordPress admin UI or via the REST API and MCP tools (full CRUD: POST, PATCH, DELETE, plus `ai-layer-create-answer` and friends).
 
 | Field Group | Fields |
 |-------------|--------|
@@ -551,7 +553,9 @@ Manually authored structured answers that take priority in the answer engine. Us
 
 **Base URL:** `/wp-json/ai-layer/v1`
 
-All endpoints are public and read-only. No authentication required in v1.
+Read endpoints are public — no authentication required.
+
+Write endpoints (POST, PATCH, DELETE) are available across all entity types and require authentication via **WordPress Application Passwords**.
 
 **Standard response envelope:**
 
@@ -561,6 +565,43 @@ All endpoints are public and read-only. No authentication required in v1.
   "meta": { "count": 5 }
 }
 ```
+
+---
+
+### Authentication
+
+Write endpoints (POST, PATCH, DELETE) use **WordPress Application Passwords** via HTTP Basic Auth. Application Passwords are built into WordPress 6.0+ — no extra plugin required. The authenticated user must have the `edit_posts` capability (Editor role or above).
+
+**Create an Application Password:**
+
+1. Go to **Users → Profile** in the WordPress admin
+2. Scroll to **Application Passwords**
+3. Enter a name (e.g. `AI Agent`) and click **Add New Application Password**
+4. Copy the generated password — it will not be shown again
+
+**Making authenticated requests:**
+
+Encode `username:application-password` as Base64 and pass it in the `Authorization` header.
+
+```shell
+# Encode your credentials
+echo -n "admin:xxxx xxxx xxxx xxxx xxxx xxxx" | base64
+
+# Authenticated POST example
+curl -X POST https://example.com/wp-json/ai-layer/v1/services \
+  -H "Authorization: Basic <base64-credential>" \
+  -H "Content-Type: application/json" \
+  -d '{"title": "SEO Consultancy", "short_summary": "Improve your organic rankings."}'
+```
+
+**Write endpoint error codes:**
+
+| HTTP | Code | When |
+|------|------|------|
+| 400 | `wpail_bad_request` | Missing required field or invalid value |
+| 401 | `wpail_unauthorized` | No credentials supplied |
+| 403 | `wpail_forbidden` | Credentials valid but insufficient capability |
+| 404 | `wpail_not_found` | Item not found |
 
 ---
 
@@ -684,6 +725,61 @@ Returns full detail for a single service including related entities.
 
 ---
 
+### POST `/services` *(auth required)*
+
+Creates a new service.
+
+**Required fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `title` | string | Service name (sets the post title) |
+
+**Optional fields:** any field from the Services field definition — `category`, `short_summary`, `long_summary`, `keywords`, `pricing_type`, `from_price`, `currency`, `benefits`, `related_faqs` (array of IDs), `related_proof`, `related_actions`, `related_locations`, etc.
+
+**Response:** `201 Created` with the full service object.
+
+```shell
+curl -X POST https://example.com/wp-json/ai-layer/v1/services \
+  -H "Authorization: Basic <base64>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Technical SEO Audit",
+    "short_summary": "In-depth audit of your site'\''s technical foundations.",
+    "pricing_type": "fixed",
+    "from_price": 750,
+    "currency": "GBP"
+  }'
+```
+
+---
+
+### PATCH `/services/{slug}` *(auth required)*
+
+Partially updates an existing service. Only fields present in the request body are changed; omitted fields are left unchanged.
+
+**Response:** `200 OK` with the updated service object.
+
+```shell
+curl -X PATCH https://example.com/wp-json/ai-layer/v1/services/technical-seo-audit \
+  -H "Authorization: Basic <base64>" \
+  -H "Content-Type: application/json" \
+  -d '{"from_price": 850, "related_locations": [5, 9]}'
+```
+
+---
+
+### DELETE `/services/{slug}` *(auth required)*
+
+Permanently deletes a service and cleans up all bidirectional relationship references.
+
+**Response:** `200 OK`
+```json
+{ "data": { "deleted": true, "id": 42 } }
+```
+
+---
+
 ### GET `/locations`
 
 Returns all published locations as summaries.
@@ -722,6 +818,41 @@ Returns full detail for a single location.
 
 ---
 
+### POST `/locations` *(auth required)*
+
+Creates a new location.
+
+**Required fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `title` | string | Location name (sets the post title) |
+
+**Optional fields:** `location_type`, `region`, `country`, `postcode_prefixes`, `is_primary`, `service_radius_km`, `summary`, `related_services` (array of IDs), `local_proof` (array of IDs), `linked_page_url`.
+
+**Response:** `201 Created` with the full location object.
+
+---
+
+### PATCH `/locations/{slug}` *(auth required)*
+
+Partially updates a location. Only supplied fields are changed.
+
+**Response:** `200 OK` with the updated location object.
+
+---
+
+### DELETE `/locations/{slug}` *(auth required)*
+
+Permanently deletes a location and removes all bidirectional relationship references.
+
+**Response:** `200 OK`
+```json
+{ "data": { "deleted": true, "id": 5 } }
+```
+
+---
+
 ### GET `/faqs`
 
 Returns published FAQs, optionally filtered.
@@ -748,6 +879,59 @@ Returns published FAQs, optionally filtered.
   ],
   "meta": { "count": 1 }
 }
+```
+
+---
+
+### GET `/faqs/{id}`
+
+Returns full detail for a single FAQ.
+
+---
+
+### POST `/faqs` *(auth required)*
+
+Creates a new FAQ.
+
+**Required fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `question` | string | The question text (also sets the post title) |
+| `short_answer` | string | Concise answer — returned directly in `/answers` responses |
+
+**Optional fields:** `long_answer`, `status`, `related_services` (array of IDs), `related_locations` (array of IDs), `intent_tags`, `priority`, `is_public`.
+
+**Response:** `201 Created` with the full FAQ object.
+
+```shell
+curl -X POST https://example.com/wp-json/ai-layer/v1/faqs \
+  -H "Authorization: Basic <base64>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "question": "How long does SEO take to show results?",
+    "short_answer": "Most clients see meaningful improvements within 3–6 months.",
+    "related_services": [42]
+  }'
+```
+
+---
+
+### PATCH `/faqs/{id}` *(auth required)*
+
+Partially updates a FAQ. Updating `question` also updates the underlying post title.
+
+**Response:** `200 OK` with the updated FAQ object.
+
+---
+
+### DELETE `/faqs/{id}` *(auth required)*
+
+Permanently deletes a FAQ and removes all bidirectional relationship references.
+
+**Response:** `200 OK`
+```json
+{ "data": { "deleted": true, "id": 10 } }
 ```
 
 ---
@@ -782,6 +966,47 @@ Returns published proof and trust signals, optionally filtered.
 
 ---
 
+### GET `/proof/{id}`
+
+Returns full detail for a single proof item.
+
+---
+
+### POST `/proof` *(auth required)*
+
+Creates a new proof or trust signal.
+
+**Required fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `title` or `headline` | string | Display title; `headline` is accepted as an alias for `title` |
+
+**Optional fields:** `proof_type` (`testimonial`, `accreditation`, `statistic`, `award`, `case_study`, `media_mention`), `headline`, `content`, `source_name`, `source_context`, `rating`, `related_services` (array of IDs), `related_locations` (array of IDs), `is_public`.
+
+**Response:** `201 Created` with the full proof object.
+
+---
+
+### PATCH `/proof/{id}` *(auth required)*
+
+Partially updates a proof item. Only supplied fields are changed.
+
+**Response:** `200 OK` with the updated proof object.
+
+---
+
+### DELETE `/proof/{id}` *(auth required)*
+
+Permanently deletes a proof item and removes all bidirectional relationship references.
+
+**Response:** `200 OK`
+```json
+{ "data": { "deleted": true, "id": 20 } }
+```
+
+---
+
 ### GET `/actions`
 
 Returns published calls-to-action, optionally filtered. When no `service` filter is provided, global (service-agnostic) actions are returned alongside all others.
@@ -807,6 +1032,61 @@ Returns published calls-to-action, optionally filtered. When no `service` filter
   ],
   "meta": { "count": 1 }
 }
+```
+
+---
+
+### GET `/actions/{id}`
+
+Returns full detail for a single action.
+
+---
+
+### POST `/actions` *(auth required)*
+
+Creates a new call-to-action.
+
+**Required fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `title` or `label` | string | Display name; `label` is accepted as an alias for `title` |
+
+**Optional fields:** `action_type` (`call`, `email`, `book`, `quote`, `visit`, `download`, `chat`), `label`, `description`, `phone`, `url`, `method` (`link`, `phone`, `form`, `email`), `related_services` (array of IDs), `related_locations` (array of IDs), `is_public`.
+
+**Response:** `201 Created` with the full action object.
+
+```shell
+curl -X POST https://example.com/wp-json/ai-layer/v1/actions \
+  -H "Authorization: Basic <base64>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Book a free strategy call",
+    "label": "Book a free strategy call",
+    "action_type": "book",
+    "method": "link",
+    "url": "https://calendly.com/example/30min",
+    "related_services": [42]
+  }'
+```
+
+---
+
+### PATCH `/actions/{id}` *(auth required)*
+
+Partially updates an action. Only supplied fields are changed. Updating `title` also updates the underlying post title.
+
+**Response:** `200 OK` with the updated action object.
+
+---
+
+### DELETE `/actions/{id}` *(auth required)*
+
+Permanently deletes an action and removes all bidirectional relationship references.
+
+**Response:** `200 OK`
+```json
+{ "data": { "deleted": true, "id": 30 } }
 ```
 
 ---
@@ -917,9 +1197,33 @@ For variable products, `price_range` and `attributes` are also returned:
 
 ---
 
-### GET `/answers` *(Pro)*
+### GET `/answers`
 
-The intelligent answer engine. Takes a natural language query and returns an assembled, structured response.
+Without a `?query` parameter, returns all manually-authored Answers as a management list (free, no authentication required).
+
+**Example response:**
+```json
+{
+  "data": [
+    {
+      "id": 55,
+      "short_answer": "Yes, we offer SEO Consultancy in London.",
+      "long_answer": "...",
+      "confidence": "high",
+      "query_patterns": ["seo london", "do you do seo in london"],
+      "services": [{ "id": 42, "name": "SEO Consultancy", "slug": "seo-consultancy" }],
+      "locations": [{ "id": 5, "name": "London", "slug": "london" }],
+      "next_actions": [],
+      "source_faqs": []
+    }
+  ],
+  "meta": { "count": 1 }
+}
+```
+
+### GET `/answers?query=...` *(Pro)*
+
+When `?query` is present, runs the intelligent answer engine and returns an assembled, structured response.
 
 Requires AI Layer Pro. Free users receive HTTP 402 with an upgrade URL (see [Free vs. Pro](#free-vs-pro)).
 
@@ -972,11 +1276,202 @@ GET /wp-json/ai-layer/v1/answers?query=How+much+does+SEO+cost+in+London
 **Confidence values:** `high`, `medium`, `low`  
 **Source values:** `manual` (authored Answer matched), `faq` (assembled from FAQ), `dynamic` (assembled without FAQ match)
 
-**Error — missing query parameter:**
-```json
-{ "code": "missing_query", "message": "A query parameter is required." }
+---
+
+### GET `/answers/{id}`
+
+Returns full detail for a single authored Answer by ID.
+
+---
+
+### POST `/answers` *(auth required)*
+
+Creates a new manually-authored Answer. When an incoming query matches any of the `query_patterns`, this answer is returned immediately at highest priority — bypassing the auto-assembly engine.
+
+**Required fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `short_answer` | string | 1–2 sentence answer returned as the primary response |
+
+**Optional fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `title` | string | Internal label (defaults to first query pattern or truncated `short_answer`) |
+| `long_answer` | string | Extended answer |
+| `confidence` | string | `high`, `medium`, or `low` |
+| `query_patterns` | array\|string | Trigger phrases — array of strings or newline-separated string |
+| `related_services` | integer[] | Service post IDs to attach as context |
+| `related_locations` | integer[] | Location post IDs to attach as context |
+| `next_actions` | integer[] | Action post IDs to suggest as next steps |
+| `source_faq_ids` | integer[] | FAQ post IDs this answer was derived from |
+
+**Response:** `201 Created` with the full authored Answer object.
+
+```shell
+curl -X POST https://example.com/wp-json/ai-layer/v1/answers \
+  -H "Authorization: Basic <base64>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "short_answer": "Yes, we offer SEO Consultancy across London and the South East.",
+    "confidence": "high",
+    "query_patterns": ["seo london", "do you offer seo in london", "london seo"],
+    "related_services": [42],
+    "related_locations": [5]
+  }'
 ```
-HTTP 400
+
+---
+
+### PATCH `/answers/{id}` *(auth required)*
+
+Partially updates an authored Answer. Only fields present in the request body are changed.
+
+**Response:** `200 OK` with the updated Answer object.
+
+---
+
+### DELETE `/answers/{id}` *(auth required)*
+
+Permanently deletes an authored Answer and removes all bidirectional relationship references.
+
+**Response:** `200 OK`
+```json
+{ "data": { "deleted": true, "id": 55 } }
+```
+
+---
+
+## MCP Integration
+
+AI Layer registers all its data and management operations as **WordPress Abilities** (available in WordPress 6.9+ core). The [WordPress MCP Adapter](https://github.com/wordpress/mcp-adapter) plugin picks them up automatically and exposes them as MCP tools — no extra configuration required on the AI Layer side.
+
+With the MCP Adapter active, any MCP-compatible AI client can connect to your site and fully manage AI Layer content: read structured business data, create or update entities, and run the answer engine.
+
+---
+
+### Requirements
+
+- WordPress 6.9+ (the Abilities API is built into core)
+- [WordPress MCP Adapter](https://github.com/wordpress/mcp-adapter) plugin — installed and active
+
+---
+
+### Connecting
+
+1. Install and activate the WordPress MCP Adapter plugin
+2. Generate a WordPress Application Password: **Users → Profile → Application Passwords**
+3. Base64-encode your credentials: `echo -n "username:app-password" | base64`
+4. Add the MCP server to your client:
+
+```shell
+claude mcp add --transport http ai-layer \
+  https://yoursite.com/wp-json/mcp/mcp-adapter-default-server \
+  --header "Authorization: Basic <base64-credential>"
+```
+
+Once connected, the AI client has access to all 33 AI Layer tools immediately.
+
+---
+
+### Available Tools
+
+Abilities are registered under the `ai-layer/` namespace. The MCP Adapter converts the forward slash to a hyphen, so `ai-layer/create-service` becomes the MCP tool name `ai-layer-create-service`.
+
+**Business Profile**
+
+| Tool | Description |
+|------|-------------|
+| `ai-layer-get-profile` | Read the full business profile |
+| `ai-layer-update-profile` | Partially update the business profile |
+
+**Services**
+
+| Tool | Description |
+|------|-------------|
+| `ai-layer-list-services` | List all services (id, slug, name) |
+| `ai-layer-get-service` | Get a service by slug with full detail and relationships |
+| `ai-layer-create-service` | Create a new service |
+| `ai-layer-update-service` | Partially update a service by slug |
+| `ai-layer-delete-service` | Permanently delete a service by slug |
+
+**Locations**
+
+| Tool | Description |
+|------|-------------|
+| `ai-layer-list-locations` | List all locations |
+| `ai-layer-get-location` | Get a location by slug with full detail and relationships |
+| `ai-layer-create-location` | Create a new location |
+| `ai-layer-update-location` | Partially update a location by slug |
+| `ai-layer-delete-location` | Permanently delete a location by slug |
+
+**FAQs**
+
+| Tool | Description |
+|------|-------------|
+| `ai-layer-list-faqs` | List all FAQs (filterable by `service` or `location` ID) |
+| `ai-layer-get-faq` | Get a FAQ by ID |
+| `ai-layer-create-faq` | Create a new FAQ (`question` and `short_answer` required) |
+| `ai-layer-update-faq` | Partially update a FAQ by ID |
+| `ai-layer-delete-faq` | Permanently delete a FAQ by ID |
+
+**Proof & Trust**
+
+| Tool | Description |
+|------|-------------|
+| `ai-layer-list-proof` | List all proof items (filterable by `service` ID) |
+| `ai-layer-get-proof-item` | Get a proof item by ID |
+| `ai-layer-create-proof-item` | Create a new proof item |
+| `ai-layer-update-proof-item` | Partially update a proof item by ID |
+| `ai-layer-delete-proof-item` | Permanently delete a proof item by ID |
+
+**Actions**
+
+| Tool | Description |
+|------|-------------|
+| `ai-layer-list-actions` | List all actions (filterable by `service` ID) |
+| `ai-layer-get-action` | Get an action by ID |
+| `ai-layer-create-action` | Create a new call-to-action |
+| `ai-layer-update-action` | Partially update an action by ID |
+| `ai-layer-delete-action` | Permanently delete an action by ID |
+
+**Authored Answers**
+
+| Tool | Description |
+|------|-------------|
+| `ai-layer-list-answers` | List all manually-authored Answers (id, short_answer, query_patterns, confidence) |
+| `ai-layer-get-answer` | Get a single authored Answer by ID with full detail and relationships |
+| `ai-layer-create-answer` | Create a new authored Answer with trigger patterns (`short_answer` required) |
+| `ai-layer-update-answer` | Partially update an authored Answer by ID |
+| `ai-layer-delete-answer` | Permanently delete an authored Answer by ID |
+
+**Answer Engine**
+
+| Tool | Description |
+|------|-------------|
+| `ai-layer-query-answers` | Run a natural-language query through the answer engine; returns a structured answer assembled from your authored Answers, FAQs, services, locations, proof, and actions |
+
+---
+
+### Permissions
+
+| Tool category | Capability required |
+|---------------|---------------------|
+| Read tools (list, get, query) | Logged-in user (enforced at the MCP Adapter transport level) |
+| Write tools (create, update) | `edit_posts` (Editor role or above) |
+| Delete tools | `delete_posts` |
+| `ai-layer-query-answers` | AI Layer Pro (`Features::answers_enabled()`) |
+
+---
+
+### How it works
+
+AI Layer hooks into `wp_abilities_api_init` and calls `wp_register_ability()` for each tool. Each ability carries `meta.mcp.public = true`, which signals the MCP Adapter to include it in the default server's tool list. The MCP Adapter handles the protocol, JSON-RPC transport, session management, and tool name sanitisation — AI Layer only provides the business logic.
+
+If `wp_register_ability()` is not available (WordPress < 6.9 without the MCP Adapter plugin), the abilities are silently skipped and no errors are thrown.
+
+**Write tools** use the same repository, sanitiser, and relationship sync logic as the REST API write endpoints, so data created via MCP is identical to data created via the REST API or admin UI.
 
 ---
 
@@ -1032,6 +1527,7 @@ All PHP classes use the `WPAIL\` namespace, with subnamespaces mirroring the `in
 WPAIL\Core\
 WPAIL\Admin\
 WPAIL\Admin\MetaBoxes\
+WPAIL\Abilities\
 WPAIL\Models\
 WPAIL\Transformers\
 WPAIL\Repositories\
@@ -1049,6 +1545,19 @@ WPAIL\PostTypes\
 ---
 
 ## Changelog
+
+### 1.2.0
+
+- **MCP integration** — 33 WordPress Abilities registered under the `ai-layer/` namespace; the [WordPress MCP Adapter](https://github.com/wordpress/mcp-adapter) plugin automatically exposes them as MCP tools; any MCP-compatible AI client (Claude, Cursor, etc.) can connect and fully manage AI Layer content without touching the admin UI; requires WordPress 6.9+ (Abilities API is in core)
+- **MCP tools** — full CRUD for Services, Locations, FAQs, Proof & Trust, Actions, and Answers; read and partial-update for Business Profile; natural-language answer engine query via `ai-layer-query-answers`
+- **Answers CRUD** — `POST /answers`, `GET /answers/{id}`, `PATCH /answers/{id}`, `DELETE /answers/{id}` added; `GET /answers` (no `?query`) now lists all authored Answers; use the REST API or MCP tools to manage guaranteed-response patterns without touching the admin UI
+- **Write endpoints** — POST, PATCH, and DELETE added to the REST API for all six entity CPTs; create, update, and delete content via authenticated HTTP calls
+- **Single-item GET for ID-based entities** — `GET /faqs/{id}`, `GET /proof/{id}`, `GET /actions/{id}`, and `GET /answers/{id}` added
+- **Authentication** — write endpoints use WordPress Application Passwords (HTTP Basic Auth); `edit_posts` capability required; `401` for unauthenticated, `403` for insufficient permissions
+- **Relationship sync on write** — POST and PATCH maintain bidirectional references automatically; DELETE cleans up all inverse references before removing the post
+- **Partial updates** — PATCH (REST) and update tools (MCP) only change fields present in the request; omitted fields are untouched
+- **Answer engine extracted** — `AnswerEngine` class in `WPAIL\Support` replaces inline logic in `AnswersController`; shared by both the REST endpoint and the MCP ability
+- **Application Password availability fix** — `wp_is_application_passwords_available` and `application_password_is_api_request` filters ensure Application Passwords work on non-SSL localhost without `WP_ENVIRONMENT_TYPE=local`
 
 ### 1.1.0
 
