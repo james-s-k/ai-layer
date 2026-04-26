@@ -47,6 +47,7 @@ class Assets {
 			'wpail_llmstxt',
 			'wpail_aitxt',
 			'wpail_answers_upgrade',
+			'wpail_answer_test',
 		];
 		foreach ( $wpail_pages as $page ) {
 			if ( str_contains( $hook, $page ) ) {

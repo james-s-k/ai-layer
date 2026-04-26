@@ -38,8 +38,8 @@
             } );
         } );
 
-        // Auto-resize textareas to fit content.
-        document.querySelectorAll( '.wpail-admin textarea, .wpail-meta-box textarea' ).forEach( function ( ta ) {
+        // Auto-resize textareas to fit content (exclude read-only preview areas).
+        document.querySelectorAll( '.wpail-admin textarea:not(.wpail-llmstxt__preview-area), .wpail-meta-box textarea' ).forEach( function ( ta ) {
             ta.style.resize = 'vertical';
             ta.style.minHeight = '60px';
         } );

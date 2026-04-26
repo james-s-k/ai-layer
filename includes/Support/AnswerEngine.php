@@ -148,6 +148,30 @@ class AnswerEngine {
 		?LocationModel $location = null,
 		?FaqModel      $faq      = null
 	): array {
+		// Engine-discovered answers pass a single service/location; manual answers
+		// may declare many — resolve all of them so the full context is surfaced.
+		$services = $service ? [ $service ] : [];
+		if ( empty( $services ) && ! empty( $answer->related_service_ids ) ) {
+			$sr = new ServiceRepository();
+			foreach ( $answer->related_service_ids as $sid ) {
+				$s = $sr->find_by_id( $sid );
+				if ( $s !== null ) {
+					$services[] = $s;
+				}
+			}
+		}
+
+		$locations = $location ? [ $location ] : [];
+		if ( empty( $locations ) && ! empty( $answer->related_location_ids ) ) {
+			$lr = new LocationRepository();
+			foreach ( $answer->related_location_ids as $lid ) {
+				$l = $lr->find_by_id( $lid );
+				if ( $l !== null ) {
+					$locations[] = $l;
+				}
+			}
+		}
+
 		$action_repo = new ActionRepository();
 		$proof_repo  = new ProofRepository();
 		$faq_repo    = new FaqRepository();
@@ -163,15 +187,19 @@ class AnswerEngine {
 		) ) );
 
 		$supporting_data = [];
-		if ( $service !== null ) {
-			foreach ( array_slice( $proof_repo->find_by_service( $service->id ), 0, 3 ) as $p ) {
-				$supporting_data[] = $p->to_summary_array();
+		$seen_proof_ids  = [];
+		foreach ( $services as $svc ) {
+			foreach ( array_slice( $proof_repo->find_by_service( $svc->id ), 0, 3 ) as $p ) {
+				if ( ! isset( $seen_proof_ids[ $p->id ] ) ) {
+					$seen_proof_ids[ $p->id ] = true;
+					$supporting_data[]        = $p->to_summary_array();
+				}
 			}
 		}
 
 		return $answer->to_public_array(
-			services:        $service  ? [ $service->to_summary_array() ]  : [],
-			locations:       $location ? [ $location->to_summary_array() ] : [],
+			services:        array_map( fn( ServiceModel $s ) => $s->to_summary_array(), $services ),
+			locations:       array_map( fn( LocationModel $l ) => $l->to_summary_array(), $locations ),
 			actions:         $actions,
 			source_faqs:     $source_faqs,
 			supporting_data: $supporting_data,
@@ -194,6 +222,7 @@ class AnswerEngine {
 		];
 
 		$words = preg_split( '/\s+/', strtolower( $query ) ) ?: [];
+		$words = array_map( fn( string $w ) => trim( $w, '.,!?;:\'"()[]{}' ), $words );
 		$words = array_filter( $words, fn( string $w ) => strlen( $w ) >= 3 && ! in_array( $w, $stop_words, true ) );
 
 		return array_values( array_unique( $words ) );

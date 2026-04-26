@@ -486,8 +486,8 @@ class SetupWizardPage {
 	private static function render_discovery( bool $has_woo ): void {
 		$discovery_mode  = SettingsPage::get( SettingsPage::SETTING_AI_DISCOVERY_MODE, SettingsPage::AI_DISCOVERY_WELL_KNOWN );
 		$head_links      = SettingsPage::get( SettingsPage::SETTING_HEAD_LINKS_ENABLED, true );
-		$llmstxt_enabled = LLMsTxtSettings::get( 'enabled', false );
-		$aitxt_enabled   = AiTxtSettings::get( 'enabled', false );
+		$llmstxt_enabled = LLMsTxtSettings::get( 'enabled', true );
+		$aitxt_enabled   = AiTxtSettings::get( 'enabled', true );
 		$back_step       = $has_woo ? self::STEP_WOOCOMMERCE : self::STEP_PROFILE;
 		?>
 		<div class="wpail-wizard__body">
@@ -559,7 +559,7 @@ class SetupWizardPage {
 						<span class="wpail-wizard__field-label"><?php esc_html_e( 'Enable llms.txt', 'ai-ready-layer' ); ?></span>
 					</label>
 					<div class="wpail-wizard__field-body">
-						<p class="description"><?php esc_html_e( 'Serves a generated /llms.txt file pointing AI systems to your structured data endpoints. Follows the emerging llms.txt standard.', 'ai-ready-layer' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Serves a generated /llms.txt file pointing AI systems to your structured data endpoints. Follows the emerging llms.txt standard. Fine-tune on the llms.txt settings page.', 'ai-ready-layer' ); ?></p>
 					</div>
 				</div>
 
