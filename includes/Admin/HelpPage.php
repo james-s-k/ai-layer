@@ -105,38 +105,14 @@ class HelpPage {
 					?>
 				</p>
 
-				<h3 class="wpail-help__subheading"><?php esc_html_e( 'Your MCP endpoint', 'ai-ready-layer' ); ?></h3>
-				<p><?php esc_html_e( 'Once the WordPress MCP Adapter plugin is active, your MCP server is available at:', 'ai-ready-layer' ); ?></p>
-				<pre class="wpail-help__code"><?php echo esc_html( $mcp_url ); ?></pre>
-
-				<h3 class="wpail-help__subheading"><?php esc_html_e( 'Step 1 — Create an Application Password', 'ai-ready-layer' ); ?></h3>
 				<p>
 					<?php
 					printf(
-						/* translators: %s: link to user profile */
-						esc_html__( 'Go to %s, scroll to the Application Passwords section, enter a name (e.g. "Claude Desktop"), and click Add New Application Password. Copy the generated password — it is only shown once.', 'ai-ready-layer' ),
-						'<a href="' . esc_url( admin_url( 'profile.php' ) ) . '">' . esc_html__( 'Users → Your Profile', 'ai-ready-layer' ) . '</a>'
+						/* translators: %s: link to WordPress MCP Adapter GitHub repo */
+						esc_html__( 'For installation and connection instructions, see the %s.', 'ai-ready-layer' ),
+						'<a href="https://github.com/wordpress/mcp-adapter" target="_blank" rel="noopener noreferrer">' . esc_html__( 'WordPress MCP Adapter documentation', 'ai-ready-layer' ) . '</a>'
 					);
 					?>
-				</p>
-
-				<h3 class="wpail-help__subheading"><?php esc_html_e( 'Step 2 — Configure your MCP client', 'ai-ready-layer' ); ?></h3>
-				<p><?php esc_html_e( 'Add the following to your Claude Desktop configuration file (claude_desktop_config.json), replacing the username and password with your own:', 'ai-ready-layer' ); ?></p>
-				<pre class="wpail-help__code">{
-  "mcpServers": {
-    "wordpress": {
-      "command": "npx",
-      "args": ["-y", "@automattic/mcp-wordpress-remote@latest"],
-      "env": {
-        "WP_API_URL": <?php echo wp_json_encode( $mcp_url ); ?>,
-        "WP_API_USERNAME": "your-wordpress-username",
-        "WP_API_PASSWORD": "your-application-password"
-      }
-    }
-  }
-}</pre>
-				<p class="wpail-help__note">
-					<?php esc_html_e( 'Use an account with at least Editor capability so the agent can read and write content. Application Passwords are separate from your login password — generating one does not change how you log in.', 'ai-ready-layer' ); ?>
 				</p>
 
 				<h3 class="wpail-help__subheading"><?php esc_html_e( 'Available MCP tools', 'ai-ready-layer' ); ?></h3>

@@ -1455,27 +1455,7 @@ With the MCP Adapter active, any MCP-compatible AI client can connect to your si
 
 ### Connecting
 
-1. Install and activate the [WordPress MCP Adapter](https://github.com/wordpress/mcp-adapter) plugin
-2. Generate a WordPress Application Password: **Users → Profile → Application Passwords**
-3. Add the following to your Claude Desktop configuration file (`claude_desktop_config.json`):
-
-```json
-{
-  "mcpServers": {
-    "wordpress": {
-      "command": "npx",
-      "args": ["-y", "@automattic/mcp-wordpress-remote@latest"],
-      "env": {
-        "WP_API_URL": "https://yoursite.com/wp-json/mcp/mcp-adapter-default-server",
-        "WP_API_USERNAME": "your-wordpress-username",
-        "WP_API_PASSWORD": "your-application-password"
-      }
-    }
-  }
-}
-```
-
-Once connected, the AI client has access to all 33 AI Layer tools immediately.
+Install and activate the [WordPress MCP Adapter](https://github.com/wordpress/mcp-adapter) plugin, then follow its documentation to connect your MCP client. Once connected, the AI client has access to all 33 AI Layer tools immediately.
 
 ---
 

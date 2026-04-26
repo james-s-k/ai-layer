@@ -45,7 +45,7 @@ AI Layer registers 33 WordPress Abilities that the MCP Adapter plugin automatica
 
 Tools cover: read and update for the business profile; full CRUD (list, get, create, update, delete) for Services, Locations, FAQs, Proof & Trust, Actions, and Answers; and a natural-language answer engine query tool. Read tools require a logged-in user. Write tools require `edit_posts`. Delete tools require `delete_posts`.
 
-Connect using the `@automattic/mcp-wordpress-remote` npm package with a WordPress Application Password — see the Help & Docs page inside the plugin for the full configuration snippet.
+See the [WordPress MCP Adapter](https://github.com/wordpress/mcp-adapter) documentation for connection instructions.
 
 **The answer engine**
 
