@@ -14,6 +14,7 @@ namespace WPAIL\Admin;
 use WPAIL\Licensing\Features;
 use WPAIL\Admin\AiTxtPage;
 use WPAIL\Admin\AnswerTestPage;
+use WPAIL\Admin\HelpPage;
 
 class AdminMenu {
 
@@ -105,6 +106,16 @@ class AdminMenu {
 			[ AnswerTestPage::class, 'render' ]
 		);
 
+		// Help & documentation.
+		add_submenu_page(
+			'wpail_dashboard',
+			__( 'Help & Docs',           'ai-ready-layer' ),
+			__( 'Help & Docs',           'ai-ready-layer' ),
+			'manage_options',
+			'wpail_help',
+			[ HelpPage::class, 'render' ]
+		);
+
 		// In free: add a locked Answers placeholder so users can discover the
 		// feature and reach the upgrade page. In pro the real CPT menu item is
 		// registered automatically by WordPress via show_in_menu.
@@ -133,14 +144,15 @@ class AdminMenu {
 			return;
 		}
 
-		$overview  = [];
-		$profile   = [];
-		$wizard    = [];
-		$middle    = [];
-		$settings  = [];
-		$llmstxt   = [];
-		$aitxt     = [];
+		$overview   = [];
+		$profile    = [];
+		$wizard     = [];
+		$middle     = [];
+		$settings   = [];
+		$llmstxt    = [];
+		$aitxt      = [];
 		$answertest = [];
+		$help       = [];
 
 		foreach ( $submenu['wpail_dashboard'] as $item ) {
 			if ( ! isset( $item[2] ) ) {
@@ -161,6 +173,8 @@ class AdminMenu {
 				$aitxt[] = $item;
 			} elseif ( 'wpail_answer_test' === $item[2] ) {
 				$answertest[] = $item;
+			} elseif ( 'wpail_help' === $item[2] ) {
+				$help[] = $item;
 			} else {
 				$middle[] = $item;
 			}
@@ -170,7 +184,7 @@ class AdminMenu {
 			return;
 		}
 
-		$submenu['wpail_dashboard'] = array_merge( $overview, $wizard, $profile, $middle, $settings, $llmstxt, $aitxt, $answertest );
+		$submenu['wpail_dashboard'] = array_merge( $overview, $wizard, $settings, $profile, $middle, $llmstxt, $aitxt, $answertest, $help );
 	}
 
 	/**

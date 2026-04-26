@@ -41,11 +41,11 @@ Read endpoints are public. Write endpoints (POST, PATCH, DELETE) require authent
 
 **MCP integration (WordPress 6.9+ with WordPress MCP Adapter plugin)**
 
-AI Layer registers 33 WordPress Abilities that the MCP Adapter plugin automatically exposes as MCP tools. Connect any MCP-compatible AI client to your site with a single command and manage all AI Layer content without touching the admin UI.
+AI Layer registers 33 WordPress Abilities that the MCP Adapter plugin automatically exposes as MCP tools. Connect any MCP-compatible AI client to your site and manage all AI Layer content without touching the admin UI.
 
 Tools cover: read and update for the business profile; full CRUD (list, get, create, update, delete) for Services, Locations, FAQs, Proof & Trust, Actions, and Answers; and a natural-language answer engine query tool. Read tools require a logged-in user. Write tools require `edit_posts`. Delete tools require `delete_posts`.
 
-`claude mcp add --transport http ai-layer https://yoursite.com/wp-json/mcp/mcp-adapter-default-server --header "Authorization: Basic <base64-credential>"`
+Connect using the `@automattic/mcp-wordpress-remote` npm package with a WordPress Application Password — see the Help & Docs page inside the plugin for the full configuration snippet.
 
 **The answer engine**
 

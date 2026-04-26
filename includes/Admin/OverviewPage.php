@@ -320,24 +320,6 @@ class OverviewPage {
 				<code><?php echo esc_html( $rest_base ); ?></code>
 			</p>
 
-			<?php /* ── Answer engine explainer ── */ ?>
-			<h2><?php esc_html_e( 'How the Answer Engine Works', 'ai-ready-layer' ); ?></h2>
-			<p>
-				<?php esc_html_e( 'The /answers endpoint processes natural language queries through a rules-based pipeline — no external AI call required. Each step scores the available data and assembles the best possible response:', 'ai-ready-layer' ); ?>
-			</p>
-			<ol class="wpail-engine-steps">
-				<li><?php esc_html_e( 'Check manually-authored Answers for a matching query pattern — if found, return immediately at highest confidence.', 'ai-ready-layer' ); ?></li>
-				<li><?php esc_html_e( 'Score Services by keyword and synonym overlap with the query to detect which service is being asked about.', 'ai-ready-layer' ); ?></li>
-				<li><?php esc_html_e( 'Score Locations by name, region, and postcode prefix to detect geographic intent.', 'ai-ready-layer' ); ?></li>
-				<li><?php esc_html_e( 'Score FAQs by question text, answer text, and intent tags — filtered by detected service and location.', 'ai-ready-layer' ); ?></li>
-				<li><?php esc_html_e( 'Assemble the response from the best-matching FAQ plus service and location context.', 'ai-ready-layer' ); ?></li>
-				<li><?php esc_html_e( 'Attach up to 3 relevant Actions as next steps.', 'ai-ready-layer' ); ?></li>
-				<li><?php esc_html_e( 'Attach up to 3 Proof items as supporting evidence.', 'ai-ready-layer' ); ?></li>
-			</ol>
-			<p>
-				<?php esc_html_e( 'The response includes a confidence level (high / medium / low) and a source field (manual / faq / dynamic) so the consuming application can decide how to present the result.', 'ai-ready-layer' ); ?>
-			</p>
-
 			<?php /* ── Schema status ── */ ?>
 			<h2><?php esc_html_e( 'Structured data (Schema.org)', 'ai-ready-layer' ); ?></h2>
 			<p class="wpail-overview__schema-desc">
