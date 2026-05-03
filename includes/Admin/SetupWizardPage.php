@@ -50,7 +50,11 @@ class SetupWizardPage {
 	// ------------------------------------------------------------------
 
 	public function handle_save(): void {
-		$action = sanitize_key( $_POST['wpail_wizard_action'] ?? '' );
+		if ( ( $_SERVER['REQUEST_METHOD'] ?? '' ) !== 'POST' ) {
+			return;
+		}
+
+		$action = sanitize_key( wp_unslash( $_POST['wpail_wizard_action'] ?? '' ) );
 
 		if ( 'apply_profile' === $action ) {
 			$this->handle_profile_save();
@@ -213,7 +217,7 @@ class SetupWizardPage {
 			$current = [];
 		}
 
-		$step     = sanitize_key( $_GET['step'] ?? self::STEP_SCAN );
+		$step     = sanitize_key( wp_unslash( $_GET['step'] ?? self::STEP_SCAN ) );
 		$has_woo  = $extractor->has_woocommerce_products();
 		$all_steps = self::build_steps( $has_woo );
 
@@ -227,14 +231,14 @@ class SetupWizardPage {
 			<div class="wpail-wizard__header">
 				<span class="dashicons dashicons-database-import wpail-wizard__header-icon"></span>
 				<div>
-					<h1><?php esc_html_e( 'Setup Wizard', 'ai-ready-layer' ); ?></h1>
+					<h1><?php esc_html_e( 'Setup Wizard', 'ai-layer' ); ?></h1>
 					<p class="wpail-overview__tagline">
-						<?php esc_html_e( 'Auto-populate your AI Layer data from existing plugins and settings. Every suggestion needs your approval before anything is saved.', 'ai-ready-layer' ); ?>
+						<?php esc_html_e( 'Auto-populate your AI Layer data from existing plugins and settings. Every suggestion needs your approval before anything is saved.', 'ai-layer' ); ?>
 					</p>
 				</div>
 			</div>
 
-			<nav class="wpail-wizard__steps" aria-label="<?php esc_attr_e( 'Wizard steps', 'ai-ready-layer' ); ?>">
+			<nav class="wpail-wizard__steps" aria-label="<?php esc_attr_e( 'Wizard steps', 'ai-layer' ); ?>">
 				<?php foreach ( $all_steps as $step_key => $step_label ) : ?>
 					<a href="<?php echo esc_url( add_query_arg( [ 'page' => 'wpail_setup_wizard', 'step' => $step_key ], admin_url( 'admin.php' ) ) ); ?>"
 					   class="wpail-wizard__step<?php echo $step === $step_key ? ' is-active' : ''; ?>"
@@ -247,7 +251,7 @@ class SetupWizardPage {
 			<?php
 			if ( isset( $_GET['updated'] ) ) {
 				echo '<div class="notice notice-success is-dismissible"><p>';
-				esc_html_e( 'Business Profile updated.', 'ai-ready-layer' );
+				esc_html_e( 'Business Profile updated.', 'ai-layer' );
 				echo '</p></div>';
 			}
 
@@ -278,8 +282,8 @@ class SetupWizardPage {
 		?>
 		<div class="wpail-wizard__body">
 
-			<h2><?php esc_html_e( 'Detected sources', 'ai-ready-layer' ); ?></h2>
-			<p><?php esc_html_e( 'The wizard checks your installed plugins and WordPress settings for data it can use.', 'ai-ready-layer' ); ?></p>
+			<h2><?php esc_html_e( 'Detected sources', 'ai-layer' ); ?></h2>
+			<p><?php esc_html_e( 'The wizard checks your installed plugins and WordPress settings for data it can use.', 'ai-layer' ); ?></p>
 
 			<div class="wpail-wizard__sources">
 				<?php foreach ( $sources as $source ) : ?>
@@ -293,7 +297,7 @@ class SetupWizardPage {
 				<?php endforeach; ?>
 			</div>
 
-			<h2><?php esc_html_e( 'What we found', 'ai-ready-layer' ); ?></h2>
+			<h2><?php esc_html_e( 'What we found', 'ai-layer' ); ?></h2>
 
 			<?php if ( $total_found > 0 ) : ?>
 				<ul class="wpail-wizard__found-list">
@@ -302,40 +306,40 @@ class SetupWizardPage {
 							<strong><?php echo esc_html( (string) $profile_count ); ?></strong>
 							<?php echo esc_html(
 								/* translators: %d: number of fields */
-								_n( 'Business Profile field with a suggested value', 'Business Profile fields with suggested values', $profile_count, 'ai-ready-layer' )
+								_n( 'Business Profile field with a suggested value', 'Business Profile fields with suggested values', $profile_count, 'ai-layer' )
 							); ?>
 						</li>
 					<?php endif; ?>
 					<?php if ( $has_woo ) : ?>
 						<li>
-							<?php esc_html_e( 'WooCommerce is active — you can enable the AI Layer /products endpoint.', 'ai-ready-layer' ); ?>
+							<?php esc_html_e( 'WooCommerce is active — you can enable the AI Layer /products endpoint.', 'ai-layer' ); ?>
 						</li>
 					<?php endif; ?>
 				</ul>
 			<?php else : ?>
-				<p><?php esc_html_e( 'No data could be detected automatically. You can still fill in your Business Profile and add entities manually.', 'ai-ready-layer' ); ?></p>
+				<p><?php esc_html_e( 'No data could be detected automatically. You can still fill in your Business Profile and add entities manually.', 'ai-layer' ); ?></p>
 			<?php endif; ?>
 
 			<div class="wpail-wizard__nav">
 				<?php if ( $profile_count > 0 ) : ?>
 					<a href="<?php echo esc_url( add_query_arg( [ 'page' => 'wpail_setup_wizard', 'step' => self::STEP_PROFILE ], admin_url( 'admin.php' ) ) ); ?>"
 					   class="button button-primary">
-						<?php esc_html_e( 'Review Business Profile suggestions', 'ai-ready-layer' ); ?> &rarr;
+						<?php esc_html_e( 'Review Business Profile suggestions', 'ai-layer' ); ?> &rarr;
 					</a>
 				<?php elseif ( $has_woo ) : ?>
 					<a href="<?php echo esc_url( add_query_arg( [ 'page' => 'wpail_setup_wizard', 'step' => self::STEP_WOOCOMMERCE ], admin_url( 'admin.php' ) ) ); ?>"
 					   class="button button-primary">
-						<?php esc_html_e( 'Configure WooCommerce endpoint', 'ai-ready-layer' ); ?> &rarr;
+						<?php esc_html_e( 'Configure WooCommerce endpoint', 'ai-layer' ); ?> &rarr;
 					</a>
 				<?php else : ?>
 					<a href="<?php echo esc_url( admin_url( 'admin.php?page=wpail_business_profile' ) ); ?>"
 					   class="button button-primary">
-						<?php esc_html_e( 'Set up Business Profile manually', 'ai-ready-layer' ); ?>
+						<?php esc_html_e( 'Set up Business Profile manually', 'ai-layer' ); ?>
 					</a>
 				<?php endif; ?>
 				<a href="<?php echo esc_url( admin_url( 'admin.php?page=wpail_dashboard' ) ); ?>"
 				   class="button button-secondary">
-					<?php esc_html_e( 'Back to Overview', 'ai-ready-layer' ); ?>
+					<?php esc_html_e( 'Back to Overview', 'ai-layer' ); ?>
 				</a>
 			</div>
 
@@ -352,9 +356,9 @@ class SetupWizardPage {
 
 		if ( empty( $suggestions ) ) {
 			echo '<div class="wpail-wizard__body">';
-			echo '<p>' . esc_html__( 'No Business Profile suggestions were found from your installed plugins.', 'ai-ready-layer' ) . '</p>';
+			echo '<p>' . esc_html__( 'No Business Profile suggestions were found from your installed plugins.', 'ai-layer' ) . '</p>';
 			echo '<div class="wpail-wizard__nav">';
-			echo '<a href="' . esc_url( admin_url( 'admin.php?page=wpail_business_profile' ) ) . '" class="button button-primary">' . esc_html__( 'Edit Business Profile manually', 'ai-ready-layer' ) . '</a>';
+			echo '<a href="' . esc_url( admin_url( 'admin.php?page=wpail_business_profile' ) ) . '" class="button button-primary">' . esc_html__( 'Edit Business Profile manually', 'ai-layer' ) . '</a>';
 			echo '</div></div>';
 			return;
 		}
@@ -362,7 +366,7 @@ class SetupWizardPage {
 		<div class="wpail-wizard__body">
 
 			<p>
-				<?php esc_html_e( 'The values below were found in your existing settings. Tick the ones you want to apply and click Save. Fields that already have a value are unticked by default — tick them to overwrite.', 'ai-ready-layer' ); ?>
+				<?php esc_html_e( 'The values below were found in your existing settings. Tick the ones you want to apply and click Save. Fields that already have a value are unticked by default — tick them to overwrite.', 'ai-layer' ); ?>
 			</p>
 
 			<form method="post" action="">
@@ -396,7 +400,7 @@ class SetupWizardPage {
 							</div>
 							<?php if ( $has_value ) : ?>
 								<div class="wpail-wizard__current">
-									<span class="wpail-wizard__current-label"><?php esc_html_e( 'Current:', 'ai-ready-layer' ); ?></span>
+									<span class="wpail-wizard__current-label"><?php esc_html_e( 'Current:', 'ai-layer' ); ?></span>
 									<span class="wpail-wizard__current-value"><?php echo esc_html( $current_val ); ?></span>
 								</div>
 							<?php endif; ?>
@@ -407,15 +411,15 @@ class SetupWizardPage {
 
 				<div class="wpail-wizard__nav">
 					<button type="submit" class="button button-primary">
-						<?php esc_html_e( 'Save selected to Business Profile', 'ai-ready-layer' ); ?>
+						<?php esc_html_e( 'Save selected to Business Profile', 'ai-layer' ); ?>
 					</button>
 					<a href="<?php echo esc_url( add_query_arg( [ 'page' => 'wpail_setup_wizard', 'step' => self::STEP_SCAN ], admin_url( 'admin.php' ) ) ); ?>"
 					   class="button button-secondary">
-						&larr; <?php esc_html_e( 'Back', 'ai-ready-layer' ); ?>
+						&larr; <?php esc_html_e( 'Back', 'ai-layer' ); ?>
 					</a>
 					<a href="<?php echo esc_url( admin_url( 'admin.php?page=wpail_business_profile' ) ); ?>"
 					   class="wpail-wizard__text-link">
-						<?php esc_html_e( 'Edit full Business Profile instead', 'ai-ready-layer' ); ?>
+						<?php esc_html_e( 'Edit full Business Profile instead', 'ai-layer' ); ?>
 					</a>
 				</div>
 
@@ -429,23 +433,23 @@ class SetupWizardPage {
 		?>
 		<div class="wpail-wizard__body">
 
-			<h2><?php esc_html_e( 'WooCommerce Products Endpoint', 'ai-ready-layer' ); ?></h2>
+			<h2><?php esc_html_e( 'WooCommerce Products Endpoint', 'ai-layer' ); ?></h2>
 			<p>
-				<?php esc_html_e( 'AI Layer can expose your WooCommerce product catalogue through a dedicated read-only endpoint. This lets AI agents and search tools browse your products without any data duplication — it reads live from WooCommerce on every request.', 'ai-ready-layer' ); ?>
+				<?php esc_html_e( 'AI Layer can expose your WooCommerce product catalogue through a dedicated read-only endpoint. This lets AI agents and search tools browse your products without any data duplication — it reads live from WooCommerce on every request.', 'ai-layer' ); ?>
 			</p>
 
 			<?php if ( $already_enabled ) : ?>
 				<div class="notice notice-success inline">
-					<p><?php esc_html_e( 'The /products endpoint is already enabled. You can manage it in Settings.', 'ai-ready-layer' ); ?></p>
+					<p><?php esc_html_e( 'The /products endpoint is already enabled. You can manage it in Settings.', 'ai-layer' ); ?></p>
 				</div>
 				<div class="wpail-wizard__nav">
 					<a href="<?php echo esc_url( add_query_arg( [ 'page' => 'wpail_setup_wizard', 'step' => self::STEP_DONE ], admin_url( 'admin.php' ) ) ); ?>"
 					   class="button button-primary">
-						<?php esc_html_e( 'Continue', 'ai-ready-layer' ); ?> &rarr;
+						<?php esc_html_e( 'Continue', 'ai-layer' ); ?> &rarr;
 					</a>
 					<a href="<?php echo esc_url( add_query_arg( [ 'page' => 'wpail_setup_wizard', 'step' => self::STEP_PROFILE ], admin_url( 'admin.php' ) ) ); ?>"
 					   class="button button-secondary">
-						&larr; <?php esc_html_e( 'Back', 'ai-ready-layer' ); ?>
+						&larr; <?php esc_html_e( 'Back', 'ai-layer' ); ?>
 					</a>
 				</div>
 			<?php else : ?>
@@ -456,24 +460,24 @@ class SetupWizardPage {
 					<div class="wpail-wizard__field">
 						<label class="wpail-wizard__field-check">
 							<input type="checkbox" name="wpail_enable_products" value="1" checked>
-							<span class="wpail-wizard__field-label"><?php esc_html_e( 'Enable the /products endpoint', 'ai-ready-layer' ); ?></span>
+							<span class="wpail-wizard__field-label"><?php esc_html_e( 'Enable the /products endpoint', 'ai-layer' ); ?></span>
 						</label>
 						<p class="description">
-							<?php esc_html_e( 'Publishes your WooCommerce catalogue at /wp-json/ai-layer/v1/products. Read-only, no extra database writes. You can disable this any time in Settings.', 'ai-ready-layer' ); ?>
+							<?php esc_html_e( 'Publishes your WooCommerce catalogue at /wp-json/ai-layer/v1/products. Read-only, no extra database writes. You can disable this any time in Settings.', 'ai-layer' ); ?>
 						</p>
 					</div>
 
 					<div class="wpail-wizard__nav">
 						<button type="submit" class="button button-primary">
-							<?php esc_html_e( 'Save and continue', 'ai-ready-layer' ); ?> &rarr;
+							<?php esc_html_e( 'Save and continue', 'ai-layer' ); ?> &rarr;
 						</button>
 						<a href="<?php echo esc_url( add_query_arg( [ 'page' => 'wpail_setup_wizard', 'step' => self::STEP_PROFILE ], admin_url( 'admin.php' ) ) ); ?>"
 						   class="button button-secondary">
-							&larr; <?php esc_html_e( 'Back', 'ai-ready-layer' ); ?>
+							&larr; <?php esc_html_e( 'Back', 'ai-layer' ); ?>
 						</a>
 						<a href="<?php echo esc_url( add_query_arg( [ 'page' => 'wpail_setup_wizard', 'step' => self::STEP_DONE ], admin_url( 'admin.php' ) ) ); ?>"
 						   class="wpail-wizard__text-link">
-							<?php esc_html_e( 'Skip this step', 'ai-ready-layer' ); ?>
+							<?php esc_html_e( 'Skip this step', 'ai-layer' ); ?>
 						</a>
 					</div>
 				</form>
@@ -492,26 +496,26 @@ class SetupWizardPage {
 		?>
 		<div class="wpail-wizard__body">
 
-			<h2><?php esc_html_e( 'Discovery &amp; AI Files', 'ai-ready-layer' ); ?></h2>
-			<p><?php esc_html_e( 'Choose how AI agents and crawlers find your structured data, and which standard files your site serves.', 'ai-ready-layer' ); ?></p>
+			<h2><?php esc_html_e( 'Discovery &amp; AI Files', 'ai-layer' ); ?></h2>
+			<p><?php esc_html_e( 'Choose how AI agents and crawlers find your structured data, and which standard files your site serves.', 'ai-layer' ); ?></p>
 
 			<form method="post" action="">
 				<?php wp_nonce_field( self::NONCE_DISCOVERY, 'wpail_wizard_discovery_nonce' ); ?>
 				<input type="hidden" name="wpail_wizard_action" value="save_discovery">
 
-				<h3 style="margin-top: 20px;"><?php esc_html_e( 'Endpoint discovery mode', 'ai-ready-layer' ); ?></h3>
+				<h3 style="margin-top: 20px;"><?php esc_html_e( 'Endpoint discovery mode', 'ai-layer' ); ?></h3>
 
 				<div class="wpail-wizard__field" style="align-items: flex-start;">
 					<label class="wpail-wizard__field-check" style="align-items: flex-start; padding-top: 2px;">
 						<input type="radio" name="ai_discovery_mode" value="<?php echo esc_attr( SettingsPage::AI_DISCOVERY_WELL_KNOWN ); ?>"
 							<?php checked( $discovery_mode, SettingsPage::AI_DISCOVERY_WELL_KNOWN ); ?>>
 						<span class="wpail-wizard__field-label">
-							<?php esc_html_e( '/.well-known/ai-layer', 'ai-ready-layer' ); ?>
-							<span class="wpail-badge wpail-badge--new" style="background:#edfaef;color:#00a32a;border:1px solid #b8e6bf;"><?php esc_html_e( 'Recommended', 'ai-ready-layer' ); ?></span>
+							<?php esc_html_e( '/.well-known/ai-layer', 'ai-layer' ); ?>
+							<span class="wpail-badge wpail-badge--new" style="background:#edfaef;color:#00a32a;border:1px solid #b8e6bf;"><?php esc_html_e( 'Recommended', 'ai-layer' ); ?></span>
 						</span>
 					</label>
 					<div class="wpail-wizard__field-body">
-						<p class="description"><?php esc_html_e( 'Serves a canonical JSON document at a standard well-known URL. llms.txt links to it as a pointer rather than duplicating all endpoints.', 'ai-ready-layer' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Serves a canonical JSON document at a standard well-known URL. llms.txt links to it as a pointer rather than duplicating all endpoints.', 'ai-layer' ); ?></p>
 					</div>
 				</div>
 
@@ -519,10 +523,10 @@ class SetupWizardPage {
 					<label class="wpail-wizard__field-check" style="align-items: flex-start; padding-top: 2px;">
 						<input type="radio" name="ai_discovery_mode" value="<?php echo esc_attr( SettingsPage::AI_DISCOVERY_LLMSTXT ); ?>"
 							<?php checked( $discovery_mode, SettingsPage::AI_DISCOVERY_LLMSTXT ); ?>>
-						<span class="wpail-wizard__field-label"><?php esc_html_e( 'llms.txt only', 'ai-ready-layer' ); ?></span>
+						<span class="wpail-wizard__field-label"><?php esc_html_e( 'llms.txt only', 'ai-layer' ); ?></span>
 					</label>
 					<div class="wpail-wizard__field-body">
-						<p class="description"><?php esc_html_e( 'Lists all endpoints directly inside llms.txt. The /.well-known/ai-layer URL will not respond.', 'ai-ready-layer' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Lists all endpoints directly inside llms.txt. The /.well-known/ai-layer URL will not respond.', 'ai-layer' ); ?></p>
 					</div>
 				</div>
 
@@ -532,14 +536,14 @@ class SetupWizardPage {
 					<label class="wpail-wizard__field-check">
 						<input type="checkbox" name="head_links_enabled" value="1"
 							<?php checked( $head_links ); ?>>
-						<span class="wpail-wizard__field-label"><?php esc_html_e( 'Add discovery link tags to every page', 'ai-ready-layer' ); ?></span>
+						<span class="wpail-wizard__field-label"><?php esc_html_e( 'Add discovery link tags to every page', 'ai-layer' ); ?></span>
 					</label>
 					<div class="wpail-wizard__field-body">
 						<p class="description">
 							<?php
 							printf(
 								/* translators: 1: rel="ai-layer" 2: rel="llms-txt" 3: <head> */
-								esc_html__( 'Injects %1$s and %2$s tags into the page %3$s. Helps crawlers find your data without needing to know the URLs in advance.', 'ai-ready-layer' ),
+								esc_html__( 'Injects %1$s and %2$s tags into the page %3$s. Helps crawlers find your data without needing to know the URLs in advance.', 'ai-layer' ),
 								'<code>rel="ai-layer"</code>',
 								'<code>rel="llms-txt"</code>',
 								'<code>&lt;head&gt;</code>'
@@ -550,16 +554,16 @@ class SetupWizardPage {
 				</div>
 
 				<hr style="margin: 4px 0 8px; border: none; border-top: 1px solid #f0f0f1;">
-				<h3 style="margin: 12px 0 4px;"><?php esc_html_e( 'AI files', 'ai-ready-layer' ); ?></h3>
+				<h3 style="margin: 12px 0 4px;"><?php esc_html_e( 'AI files', 'ai-layer' ); ?></h3>
 
 				<div class="wpail-wizard__field">
 					<label class="wpail-wizard__field-check">
 						<input type="checkbox" name="llmstxt_enabled" value="1"
 							<?php checked( $llmstxt_enabled ); ?>>
-						<span class="wpail-wizard__field-label"><?php esc_html_e( 'Enable llms.txt', 'ai-ready-layer' ); ?></span>
+						<span class="wpail-wizard__field-label"><?php esc_html_e( 'Enable llms.txt', 'ai-layer' ); ?></span>
 					</label>
 					<div class="wpail-wizard__field-body">
-						<p class="description"><?php esc_html_e( 'Serves a generated /llms.txt file pointing AI systems to your structured data endpoints. Follows the emerging llms.txt standard. Fine-tune on the llms.txt settings page.', 'ai-ready-layer' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Serves a generated /llms.txt file pointing AI systems to your structured data endpoints. Follows the emerging llms.txt standard. Fine-tune on the llms.txt settings page.', 'ai-layer' ); ?></p>
 					</div>
 				</div>
 
@@ -567,24 +571,24 @@ class SetupWizardPage {
 					<label class="wpail-wizard__field-check">
 						<input type="checkbox" name="aitxt_enabled" value="1"
 							<?php checked( $aitxt_enabled ); ?>>
-						<span class="wpail-wizard__field-label"><?php esc_html_e( 'Enable AI.txt', 'ai-ready-layer' ); ?></span>
+						<span class="wpail-wizard__field-label"><?php esc_html_e( 'Enable AI.txt', 'ai-layer' ); ?></span>
 					</label>
 					<div class="wpail-wizard__field-body">
-						<p class="description"><?php esc_html_e( 'Serves an /ai.txt file declaring your crawling and training permissions for AI agents. Fine-tune per-agent rules on the AI.txt settings page.', 'ai-ready-layer' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Serves an /ai.txt file declaring your crawling and training permissions for AI agents. Fine-tune per-agent rules on the AI.txt settings page.', 'ai-layer' ); ?></p>
 					</div>
 				</div>
 
 				<div class="wpail-wizard__nav">
 					<button type="submit" class="button button-primary">
-						<?php esc_html_e( 'Save and continue', 'ai-ready-layer' ); ?> &rarr;
+						<?php esc_html_e( 'Save and continue', 'ai-layer' ); ?> &rarr;
 					</button>
 					<a href="<?php echo esc_url( add_query_arg( [ 'page' => 'wpail_setup_wizard', 'step' => $back_step ], admin_url( 'admin.php' ) ) ); ?>"
 					   class="button button-secondary">
-						&larr; <?php esc_html_e( 'Back', 'ai-ready-layer' ); ?>
+						&larr; <?php esc_html_e( 'Back', 'ai-layer' ); ?>
 					</a>
 					<a href="<?php echo esc_url( add_query_arg( [ 'page' => 'wpail_setup_wizard', 'step' => self::STEP_DONE ], admin_url( 'admin.php' ) ) ); ?>"
 					   class="wpail-wizard__text-link">
-						<?php esc_html_e( 'Skip this step', 'ai-ready-layer' ); ?>
+						<?php esc_html_e( 'Skip this step', 'ai-layer' ); ?>
 					</a>
 				</div>
 
@@ -600,70 +604,70 @@ class SetupWizardPage {
 
 			<div class="wpail-wizard__done">
 				<span class="dashicons dashicons-yes-alt wpail-wizard__done-icon"></span>
-				<h2><?php esc_html_e( 'Setup complete', 'ai-ready-layer' ); ?></h2>
+				<h2><?php esc_html_e( 'Setup complete', 'ai-layer' ); ?></h2>
 				<p>
-					<?php esc_html_e( 'Your auto-populated data has been applied. You can re-run the wizard any time from the menu.', 'ai-ready-layer' ); ?>
+					<?php esc_html_e( 'Your auto-populated data has been applied. You can re-run the wizard any time from the menu.', 'ai-layer' ); ?>
 				</p>
 				<?php if ( $products_enabled ) : ?>
 					<p>
-						<?php esc_html_e( 'The /products endpoint has been enabled and your WooCommerce catalogue is now accessible to AI agents.', 'ai-ready-layer' ); ?>
+						<?php esc_html_e( 'The /products endpoint has been enabled and your WooCommerce catalogue is now accessible to AI agents.', 'ai-layer' ); ?>
 					</p>
 				<?php endif; ?>
 			</div>
 
-			<h2><?php esc_html_e( 'What to do next', 'ai-ready-layer' ); ?></h2>
-			<p><?php esc_html_e( 'The wizard covers Business Profile and discovery settings. These sections still need your attention:', 'ai-ready-layer' ); ?></p>
+			<h2><?php esc_html_e( 'What to do next', 'ai-layer' ); ?></h2>
+			<p><?php esc_html_e( 'The wizard covers Business Profile and discovery settings. These sections still need your attention:', 'ai-layer' ); ?></p>
 
 			<div class="wpail-wizard__next-steps">
 				<?php
 				$next = [
 					[
 						'icon'  => 'dashicons-store',
-						'label' => __( 'Review Business Profile', 'ai-ready-layer' ),
-						'desc'  => __( 'Check the auto-populated values and fill in anything that was missed.', 'ai-ready-layer' ),
+						'label' => __( 'Review Business Profile', 'ai-layer' ),
+						'desc'  => __( 'Check the auto-populated values and fill in anything that was missed.', 'ai-layer' ),
 						'url'   => admin_url( 'admin.php?page=wpail_business_profile' ),
-						'cta'   => __( 'Open Business Profile', 'ai-ready-layer' ),
+						'cta'   => __( 'Open Business Profile', 'ai-layer' ),
 					],
 					[
 						'icon'  => 'dashicons-clipboard',
-						'label' => __( 'Enrich your Services', 'ai-ready-layer' ),
-						'desc'  => __( 'Add keywords, synonyms, pricing, and related FAQs to each service so the answer engine can match queries accurately.', 'ai-ready-layer' ),
+						'label' => __( 'Enrich your Services', 'ai-layer' ),
+						'desc'  => __( 'Add keywords, synonyms, pricing, and related FAQs to each service so the answer engine can match queries accurately.', 'ai-layer' ),
 						'url'   => admin_url( 'edit.php?post_type=wpail_service' ),
-						'cta'   => __( 'Manage Services', 'ai-ready-layer' ),
+						'cta'   => __( 'Manage Services', 'ai-layer' ),
 					],
 					[
 						'icon'  => 'dashicons-editor-help',
-						'label' => __( 'Add FAQs', 'ai-ready-layer' ),
-						'desc'  => __( 'FAQs are the main input for the answer engine. Aim for at least 5–10 covering your most common questions.', 'ai-ready-layer' ),
+						'label' => __( 'Add FAQs', 'ai-layer' ),
+						'desc'  => __( 'FAQs are the main input for the answer engine. Aim for at least 5–10 covering your most common questions.', 'ai-layer' ),
 						'url'   => admin_url( 'post-new.php?post_type=wpail_faq' ),
-						'cta'   => __( 'Add first FAQ', 'ai-ready-layer' ),
+						'cta'   => __( 'Add first FAQ', 'ai-layer' ),
 					],
 					[
 						'icon'  => 'dashicons-awards',
-						'label' => __( 'Add Proof & Trust', 'ai-ready-layer' ),
-						'desc'  => __( 'Testimonials, case studies, and accreditations are attached to answers as supporting evidence.', 'ai-ready-layer' ),
+						'label' => __( 'Add Proof & Trust', 'ai-layer' ),
+						'desc'  => __( 'Testimonials, case studies, and accreditations are attached to answers as supporting evidence.', 'ai-layer' ),
 						'url'   => admin_url( 'post-new.php?post_type=wpail_proof' ),
-						'cta'   => __( 'Add first Proof item', 'ai-ready-layer' ),
+						'cta'   => __( 'Add first Proof item', 'ai-layer' ),
 					],
 					[
 						'icon'  => 'dashicons-arrow-right-alt',
-						'label' => __( 'Add Actions', 'ai-ready-layer' ),
-						'desc'  => __( 'Calls-to-action are returned alongside every answer. Add at least one — a booking link, phone number, or contact form.', 'ai-ready-layer' ),
+						'label' => __( 'Add Actions', 'ai-layer' ),
+						'desc'  => __( 'Calls-to-action are returned alongside every answer. Add at least one — a booking link, phone number, or contact form.', 'ai-layer' ),
 						'url'   => admin_url( 'post-new.php?post_type=wpail_action' ),
-						'cta'   => __( 'Add first Action', 'ai-ready-layer' ),
+						'cta'   => __( 'Add first Action', 'ai-layer' ),
 					],
 					[
 						'icon'  => 'dashicons-format-chat',
-						'label' => __( 'Add Answers', 'ai-ready-layer' ),
+						'label' => __( 'Add Answers', 'ai-layer' ),
 						'desc'  => Features::answers_enabled()
-							? __( 'Pre-written answers are returned when an agent queries your data. Pair each one with Services, Locations, FAQs, and call-to-actions.', 'ai-ready-layer' )
-							: __( 'Pre-written answers power the /answers endpoint. Upgrade to AI Layer Pro to unlock this feature.', 'ai-ready-layer' ),
+							? __( 'Pre-written answers are returned when an agent queries your data. Pair each one with Services, Locations, FAQs, and call-to-actions.', 'ai-layer' )
+							: __( 'Pre-written answers power the /answers endpoint. Upgrade to AI Layer Pro to unlock this feature.', 'ai-layer' ),
 						'url'   => Features::answers_enabled()
 							? admin_url( 'post-new.php?post_type=wpail_answer' )
 							: admin_url( 'admin.php?page=wpail_answers' ),
 						'cta'   => Features::answers_enabled()
-							? __( 'Add first Answer', 'ai-ready-layer' )
-							: __( 'Learn about Answers', 'ai-ready-layer' ),
+							? __( 'Add first Answer', 'ai-layer' )
+							: __( 'Learn about Answers', 'ai-layer' ),
 						'pro'   => ! Features::answers_enabled(),
 					]
 				];
@@ -690,11 +694,11 @@ class SetupWizardPage {
 			<div class="wpail-wizard__nav" style="margin-top: 24px;">
 				<a href="<?php echo esc_url( admin_url( 'admin.php?page=wpail_dashboard' ) ); ?>"
 				   class="button button-primary">
-					<?php esc_html_e( 'Go to Overview', 'ai-ready-layer' ); ?>
+					<?php esc_html_e( 'Go to Overview', 'ai-layer' ); ?>
 				</a>
 				<a href="<?php echo esc_url( add_query_arg( [ 'page' => 'wpail_setup_wizard', 'step' => self::STEP_SCAN ], admin_url( 'admin.php' ) ) ); ?>"
 				   class="button button-secondary">
-					<?php esc_html_e( 'Run wizard again', 'ai-ready-layer' ); ?>
+					<?php esc_html_e( 'Run wizard again', 'ai-layer' ); ?>
 				</a>
 			</div>
 
@@ -712,16 +716,16 @@ class SetupWizardPage {
 	private static function build_steps( bool $has_woo ): array {
 		$n     = 1;
 		$steps = [
-			self::STEP_SCAN    => $n++ . '. ' . __( 'Detect', 'ai-ready-layer' ),
-			self::STEP_PROFILE => $n++ . '. ' . __( 'Business Profile', 'ai-ready-layer' ),
+			self::STEP_SCAN    => $n++ . '. ' . __( 'Detect', 'ai-layer' ),
+			self::STEP_PROFILE => $n++ . '. ' . __( 'Business Profile', 'ai-layer' ),
 		];
 
 		if ( $has_woo ) {
-			$steps[ self::STEP_WOOCOMMERCE ] = $n++ . '. ' . __( 'WooCommerce', 'ai-ready-layer' );
+			$steps[ self::STEP_WOOCOMMERCE ] = $n++ . '. ' . __( 'WooCommerce', 'ai-layer' );
 		}
 
-		$steps[ self::STEP_DISCOVERY ] = $n++ . '. ' . __( 'Discovery', 'ai-ready-layer' );
-		$steps[ self::STEP_DONE ]      = $n . '. ' . __( 'Done', 'ai-ready-layer' );
+		$steps[ self::STEP_DISCOVERY ] = $n++ . '. ' . __( 'Discovery', 'ai-layer' );
+		$steps[ self::STEP_DONE ]      = $n . '. ' . __( 'Done', 'ai-layer' );
 
 		return $steps;
 	}

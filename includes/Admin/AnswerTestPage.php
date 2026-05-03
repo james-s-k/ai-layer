@@ -28,9 +28,9 @@ class AnswerTestPage {
 
 			<div class="wpail-admin__header">
 				<div>
-					<h1><?php esc_html_e( 'Answer Engine Test', 'ai-ready-layer' ); ?></h1>
+					<h1><?php esc_html_e( 'Answer Engine Test', 'ai-layer' ); ?></h1>
 					<p class="wpail-overview__tagline" style="margin-bottom: 20px;">
-						<?php esc_html_e( 'Ask a natural language question and see exactly what the answer engine returns.', 'ai-ready-layer' ); ?>
+						<?php esc_html_e( 'Ask a natural language question and see exactly what the answer engine returns.', 'ai-layer' ); ?>
 					</p>
 				</div>
 			</div>
@@ -40,19 +40,19 @@ class AnswerTestPage {
 				<div class="wpail-test__form-row">
 					<input type="text" id="wpail-test-query"
 						class="large-text wpail-test__input"
-						placeholder="<?php esc_attr_e( 'e.g. Do you offer SEO audits in Manchester?', 'ai-ready-layer' ); ?>"
+						placeholder="<?php esc_attr_e( 'e.g. Do you offer SEO audits in Manchester?', 'ai-layer' ); ?>"
 						autocomplete="off">
 					<button id="wpail-test-submit" class="button button-primary wpail-test__submit">
-						<?php esc_html_e( 'Ask', 'ai-ready-layer' ); ?>
+						<?php esc_html_e( 'Ask', 'ai-layer' ); ?>
 					</button>
 				</div>
 
 				<?php if ( ! empty( $services ) || ! empty( $locations ) ) : ?>
 				<div class="wpail-test__hints">
-					<span class="wpail-test__hints-label"><?php esc_html_e( 'Hints (optional):', 'ai-ready-layer' ); ?></span>
+					<span class="wpail-test__hints-label"><?php esc_html_e( 'Hints (optional):', 'ai-layer' ); ?></span>
 					<?php if ( ! empty( $services ) ) : ?>
 					<select id="wpail-test-service" class="wpail-test__select">
-						<option value=""><?php esc_html_e( 'No service hint', 'ai-ready-layer' ); ?></option>
+						<option value=""><?php esc_html_e( 'No service hint', 'ai-layer' ); ?></option>
 						<?php foreach ( $services as $service ) : ?>
 						<option value="<?php echo esc_attr( (string) $service->id ); ?>">
 							<?php echo esc_html( $service->name ); ?>
@@ -62,7 +62,7 @@ class AnswerTestPage {
 					<?php endif; ?>
 					<?php if ( ! empty( $locations ) ) : ?>
 					<select id="wpail-test-location" class="wpail-test__select">
-						<option value=""><?php esc_html_e( 'No location hint', 'ai-ready-layer' ); ?></option>
+						<option value=""><?php esc_html_e( 'No location hint', 'ai-layer' ); ?></option>
 						<?php foreach ( $locations as $location ) : ?>
 						<option value="<?php echo esc_attr( (string) $location->id ); ?>">
 							<?php echo esc_html( $location->name ); ?>
@@ -92,27 +92,27 @@ class AnswerTestPage {
 							<p id="wpail-test-short" class="wpail-test__short"></p>
 							<p id="wpail-test-long" class="wpail-test__long" style="display:none;"></p>
 							<button id="wpail-test-toggle-long" class="button button-link" style="display:none; padding: 0; margin-top: 6px; font-size: 12px;">
-								<?php esc_html_e( '+ Show full answer', 'ai-ready-layer' ); ?>
+								<?php esc_html_e( '+ Show full answer', 'ai-layer' ); ?>
 							</button>
 						</div>
 
 						<div id="wpail-test-faqs-wrap" style="display:none;">
-							<h4 class="wpail-test__section-title"><?php esc_html_e( 'Matched FAQ', 'ai-ready-layer' ); ?></h4>
+							<h4 class="wpail-test__section-title"><?php esc_html_e( 'Matched FAQ', 'ai-layer' ); ?></h4>
 							<div id="wpail-test-faqs"></div>
 						</div>
 
 						<div id="wpail-test-actions-wrap" style="display:none;">
-							<h4 class="wpail-test__section-title"><?php esc_html_e( 'Suggested Actions', 'ai-ready-layer' ); ?></h4>
+							<h4 class="wpail-test__section-title"><?php esc_html_e( 'Suggested Actions', 'ai-layer' ); ?></h4>
 							<ul id="wpail-test-actions" class="wpail-test__list"></ul>
 						</div>
 
 						<div id="wpail-test-proof-wrap" style="display:none;">
-							<h4 class="wpail-test__section-title"><?php esc_html_e( 'Supporting Proof', 'ai-ready-layer' ); ?></h4>
+							<h4 class="wpail-test__section-title"><?php esc_html_e( 'Supporting Proof', 'ai-layer' ); ?></h4>
 							<ul id="wpail-test-proof" class="wpail-test__list"></ul>
 						</div>
 
 						<details class="wpail-test__raw-wrap">
-							<summary class="wpail-test__raw-toggle"><?php esc_html_e( 'Raw JSON response', 'ai-ready-layer' ); ?></summary>
+							<summary class="wpail-test__raw-toggle"><?php esc_html_e( 'Raw JSON response', 'ai-layer' ); ?></summary>
 							<pre id="wpail-test-raw" class="wpail-test__raw"></pre>
 						</details>
 
@@ -150,7 +150,7 @@ class AnswerTestPage {
 				if ( service && service.value )   { url.searchParams.set( 'service',  service.value ); }
 				if ( location && location.value ) { url.searchParams.set( 'location', location.value ); }
 
-				form.textContent = '<?php echo esc_js( __( 'Asking…', 'ai-ready-layer' ) ); ?>';
+				form.textContent = '<?php echo esc_js( __( 'Asking…', 'ai-layer' ) ); ?>';
 				form.disabled = true;
 				result.style.display = 'none';
 
@@ -171,7 +171,7 @@ class AnswerTestPage {
 					showError( err.message || 'Request failed.' );
 				} )
 				.finally( function () {
-					form.textContent = '<?php echo esc_js( __( 'Ask', 'ai-ready-layer' ) ); ?>';
+					form.textContent = '<?php echo esc_js( __( 'Ask', 'ai-layer' ) ); ?>';
 					form.disabled = false;
 				} );
 			}
@@ -274,7 +274,17 @@ class AnswerTestPage {
 						label.className = 'wpail-test__action-label';
 						if ( a.url ) {
 							var link = document.createElement( 'a' );
-							link.href = a.url;
+							try {
+								var parsed = new URL( a.url, window.location.href );
+								var okProto = parsed.protocol === 'http:' || parsed.protocol === 'https:' || parsed.protocol === 'mailto:' || parsed.protocol === 'tel:';
+								link.href = okProto ? parsed.href : '#';
+								if ( ! okProto ) {
+									link.addEventListener( 'click', function ( e ) { e.preventDefault(); } );
+								}
+							} catch ( err ) {
+								link.href = '#';
+								link.addEventListener( 'click', function ( e ) { e.preventDefault(); } );
+							}
 							link.target = '_blank';
 							link.rel = 'noopener';
 							link.textContent = a.label || a.url;

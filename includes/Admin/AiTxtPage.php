@@ -43,28 +43,28 @@ class AiTxtPage {
 
 		if ( $is_enabled && ! $has_phys_file && ! $has_plain_perms ) {
 			$status_class = 'wpail-status--on';
-			$status_label = __( 'Active', 'ai-ready-layer' );
+			$status_label = __( 'Active', 'ai-layer' );
 		} elseif ( $is_enabled && ( $has_phys_file || $has_plain_perms ) ) {
 			$status_class = 'wpail-status--warn';
-			$status_label = __( 'Conflict', 'ai-ready-layer' );
+			$status_label = __( 'Conflict', 'ai-layer' );
 		} else {
 			$status_class = 'wpail-status--off';
-			$status_label = __( 'Disabled', 'ai-ready-layer' );
+			$status_label = __( 'Disabled', 'ai-layer' );
 		}
 		?>
 		<div class="wrap wpail-admin wpail-llmstxt">
 
 			<?php if ( $saved ): ?>
 				<div class="notice notice-success is-dismissible">
-					<p><?php esc_html_e( 'Settings saved.', 'ai-ready-layer' ); ?></p>
+					<p><?php esc_html_e( 'Settings saved.', 'ai-layer' ); ?></p>
 				</div>
 			<?php endif; ?>
 
 			<?php if ( $has_phys_file ): ?>
 				<div class="notice notice-error">
 					<p>
-						<strong><?php esc_html_e( 'Physical file conflict.', 'ai-ready-layer' ); ?></strong>
-						<?php esc_html_e( 'A physical ai.txt file exists at your site root. Your web server will serve that file instead of this generated version. Remove or rename the file to use AI Layer\'s dynamic ai.txt.', 'ai-ready-layer' ); ?>
+						<strong><?php esc_html_e( 'Physical file conflict.', 'ai-layer' ); ?></strong>
+						<?php esc_html_e( 'A physical ai.txt file exists at your site root. Your web server will serve that file instead of this generated version. Remove or rename the file to use AI Layer\'s dynamic ai.txt.', 'ai-layer' ); ?>
 					</p>
 				</div>
 			<?php endif; ?>
@@ -72,12 +72,12 @@ class AiTxtPage {
 			<?php if ( $has_plain_perms ): ?>
 				<div class="notice notice-error">
 					<p>
-						<strong><?php esc_html_e( 'Plain permalink structure detected.', 'ai-ready-layer' ); ?></strong>
+						<strong><?php esc_html_e( 'Plain permalink structure detected.', 'ai-layer' ); ?></strong>
 						<?php
 						printf(
 							/* translators: %s: permalink settings URL */
-							esc_html__( 'WordPress rewrites cannot intercept /ai.txt with plain permalinks. Switch to a named permalink structure in %s.', 'ai-ready-layer' ),
-							'<a href="' . esc_url( admin_url( 'options-permalink.php' ) ) . '">' . esc_html__( 'Settings → Permalinks', 'ai-ready-layer' ) . '</a>'
+							esc_html__( 'WordPress rewrites cannot intercept /ai.txt with plain permalinks. Switch to a named permalink structure in %s.', 'ai-layer' ),
+							'<a href="' . esc_url( admin_url( 'options-permalink.php' ) ) . '">' . esc_html__( 'Settings → Permalinks', 'ai-layer' ) . '</a>'
 						);
 						?>
 					</p>
@@ -88,24 +88,24 @@ class AiTxtPage {
 				<span class="dashicons dashicons-shield wpail-overview__icon"></span>
 				<div>
 					<h1>
-						<?php esc_html_e( 'AI.txt', 'ai-ready-layer' ); ?>
+						<?php esc_html_e( 'AI.txt', 'ai-layer' ); ?>
 						<span class="wpail-status <?php echo esc_attr( $status_class ); ?>">
 							<?php echo esc_html( $status_label ); ?>
 						</span>
 						<span class="wpail-badge wpail-badge--beta">
-							<?php esc_html_e( 'Beta', 'ai-ready-layer' ); ?>
+							<?php esc_html_e( 'Beta', 'ai-layer' ); ?>
 						</span>
 					</h1>
 					<p class="wpail-overview__tagline">
-						<?php esc_html_e( 'Control how AI systems are permitted to crawl, train on, and attribute content from your site.', 'ai-ready-layer' ); ?>
+						<?php esc_html_e( 'Control how AI systems are permitted to crawl, train on, and attribute content from your site.', 'ai-layer' ); ?>
 					</p>
 				</div>
 			</div>
 
 			<div class="notice notice-warning wpail-aitxt__beta-notice">
 				<p>
-					<strong><?php esc_html_e( '⚠ This feature is experimental.', 'ai-ready-layer' ); ?></strong>
-					<?php esc_html_e( 'The AI.txt standard is still evolving and has not been formally adopted by major AI providers. Settings here may have no effect on some systems. Use with caution and review as the standard matures.', 'ai-ready-layer' ); ?>
+					<strong><?php esc_html_e( '⚠ This feature is experimental.', 'ai-layer' ); ?></strong>
+					<?php esc_html_e( 'The AI.txt standard is still evolving and has not been formally adopted by major AI providers. Settings here may have no effect on some systems. Use with caution and review as the standard matures.', 'ai-layer' ); ?>
 				</p>
 			</div>
 
@@ -117,23 +117,23 @@ class AiTxtPage {
 					<div class="wpail-llmstxt__settings">
 
 						<div class="wpail-field-group">
-							<h2><?php esc_html_e( 'General', 'ai-ready-layer' ); ?></h2>
+							<h2><?php esc_html_e( 'General', 'ai-layer' ); ?></h2>
 							<table class="form-table wpail-meta-box__table">
 								<tr>
 									<th>
 										<label for="wpail_aitxt_enabled">
-											<?php esc_html_e( 'Enable AI.txt', 'ai-ready-layer' ); ?>
+											<?php esc_html_e( 'Enable AI.txt', 'ai-layer' ); ?>
 										</label>
 									</th>
 									<td>
 										<label>
 											<input type="checkbox" name="wpail_aitxt[enabled]" id="wpail_aitxt_enabled" value="1"
 												<?php checked( $settings['enabled'] ); ?>>
-											<?php esc_html_e( 'Serve a generated ai.txt at', 'ai-ready-layer' ); ?>
+											<?php esc_html_e( 'Serve a generated ai.txt at', 'ai-layer' ); ?>
 											<a href="<?php echo esc_url( $aitxt_url ); ?>" target="_blank"><?php echo esc_html( $aitxt_url ); ?></a>
 										</label>
 										<p class="description">
-											<?php esc_html_e( 'When disabled, /ai.txt returns 404.', 'ai-ready-layer' ); ?>
+											<?php esc_html_e( 'When disabled, /ai.txt returns 404.', 'ai-layer' ); ?>
 										</p>
 									</td>
 								</tr>
@@ -141,56 +141,56 @@ class AiTxtPage {
 						</div>
 
 						<div class="wpail-field-group">
-							<h2><?php esc_html_e( 'Global Rules', 'ai-ready-layer' ); ?></h2>
+							<h2><?php esc_html_e( 'Global Rules', 'ai-layer' ); ?></h2>
 							<table class="form-table wpail-meta-box__table">
 								<tr>
 									<th>
 										<label for="wpail_aitxt_allow_crawling">
-											<?php esc_html_e( 'Allow AI crawling', 'ai-ready-layer' ); ?>
+											<?php esc_html_e( 'Allow AI crawling', 'ai-layer' ); ?>
 										</label>
 									</th>
 									<td>
 										<label>
 											<input type="checkbox" name="wpail_aitxt[allow_crawling]" id="wpail_aitxt_allow_crawling" value="1"
 												<?php checked( $settings['allow_crawling'] ); ?>>
-											<?php esc_html_e( 'Permit AI crawlers to access this site', 'ai-ready-layer' ); ?>
+											<?php esc_html_e( 'Permit AI crawlers to access this site', 'ai-layer' ); ?>
 										</label>
 										<p class="description">
-											<?php esc_html_e( 'On: outputs Allow: / — Off: outputs Disallow: /. Defaults to on.', 'ai-ready-layer' ); ?>
+											<?php esc_html_e( 'On: outputs Allow: / — Off: outputs Disallow: /. Defaults to on.', 'ai-layer' ); ?>
 										</p>
 									</td>
 								</tr>
 								<tr>
 									<th>
 										<label for="wpail_aitxt_allow_training">
-											<?php esc_html_e( 'Allow AI training', 'ai-ready-layer' ); ?>
+											<?php esc_html_e( 'Allow AI training', 'ai-layer' ); ?>
 										</label>
 									</th>
 									<td>
 										<label>
 											<input type="checkbox" name="wpail_aitxt[allow_training]" id="wpail_aitxt_allow_training" value="1"
 												<?php checked( $settings['allow_training'] ); ?>>
-											<?php esc_html_e( 'Permit AI systems to use this content for model training', 'ai-ready-layer' ); ?>
+											<?php esc_html_e( 'Permit AI systems to use this content for model training', 'ai-layer' ); ?>
 										</label>
 										<p class="description">
-											<?php esc_html_e( 'Outputs Training: allow or Training: disallow. Defaults to disallow.', 'ai-ready-layer' ); ?>
+											<?php esc_html_e( 'Outputs Training: allow or Training: disallow. Defaults to disallow.', 'ai-layer' ); ?>
 										</p>
 									</td>
 								</tr>
 								<tr>
 									<th>
 										<label for="wpail_aitxt_require_attribution">
-											<?php esc_html_e( 'Require attribution', 'ai-ready-layer' ); ?>
+											<?php esc_html_e( 'Require attribution', 'ai-layer' ); ?>
 										</label>
 									</th>
 									<td>
 										<label>
 											<input type="checkbox" name="wpail_aitxt[require_attribution]" id="wpail_aitxt_require_attribution" value="1"
 												<?php checked( $settings['require_attribution'] ); ?>>
-											<?php esc_html_e( 'Request that AI systems attribute content to this site', 'ai-ready-layer' ); ?>
+											<?php esc_html_e( 'Request that AI systems attribute content to this site', 'ai-layer' ); ?>
 										</label>
 										<p class="description">
-											<?php esc_html_e( 'Outputs Attribution: required when enabled. Defaults to off.', 'ai-ready-layer' ); ?>
+											<?php esc_html_e( 'Outputs Attribution: required when enabled. Defaults to off.', 'ai-layer' ); ?>
 										</p>
 									</td>
 								</tr>
@@ -198,9 +198,9 @@ class AiTxtPage {
 						</div>
 
 						<div class="wpail-field-group">
-							<h2><?php esc_html_e( 'Agent-Specific Rules', 'ai-ready-layer' ); ?></h2>
+							<h2><?php esc_html_e( 'Agent-Specific Rules', 'ai-layer' ); ?></h2>
 							<p class="description" style="padding: 0 0 12px;">
-								<?php esc_html_e( 'Optionally define rules for individual AI agents. These override the global rules for the specified agent.', 'ai-ready-layer' ); ?>
+								<?php esc_html_e( 'Optionally define rules for individual AI agents. These override the global rules for the specified agent.', 'ai-layer' ); ?>
 							</p>
 
 							<div id="wpail-aitxt-agents" class="wpail-aitxt__agents">
@@ -217,9 +217,9 @@ class AiTxtPage {
 										       name="wpail_aitxt[agents][<?php echo $idx; ?>][name]"
 										       class="wpail-aitxt__agent-name"
 										       value="<?php echo $agent_name; ?>"
-										       placeholder="<?php esc_attr_e( 'e.g. GPTBot', 'ai-ready-layer' ); ?>">
+										       placeholder="<?php esc_attr_e( 'e.g. GPTBot', 'ai-layer' ); ?>">
 										<button type="button" class="wpail-aitxt__agent-remove button-link">
-											<?php esc_html_e( '✕ Remove', 'ai-ready-layer' ); ?>
+											<?php esc_html_e( '✕ Remove', 'ai-layer' ); ?>
 										</button>
 									</div>
 									<div class="wpail-aitxt__agent-controls">
@@ -228,21 +228,21 @@ class AiTxtPage {
 											       name="wpail_aitxt[agents][<?php echo $idx; ?>][allow]"
 											       class="wpail-aitxt__agent-allow"
 											       value="1" <?php checked( $agent_allow ); ?>>
-											<?php esc_html_e( 'Allow crawling', 'ai-ready-layer' ); ?>
+											<?php esc_html_e( 'Allow crawling', 'ai-layer' ); ?>
 										</label>
 										<label>
 											<input type="checkbox"
 											       name="wpail_aitxt[agents][<?php echo $idx; ?>][allow_training]"
 											       class="wpail-aitxt__agent-training"
 											       value="1" <?php checked( $agent_train ); ?>>
-											<?php esc_html_e( 'Allow training', 'ai-ready-layer' ); ?>
+											<?php esc_html_e( 'Allow training', 'ai-layer' ); ?>
 										</label>
 										<label>
 											<input type="checkbox"
 											       name="wpail_aitxt[agents][<?php echo $idx; ?>][require_attribution]"
 											       class="wpail-aitxt__agent-attribution"
 											       value="1" <?php checked( $agent_attr ); ?>>
-											<?php esc_html_e( 'Require attribution', 'ai-ready-layer' ); ?>
+											<?php esc_html_e( 'Require attribution', 'ai-layer' ); ?>
 										</label>
 									</div>
 								</div>
@@ -250,34 +250,34 @@ class AiTxtPage {
 							</div>
 
 							<button type="button" id="wpail-aitxt-add-agent" class="button" style="margin-top: 10px;">
-								<?php esc_html_e( '+ Add Agent', 'ai-ready-layer' ); ?>
+								<?php esc_html_e( '+ Add Agent', 'ai-layer' ); ?>
 							</button>
 
 							<p class="description" style="margin-top: 8px;">
-								<?php esc_html_e( 'Known agent names: GPTBot (OpenAI), ClaudeBot (Anthropic), Google-Extended (Google), CCBot (Common Crawl), FacebookBot (Meta).', 'ai-ready-layer' ); ?>
+								<?php esc_html_e( 'Known agent names: GPTBot (OpenAI), ClaudeBot (Anthropic), Google-Extended (Google), CCBot (Common Crawl), FacebookBot (Meta).', 'ai-layer' ); ?>
 							</p>
 						</div>
 
-						<?php submit_button( __( 'Save Settings', 'ai-ready-layer' ) ); ?>
+						<?php submit_button( __( 'Save Settings', 'ai-layer' ) ); ?>
 
 					</div><!-- /.wpail-llmstxt__settings -->
 
 					<div class="wpail-llmstxt__preview">
 						<div class="wpail-field-group">
-							<h2><?php esc_html_e( 'Preview', 'ai-ready-layer' ); ?></h2>
+							<h2><?php esc_html_e( 'Preview', 'ai-layer' ); ?></h2>
 							<textarea class="wpail-llmstxt__preview-area" id="wpail-aitxt-preview" readonly><?php echo esc_textarea( $preview ); ?></textarea>
 							<div class="wpail-llmstxt__preview-actions">
 								<button type="button" class="button" id="wpail-aitxt-copy">
-									<?php esc_html_e( 'Copy to clipboard', 'ai-ready-layer' ); ?>
+									<?php esc_html_e( 'Copy to clipboard', 'ai-layer' ); ?>
 								</button>
 								<?php if ( $is_enabled && ! $has_phys_file && ! $has_plain_perms ) : ?>
 									<a href="<?php echo esc_url( $aitxt_url ); ?>" target="_blank" class="button">
-										<?php esc_html_e( 'View live', 'ai-ready-layer' ); ?>
+										<?php esc_html_e( 'View live', 'ai-layer' ); ?>
 									</a>
 								<?php endif; ?>
 							</div>
 							<p class="description" style="margin-top: 8px;">
-								<?php esc_html_e( 'Updates live as you change settings. Save to persist.', 'ai-ready-layer' ); ?>
+								<?php esc_html_e( 'Updates live as you change settings. Save to persist.', 'ai-layer' ); ?>
 							</p>
 						</div>
 					</div><!-- /.wpail-llmstxt__preview -->
@@ -290,23 +290,23 @@ class AiTxtPage {
 						<div class="wpail-aitxt__agent-header">
 							<input type="text"
 							       class="wpail-aitxt__agent-name"
-							       placeholder="<?php esc_attr_e( 'e.g. GPTBot', 'ai-ready-layer' ); ?>">
+							       placeholder="<?php esc_attr_e( 'e.g. GPTBot', 'ai-layer' ); ?>">
 							<button type="button" class="wpail-aitxt__agent-remove button-link">
-								<?php esc_html_e( '✕ Remove', 'ai-ready-layer' ); ?>
+								<?php esc_html_e( '✕ Remove', 'ai-layer' ); ?>
 							</button>
 						</div>
 						<div class="wpail-aitxt__agent-controls">
 							<label>
 								<input type="checkbox" class="wpail-aitxt__agent-allow" value="1" checked>
-								<?php esc_html_e( 'Allow crawling', 'ai-ready-layer' ); ?>
+								<?php esc_html_e( 'Allow crawling', 'ai-layer' ); ?>
 							</label>
 							<label>
 								<input type="checkbox" class="wpail-aitxt__agent-training" value="1">
-								<?php esc_html_e( 'Allow training', 'ai-ready-layer' ); ?>
+								<?php esc_html_e( 'Allow training', 'ai-layer' ); ?>
 							</label>
 							<label>
 								<input type="checkbox" class="wpail-aitxt__agent-attribution" value="1">
-								<?php esc_html_e( 'Require attribution', 'ai-ready-layer' ); ?>
+								<?php esc_html_e( 'Require attribution', 'ai-layer' ); ?>
 							</label>
 						</div>
 					</div>
@@ -326,8 +326,12 @@ class AiTxtPage {
 	}
 
 	private static function handle_save(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
 		$raw = isset( $_POST['wpail_aitxt'] ) && is_array( $_POST['wpail_aitxt'] )
-			? $_POST['wpail_aitxt']
+			? (array) wp_unslash( $_POST['wpail_aitxt'] )
 			: [];
 
 		// Sanitize agent rows.

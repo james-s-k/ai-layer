@@ -46,10 +46,9 @@ abstract class BaseMetaBox {
 	}
 
 	public function register(): void {
-		add_action( 'add_meta_boxes',           [ $this, 'add_meta_box' ] );
+		add_action( 'add_meta_boxes', [ $this, 'add_meta_box' ] );
+		// save_post_{post_type} is sufficient; avoid duplicate save_post which would run sync twice.
 		add_action( 'save_post_' . $this->post_type(), [ $this, 'save_meta' ], 10, 2 );
-		// Also hook generic save_post for autosave guard.
-		add_action( 'save_post', [ $this, 'save_meta' ], 10, 2 );
 	}
 
 	public function add_meta_box(): void {
@@ -103,7 +102,7 @@ abstract class BaseMetaBox {
 				echo '<label for="wpail_' . esc_attr( $key ) . '">';
 				echo esc_html( $def['label'] );
 				if ( $is_private ) {
-					echo ' <span class="wpail-badge wpail-badge--private">' . esc_html__( 'Internal', 'ai-ready-layer' ) . '</span>';
+					echo ' <span class="wpail-badge wpail-badge--private">' . esc_html__( 'Internal', 'ai-layer' ) . '</span>';
 				}
 				if ( ! empty( $def['required'] ) ) {
 					echo ' <span class="required">*</span>';

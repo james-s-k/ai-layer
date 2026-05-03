@@ -15,7 +15,7 @@ class LocationMetaBox extends BaseMetaBox {
 
 	protected function post_type(): string { return 'wpail_location'; }
 	protected function box_id(): string    { return 'wpail_location_details'; }
-	protected function box_title(): string { return __( 'Location Details', 'ai-ready-layer' ); }
+	protected function box_title(): string { return __( 'Location Details', 'ai-layer' ); }
 
 	protected function field_definitions(): array {
 		return FieldDefinitions::location();

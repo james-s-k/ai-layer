@@ -68,9 +68,9 @@ GET /wp-json/ai-layer/v1/answers?query=Do+you+offer+SEO+audits+in+Manchester
     "service": { "id": 12, "slug": "seo-audit", "name": "SEO Audit" },
     "location": { "id": 5, "slug": "manchester", "name": "Manchester" },
     "actions": [
-      { "id": 30, "type": "book", "label": "Book a Free Consultation", "phone": null, "url": "https://example.com/contact", "method": "form" },
+      { "id": 30, "type": "book", "label": "Book a Free Consultation", "phone": null, "url": "https://strivewp.com/contact", "method": "form" },
       { "id": 31, "type": "call", "label": "Call Us Now", "phone": "0207 946 0312", "url": null, "method": "phone" },
-      { "id": 32, "type": "download", "label": "Download Free SEO Checklist", "phone": null, "url": "https://example.com/seo-checklist", "method": "link" }
+      { "id": 32, "type": "download", "label": "Download Free SEO Checklist", "phone": null, "url": "https://strivewp.com/seo-checklist", "method": "link" }
     ],
     "source_faqs": [
       { "id": 20, "question": "What does an SEO audit include?", "short_answer": "Our SEO audits cover 100+ points including technical health, crawlability, page speed..." }
@@ -350,7 +350,7 @@ Requires `edit_posts` capability.
 
 **AI Layer → llms.txt**
 
-Optionally expose a standardised `llms.txt` file at your site root (`https://example.com/llms.txt`). The file guides AI systems and agents toward your structured data endpoints.
+Optionally expose a standardised `llms.txt` file at your site root (`https://strivewp.com/llms.txt`). The file guides AI systems and agents toward your structured data endpoints.
 
 This feature is fully free. It is implemented as a dynamic WordPress rewrite route — no filesystem writes required.
 
@@ -363,7 +363,7 @@ This feature is fully free. It is implemented as a dynamic WordPress rewrite rou
 | Include AI Layer endpoints | Toggle the endpoints section. What this produces depends on the **Endpoint discovery mode** set in **AI Layer → Settings** (see below) |
 | Include /answers endpoint | Shown only in llms.txt-only discovery mode and only when Pro is active |
 | Include key pages | Include a Key Pages section |
-| Page URLs | One entry per line in markdown link format: `[Page Title](https://example.com/page)` |
+| Page URLs | One entry per line in markdown link format: `[Page Title](https://strivewp.com/page)` |
 
 The Products endpoint is not a separate llms.txt toggle — it appears automatically in the endpoint listing when the Products endpoint is enabled in **AI Layer → Settings** and WooCommerce is active.
 
@@ -381,7 +381,7 @@ The Products endpoint is not a separate llms.txt toggle — it appears automatic
 
 ## AI Layer Structured Endpoints
 
-Machine-readable endpoint index (JSON): https://example.com/.well-known/ai-layer
+Machine-readable endpoint index (JSON): https://strivewp.com/.well-known/ai-layer
 
 ## Notes
 
@@ -399,13 +399,13 @@ This site exposes structured business data via AI Layer for machine-readable acc
 
 Structured, machine-readable business data is available at the following endpoints:
 
-- [Business Profile](https://example.com/wp-json/ai-layer/v1/profile): Business name, contact details, and description.
-- [Services](https://example.com/wp-json/ai-layer/v1/services): Services and products offered.
-- [Locations](https://example.com/wp-json/ai-layer/v1/locations): Locations and service areas.
-- [FAQs](https://example.com/wp-json/ai-layer/v1/faqs): Frequently asked questions and answers.
-- [Proof & Trust](https://example.com/wp-json/ai-layer/v1/proof): Testimonials, case studies, and accreditations.
-- [Actions](https://example.com/wp-json/ai-layer/v1/actions): Recommended next steps and calls to action.
-- [Products](https://example.com/wp-json/ai-layer/v1/products): Product catalogue with pricing, availability, and categories.
+- [Business Profile](https://strivewp.com/wp-json/ai-layer/v1/profile): Business name, contact details, and description.
+- [Services](https://strivewp.com/wp-json/ai-layer/v1/services): Services and products offered.
+- [Locations](https://strivewp.com/wp-json/ai-layer/v1/locations): Locations and service areas.
+- [FAQs](https://strivewp.com/wp-json/ai-layer/v1/faqs): Frequently asked questions and answers.
+- [Proof & Trust](https://strivewp.com/wp-json/ai-layer/v1/proof): Testimonials, case studies, and accreditations.
+- [Actions](https://strivewp.com/wp-json/ai-layer/v1/actions): Recommended next steps and calls to action.
+- [Products](https://strivewp.com/wp-json/ai-layer/v1/products): Product catalogue with pricing, availability, and categories.
 
 ## Notes
 
@@ -439,7 +439,7 @@ If a physical file conflict is detected, the settings page remains fully functio
 
 > ⚠ This feature is experimental. The AI.txt standard is still evolving and has not been formally adopted by major AI providers. Settings may have no effect on some systems. Use with caution.
 
-Optionally expose an `ai.txt` file at your site root (`https://example.com/ai.txt`). The file signals to AI systems how they are permitted to interact with your content — crawling, training, and attribution.
+Optionally expose an `ai.txt` file at your site root (`https://strivewp.com/ai.txt`). The file signals to AI systems how they are permitted to interact with your content — crawling, training, and attribution.
 
 Implemented as a dynamic WordPress rewrite route. No filesystem writes required.
 
@@ -491,8 +491,8 @@ Each agent block fully overrides the global `*` block for that agent, so all app
 When enabled (the default), AI Layer injects two `<link>` tags into the `<head>` of every front-end page:
 
 ```html
-<link rel="ai-layer" href="https://example.com/.well-known/ai-layer" type="application/json">
-<link rel="llms-txt" href="https://example.com/llms.txt" type="text/plain">
+<link rel="ai-layer" href="https://strivewp.com/.well-known/ai-layer" type="application/json">
+<link rel="llms-txt" href="https://strivewp.com/llms.txt" type="text/plain">
 ```
 
 Each tag is only output when its corresponding feature is active:
@@ -622,7 +622,7 @@ Encode `username:application-password` as Base64 and pass it in the `Authorizati
 echo -n "admin:xxxx xxxx xxxx xxxx xxxx xxxx" | base64
 
 # Authenticated POST example
-curl -X POST https://example.com/wp-json/ai-layer/v1/services \
+curl -X POST https://strivewp.com/wp-json/ai-layer/v1/services \
   -H "Authorization: Basic <base64-credential>" \
   -H "Content-Type: application/json" \
   -d '{"title": "SEO Consultancy", "short_summary": "Improve your organic rankings."}'
@@ -652,29 +652,29 @@ This is the **single source of truth** for what AI Layer exposes. `/llms.txt` li
   "name": "Acme Co",
   "description": "We make the best widgets.",
   "api": {
-    "base": "https://example.com/wp-json/ai-layer/v1",
+    "base": "https://strivewp.com/wp-json/ai-layer/v1",
     "endpoints": [
       {
         "path": "/profile",
-        "url": "https://example.com/wp-json/ai-layer/v1/profile",
+        "url": "https://strivewp.com/wp-json/ai-layer/v1/profile",
         "description": "Business name, contact details, and description.",
         "methods": ["GET"]
       },
       {
         "path": "/services",
-        "url": "https://example.com/wp-json/ai-layer/v1/services",
+        "url": "https://strivewp.com/wp-json/ai-layer/v1/services",
         "description": "Services and products offered.",
         "methods": ["GET"]
       },
       {
         "path": "/locations",
-        "url": "https://example.com/wp-json/ai-layer/v1/locations",
+        "url": "https://strivewp.com/wp-json/ai-layer/v1/locations",
         "description": "Locations and service areas.",
         "methods": ["GET"]
       },
       {
         "path": "/faqs",
-        "url": "https://example.com/wp-json/ai-layer/v1/faqs",
+        "url": "https://strivewp.com/wp-json/ai-layer/v1/faqs",
         "description": "Frequently asked questions and answers.",
         "methods": ["GET"],
         "params": {
@@ -684,7 +684,7 @@ This is the **single source of truth** for what AI Layer exposes. `/llms.txt` li
       },
       {
         "path": "/proof",
-        "url": "https://example.com/wp-json/ai-layer/v1/proof",
+        "url": "https://strivewp.com/wp-json/ai-layer/v1/proof",
         "description": "Testimonials, case studies, and accreditations.",
         "methods": ["GET"],
         "params": {
@@ -693,7 +693,7 @@ This is the **single source of truth** for what AI Layer exposes. `/llms.txt` li
       },
       {
         "path": "/actions",
-        "url": "https://example.com/wp-json/ai-layer/v1/actions",
+        "url": "https://strivewp.com/wp-json/ai-layer/v1/actions",
         "description": "Recommended next steps and calls to action.",
         "methods": ["GET"],
         "params": {
@@ -702,7 +702,7 @@ This is the **single source of truth** for what AI Layer exposes. `/llms.txt` li
       },
       {
         "path": "/answers",
-        "url": "https://example.com/wp-json/ai-layer/v1/answers",
+        "url": "https://strivewp.com/wp-json/ai-layer/v1/answers",
         "description": "Natural language question answering.",
         "methods": ["GET"],
         "params": {
@@ -713,7 +713,7 @@ This is the **single source of truth** for what AI Layer exposes. `/llms.txt` li
       },
       {
         "path": "/products",
-        "url": "https://example.com/wp-json/ai-layer/v1/products",
+        "url": "https://strivewp.com/wp-json/ai-layer/v1/products",
         "description": "Product catalogue with pricing and availability.",
         "methods": ["GET"],
         "params": {
@@ -724,13 +724,13 @@ This is the **single source of truth** for what AI Layer exposes. `/llms.txt` li
       },
       {
         "path": "/products/{slug}",
-        "url": "https://example.com/wp-json/ai-layer/v1/products/{slug}",
+        "url": "https://strivewp.com/wp-json/ai-layer/v1/products/{slug}",
         "description": "Full detail for a single product.",
         "methods": ["GET"]
       }
     ]
   },
-  "llms_txt": "https://example.com/llms.txt"
+  "llms_txt": "https://strivewp.com/llms.txt"
 }
 ```
 
@@ -752,7 +752,7 @@ Returns the canonical business profile.
     "business_type": "professional_services",
     "short_summary": "We help businesses grow.",
     "phone": "01234 567890",
-    "email": "hello@example.com",
+    "email": "hello@strivewp.com",
     "address_line_1": "10 High Street",
     "postcode": "AB1 2CD",
     "country": "UK",
@@ -831,7 +831,7 @@ Creates a new service.
 **Response:** `201 Created` with the full service object.
 
 ```shell
-curl -X POST https://example.com/wp-json/ai-layer/v1/services \
+curl -X POST https://strivewp.com/wp-json/ai-layer/v1/services \
   -H "Authorization: Basic <base64>" \
   -H "Content-Type: application/json" \
   -d '{
@@ -852,7 +852,7 @@ Partially updates an existing service. Only fields present in the request body a
 **Response:** `200 OK` with the updated service object.
 
 ```shell
-curl -X PATCH https://example.com/wp-json/ai-layer/v1/services/technical-seo-audit \
+curl -X PATCH https://strivewp.com/wp-json/ai-layer/v1/services/technical-seo-audit \
   -H "Authorization: Basic <base64>" \
   -H "Content-Type: application/json" \
   -d '{"from_price": 850, "related_locations": [5, 9]}'
@@ -996,7 +996,7 @@ Creates a new FAQ.
 **Response:** `201 Created` with the full FAQ object.
 
 ```shell
-curl -X POST https://example.com/wp-json/ai-layer/v1/faqs \
+curl -X POST https://strivewp.com/wp-json/ai-layer/v1/faqs \
   -H "Authorization: Basic <base64>" \
   -H "Content-Type: application/json" \
   -d '{
@@ -1148,7 +1148,7 @@ Creates a new call-to-action.
 **Response:** `201 Created` with the full action object.
 
 ```shell
-curl -X POST https://example.com/wp-json/ai-layer/v1/actions \
+curl -X POST https://strivewp.com/wp-json/ai-layer/v1/actions \
   -H "Authorization: Basic <base64>" \
   -H "Content-Type: application/json" \
   -d '{
@@ -1208,8 +1208,8 @@ A read-only proxy over WooCommerce's native product data. No data is duplicated 
       "on_sale": true,
       "in_stock": true,
       "categories": ["widgets", "pro"],
-      "image": "https://example.com/wp-content/uploads/widget-pro.jpg",
-      "url": "https://example.com/product/widget-pro"
+      "image": "https://strivewp.com/wp-content/uploads/widget-pro.jpg",
+      "url": "https://strivewp.com/product/widget-pro"
     }
   ],
   "meta": {
@@ -1249,8 +1249,8 @@ Returns full detail for a single product.
     "on_sale": true,
     "in_stock": true,
     "categories": [{ "id": 5, "name": "Widgets", "slug": "widgets" }],
-    "image": "https://example.com/wp-content/uploads/widget-pro.jpg",
-    "url": "https://example.com/product/widget-pro",
+    "image": "https://strivewp.com/wp-content/uploads/widget-pro.jpg",
+    "url": "https://strivewp.com/product/widget-pro",
     "sku": "WGT-PRO-001",
     "regular_price": "49.99",
     "sale_price": "39.99",
@@ -1260,7 +1260,7 @@ Returns full detail for a single product.
     "is_downloadable": false,
     "tags": ["featured", "bestseller"],
     "gallery": [
-      "https://example.com/wp-content/uploads/widget-pro-alt.jpg"
+      "https://strivewp.com/wp-content/uploads/widget-pro-alt.jpg"
     ],
     "weight": "0.5",
     "weight_unit": "kg",
@@ -1352,9 +1352,9 @@ GET /wp-json/ai-layer/v1/answers?query=Do+you+offer+SEO+audits+in+Manchester
     "service": { "id": 12, "slug": "seo-audit", "name": "SEO Audit" },
     "location": { "id": 5, "slug": "manchester", "name": "Manchester" },
     "actions": [
-      { "id": 30, "type": "book", "label": "Book a Free Consultation", "phone": null, "url": "https://example.com/contact", "method": "form" },
+      { "id": 30, "type": "book", "label": "Book a Free Consultation", "phone": null, "url": "https://strivewp.com/contact", "method": "form" },
       { "id": 31, "type": "call", "label": "Call Us Now", "phone": "0207 946 0312", "url": null, "method": "phone" },
-      { "id": 32, "type": "download", "label": "Download Free SEO Checklist", "phone": null, "url": "https://example.com/seo-checklist", "method": "link" }
+      { "id": 32, "type": "download", "label": "Download Free SEO Checklist", "phone": null, "url": "https://strivewp.com/seo-checklist", "method": "link" }
     ],
     "source_faqs": [
       { "id": 20, "question": "What does an SEO audit include?", "short_answer": "Our SEO audits cover 100+ points including technical health, crawlability, page speed..." }
@@ -1405,7 +1405,7 @@ Creates a new manually-authored Answer. When an incoming query matches any of th
 **Response:** `201 Created` with the full authored Answer object.
 
 ```shell
-curl -X POST https://example.com/wp-json/ai-layer/v1/answers \
+curl -X POST https://strivewp.com/wp-json/ai-layer/v1/answers \
   -H "Authorization: Basic <base64>" \
   -H "Content-Type: application/json" \
   -d '{

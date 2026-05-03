@@ -133,7 +133,7 @@ class FieldRenderer {
 				'<p class="description">%s</p>',
 				esc_html( sprintf(
 					/* translators: %s: post type label */
-					__( 'No %s found. Create some first.', 'ai-ready-layer' ),
+					__( 'No %s found. Create some first.', 'ai-layer' ),
 					$label
 				) )
 			);

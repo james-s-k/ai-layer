@@ -74,6 +74,49 @@ abstract class BaseController extends \WP_REST_Controller {
 	}
 
 	/**
+	 * Meta-cap check for creating a post of a registered post type (respects roles / map_meta_cap).
+	 *
+	 * @param string $post_type Post type slug.
+	 * @return true|\WP_Error
+	 */
+	protected function assert_can_create_post_type( string $post_type ): bool|\WP_Error {
+		$pto = get_post_type_object( $post_type );
+		if ( ! $pto || ! $pto->cap->create_posts ) {
+			return new \WP_Error( 'wpail_forbidden', 'Invalid post type.', [ 'status' => 403 ] );
+		}
+		if ( ! current_user_can( $pto->cap->create_posts ) ) {
+			return new \WP_Error( 'wpail_forbidden', 'You do not have permission to perform this action.', [ 'status' => 403 ] );
+		}
+		return true;
+	}
+
+	/**
+	 * Meta-cap check for editing an existing post.
+	 *
+	 * @param int $post_id Post ID.
+	 * @return true|\WP_Error
+	 */
+	protected function assert_can_edit_post( int $post_id ): bool|\WP_Error {
+		if ( ! current_user_can( 'edit_post', $post_id ) ) {
+			return new \WP_Error( 'wpail_forbidden', 'You do not have permission to perform this action.', [ 'status' => 403 ] );
+		}
+		return true;
+	}
+
+	/**
+	 * Meta-cap check for deleting/trashing a post.
+	 *
+	 * @param int $post_id Post ID.
+	 * @return true|\WP_Error
+	 */
+	protected function assert_can_delete_post( int $post_id ): bool|\WP_Error {
+		if ( ! current_user_can( 'delete_post', $post_id ) ) {
+			return new \WP_Error( 'wpail_forbidden', 'You do not have permission to perform this action.', [ 'status' => 403 ] );
+		}
+		return true;
+	}
+
+	/**
 	 * Sanitize only the fields that are explicitly present in $data.
 	 * Used by PATCH endpoints to avoid overwriting omitted fields with defaults.
 	 *

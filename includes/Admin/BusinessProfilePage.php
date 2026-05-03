@@ -33,11 +33,11 @@ class BusinessProfilePage {
 		}
 
 		if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST[ self::NONCE_NAME ] ) ), self::NONCE_ACTION ) ) {
-			wp_die( esc_html__( 'Security check failed.', 'ai-ready-layer' ) );
+			wp_die( esc_html__( 'Security check failed.', 'ai-layer' ) );
 		}
 
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You do not have permission to do this.', 'ai-ready-layer' ) );
+			wp_die( esc_html__( 'You do not have permission to do this.', 'ai-layer' ) );
 		}
 
 		$repo = new BusinessRepository();
@@ -45,7 +45,7 @@ class BusinessProfilePage {
 
 		add_action( 'admin_notices', function (): void {
 			echo '<div class="notice notice-success is-dismissible"><p>';
-			esc_html_e( 'Business profile saved.', 'ai-ready-layer' );
+			esc_html_e( 'Business profile saved.', 'ai-layer' );
 			echo '</p></div>';
 		} );
 	}
@@ -73,9 +73,9 @@ class BusinessProfilePage {
 
 		?>
 		<div class="wrap wpail-admin">
-			<h1><?php esc_html_e( 'Business Profile', 'ai-ready-layer' ); ?></h1>
+			<h1><?php esc_html_e( 'Business Profile', 'ai-layer' ); ?></h1>
 			<p class="description">
-				<?php esc_html_e( 'This is the canonical business profile. This data is exposed via the /profile endpoint and used across all AI Layer features.', 'ai-ready-layer' ); ?>
+				<?php esc_html_e( 'This is the canonical business profile. This data is exposed via the /profile endpoint and used across all AI Layer features.', 'ai-layer' ); ?>
 			</p>
 
 			<form method="post" action="">
@@ -97,7 +97,7 @@ class BusinessProfilePage {
 										<label for="wpail_<?php echo esc_attr( $key ); ?>">
 											<?php echo esc_html( $def['label'] ); ?>
 											<?php if ( $is_private ) : ?>
-												<span class="wpail-badge wpail-badge--private"><?php esc_html_e( 'Internal', 'ai-ready-layer' ); ?></span>
+												<span class="wpail-badge wpail-badge--private"><?php esc_html_e( 'Internal', 'ai-layer' ); ?></span>
 											<?php endif; ?>
 											<?php if ( ! empty( $def['required'] ) ) : ?>
 												<span class="required">*</span>
@@ -119,7 +119,7 @@ class BusinessProfilePage {
 
 				<p class="submit">
 					<input type="submit" name="submit" class="button button-primary"
-					       value="<?php esc_attr_e( 'Save Business Profile', 'ai-ready-layer' ); ?>">
+					       value="<?php esc_attr_e( 'Save Business Profile', 'ai-layer' ); ?>">
 				</p>
 			</form>
 		</div>

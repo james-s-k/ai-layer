@@ -43,11 +43,11 @@ class LLMsTxtPage {
 		$settings   = LLMsTxtSettings::get_all();
 		$pages_data = $settings['pages'];
 		$common_labels = [
-			'about'   => __( 'About', 'ai-ready-layer' ),
-			'contact' => __( 'Contact', 'ai-ready-layer' ),
-			'privacy' => __( 'Privacy policy', 'ai-ready-layer' ),
-			'terms'   => __( 'Terms', 'ai-ready-layer' ),
-			'blog'    => __( 'Blog', 'ai-ready-layer' ),
+			'about'   => __( 'About', 'ai-layer' ),
+			'contact' => __( 'Contact', 'ai-layer' ),
+			'privacy' => __( 'Privacy policy', 'ai-layer' ),
+			'terms'   => __( 'Terms', 'ai-layer' ),
+			'blog'    => __( 'Blog', 'ai-layer' ),
 		];
 		$detector   = new ConflictDetector();
 		$conflicts  = $detector->get_conflicts();
@@ -62,20 +62,20 @@ class LLMsTxtPage {
 
 		if ( $is_enabled && ! $has_error ) {
 			$status_class = 'wpail-status--on';
-			$status_label = __( 'Active', 'ai-ready-layer' );
+			$status_label = __( 'Active', 'ai-layer' );
 		} elseif ( $is_enabled && $has_error ) {
 			$status_class = 'wpail-status--warn';
-			$status_label = __( 'Conflict', 'ai-ready-layer' );
+			$status_label = __( 'Conflict', 'ai-layer' );
 		} else {
 			$status_class = 'wpail-status--off';
-			$status_label = __( 'Disabled', 'ai-ready-layer' );
+			$status_label = __( 'Disabled', 'ai-layer' );
 		}
 		?>
 		<div class="wrap wpail-admin wpail-llmstxt">
 
 			<?php if ( $saved ): ?>
 				<div class="notice notice-success is-dismissible">
-					<p><?php esc_html_e( 'Settings saved.', 'ai-ready-layer' ); ?></p>
+					<p><?php esc_html_e( 'Settings saved.', 'ai-layer' ); ?></p>
 				</div>
 			<?php endif; ?>
 
@@ -83,13 +83,13 @@ class LLMsTxtPage {
 				<span class="dashicons dashicons-text-page wpail-overview__icon"></span>
 				<div>
 					<h1>
-						<?php esc_html_e( 'llms.txt', 'ai-ready-layer' ); ?>
+						<?php esc_html_e( 'llms.txt', 'ai-layer' ); ?>
 						<span class="wpail-status <?php echo esc_attr( $status_class ); ?>">
 							<?php echo esc_html( $status_label ); ?>
 						</span>
 					</h1>
 					<p class="wpail-overview__tagline">
-						<?php esc_html_e( 'Help AI systems and agents discover your structured data by exposing a standardised llms.txt file at your site root.', 'ai-ready-layer' ); ?>
+						<?php esc_html_e( 'Help AI systems and agents discover your structured data by exposing a standardised llms.txt file at your site root.', 'ai-layer' ); ?>
 					</p>
 				</div>
 			</div>
@@ -108,37 +108,37 @@ class LLMsTxtPage {
 					<div class="wpail-llmstxt__settings">
 
 						<div class="wpail-field-group">
-							<h2><?php esc_html_e( 'General', 'ai-ready-layer' ); ?></h2>
+							<h2><?php esc_html_e( 'General', 'ai-layer' ); ?></h2>
 							<table class="form-table wpail-meta-box__table">
 								<tr>
 									<th>
 										<label for="wpail_llmstxt_enabled">
-											<?php esc_html_e( 'Enable llms.txt', 'ai-ready-layer' ); ?>
+											<?php esc_html_e( 'Enable llms.txt', 'ai-layer' ); ?>
 										</label>
 									</th>
 									<td>
 										<label>
 											<input type="checkbox" name="wpail_llmstxt[enabled]" id="wpail_llmstxt_enabled" value="1"
 												<?php checked( $settings['enabled'] ); ?>>
-											<?php esc_html_e( 'Serve a generated llms.txt at', 'ai-ready-layer' ); ?>
+											<?php esc_html_e( 'Serve a generated llms.txt at', 'ai-layer' ); ?>
 											<a href="<?php echo esc_url( $llms_url ); ?>" target="_blank"><?php echo esc_html( $llms_url ); ?></a>
 										</label>
 										<p class="description">
-											<?php esc_html_e( 'When enabled, your site responds to requests for /llms.txt with a generated file pointing AI systems to your structured data endpoints.', 'ai-ready-layer' ); ?>
+											<?php esc_html_e( 'When enabled, your site responds to requests for /llms.txt with a generated file pointing AI systems to your structured data endpoints.', 'ai-layer' ); ?>
 										</p>
 									</td>
 								</tr>
 								<tr>
 									<th>
 										<label for="wpail_llmstxt_custom_intro">
-											<?php esc_html_e( 'Custom introduction', 'ai-ready-layer' ); ?>
+											<?php esc_html_e( 'Custom introduction', 'ai-layer' ); ?>
 										</label>
 									</th>
 									<td>
 										<textarea name="wpail_llmstxt[custom_intro]" id="wpail_llmstxt_custom_intro"
 											rows="3" class="large-text"><?php echo esc_textarea( $settings['custom_intro'] ); ?></textarea>
 										<p class="description">
-											<?php esc_html_e( 'Optional paragraph inserted after the auto-generated header. Plain text or basic markdown. Leave blank to omit.', 'ai-ready-layer' ); ?>
+											<?php esc_html_e( 'Optional paragraph inserted after the auto-generated header. Plain text or basic markdown. Leave blank to omit.', 'ai-layer' ); ?>
 										</p>
 									</td>
 								</tr>
@@ -146,50 +146,50 @@ class LLMsTxtPage {
 						</div>
 
 						<div class="wpail-field-group">
-							<h2><?php esc_html_e( 'Content', 'ai-ready-layer' ); ?></h2>
+							<h2><?php esc_html_e( 'Content', 'ai-layer' ); ?></h2>
 							<table class="form-table wpail-meta-box__table">
 								<tr>
-									<th><?php esc_html_e( 'AI Layer endpoints', 'ai-ready-layer' ); ?></th>
+									<th><?php esc_html_e( 'AI Layer endpoints', 'ai-layer' ); ?></th>
 									<td>
 										<label>
 											<input type="checkbox" name="wpail_llmstxt[include_endpoints]" value="1"
 												<?php checked( $settings['include_endpoints'] ); ?>>
-											<?php esc_html_e( 'Include the AI Layer endpoints section', 'ai-ready-layer' ); ?>
+											<?php esc_html_e( 'Include the AI Layer endpoints section', 'ai-layer' ); ?>
 										</label>
 										<p class="description">
 											<?php if ( $is_well_known_mode ) : ?>
 												<?php
 												printf(
 													/* translators: %s: well-known URL */
-													esc_html__( 'Inserts a single line pointing to %s (the machine-readable source of truth). Discovery mode is set to /.well-known/ai-layer — change it in Settings to list endpoints directly here instead.', 'ai-ready-layer' ),
+													esc_html__( 'Inserts a single line pointing to %s (the machine-readable source of truth). Discovery mode is set to /.well-known/ai-layer — change it in Settings to list endpoints directly here instead.', 'ai-layer' ),
 													'<code>' . esc_html( home_url( '/.well-known/ai-layer' ) ) . '</code>'
 												);
 												?>
 											<?php else : ?>
-												<?php esc_html_e( 'Lists all active AI Layer endpoints directly in llms.txt. Products appear automatically when the Products endpoint is enabled in Settings and WooCommerce is active.', 'ai-ready-layer' ); ?>
+												<?php esc_html_e( 'Lists all active AI Layer endpoints directly in llms.txt. Products appear automatically when the Products endpoint is enabled in Settings and WooCommerce is active.', 'ai-layer' ); ?>
 											<?php endif; ?>
 										</p>
 									</td>
 								</tr>
 								<?php if ( ! $is_well_known_mode && Features::answers_enabled() ): ?>
 								<tr>
-									<th><?php esc_html_e( '/answers endpoint', 'ai-ready-layer' ); ?></th>
+									<th><?php esc_html_e( '/answers endpoint', 'ai-layer' ); ?></th>
 									<td>
 										<label>
 											<input type="checkbox" name="wpail_llmstxt[include_answers]" value="1"
 												<?php checked( $settings['include_answers'] ); ?>>
-											<?php esc_html_e( 'Include the /answers natural language endpoint', 'ai-ready-layer' ); ?>
+											<?php esc_html_e( 'Include the /answers natural language endpoint', 'ai-layer' ); ?>
 										</label>
 									</td>
 								</tr>
 								<?php endif; ?>
 								<tr>
-									<th><?php esc_html_e( 'Key pages', 'ai-ready-layer' ); ?></th>
+									<th><?php esc_html_e( 'Key pages', 'ai-layer' ); ?></th>
 									<td>
 										<label>
 											<input type="checkbox" name="wpail_llmstxt[include_pages]" id="wpail_llmstxt_include_pages" value="1"
 												<?php checked( $settings['include_pages'] ); ?>>
-											<?php esc_html_e( 'Include a Key Pages section', 'ai-ready-layer' ); ?>
+											<?php esc_html_e( 'Include a Key Pages section', 'ai-layer' ); ?>
 										</label>
 									</td>
 								</tr>
@@ -209,7 +209,7 @@ class LLMsTxtPage {
 												<div class="wpail-page-picker__search-wrap">
 													<input type="text"
 														class="wpail-page-picker__search regular-text"
-														placeholder="<?php esc_attr_e( 'Search to select a page…', 'ai-ready-layer' ); ?>"
+														placeholder="<?php esc_attr_e( 'Search to select a page…', 'ai-layer' ); ?>"
 														value="<?php echo esc_attr( $page_title ); ?>"
 														autocomplete="off">
 													<div class="wpail-page-picker__dropdown"></div>
@@ -220,7 +220,7 @@ class LLMsTxtPage {
 													value="<?php echo esc_attr( $page_id ); ?>">
 												<button type="button" class="wpail-page-picker__clear button-link"
 													<?php echo $page_id > 0 ? '' : 'style="display:none"'; ?>>
-													<?php esc_html_e( 'Clear', 'ai-ready-layer' ); ?>
+													<?php esc_html_e( 'Clear', 'ai-layer' ); ?>
 												</button>
 											</div>
 										</td>
@@ -231,7 +231,7 @@ class LLMsTxtPage {
 								<div class="wpail-pages-custom">
 									<div class="wpail-pages-section__header">
 										<p class="wpail-pages-section__label">
-											<?php esc_html_e( 'Custom pages', 'ai-ready-layer' ); ?>
+											<?php esc_html_e( 'Custom pages', 'ai-layer' ); ?>
 										</p>
 									</div>
 									<div class="wpail-page-repeater" id="wpail-page-repeater">
@@ -244,7 +244,7 @@ class LLMsTxtPage {
 												<div class="wpail-page-picker__search-wrap">
 													<input type="text"
 														class="wpail-page-picker__search regular-text"
-														placeholder="<?php esc_attr_e( 'Search to select a page…', 'ai-ready-layer' ); ?>"
+														placeholder="<?php esc_attr_e( 'Search to select a page…', 'ai-layer' ); ?>"
 														value="<?php echo esc_attr( $page_title ); ?>"
 														autocomplete="off">
 													<div class="wpail-page-picker__dropdown"></div>
@@ -255,17 +255,17 @@ class LLMsTxtPage {
 													value="<?php echo esc_attr( $page_id ); ?>">
 												<button type="button" class="wpail-page-picker__clear button-link"
 													<?php echo $page_id > 0 ? '' : 'style="display:none"'; ?>>
-													<?php esc_html_e( 'Clear', 'ai-ready-layer' ); ?>
+													<?php esc_html_e( 'Clear', 'ai-layer' ); ?>
 												</button>
 											</div>
 											<button type="button" class="wpail-page-repeater__remove button-link">
-												<?php esc_html_e( 'Remove', 'ai-ready-layer' ); ?>
+												<?php esc_html_e( 'Remove', 'ai-layer' ); ?>
 											</button>
 										</div>
 										<?php endforeach; ?>
 									</div>
 									<button type="button" id="wpail-add-custom-page" class="button">
-										<?php esc_html_e( '+ Add page', 'ai-ready-layer' ); ?>
+										<?php esc_html_e( '+ Add page', 'ai-layer' ); ?>
 									</button>
 								</div>
 
@@ -290,26 +290,26 @@ class LLMsTxtPage {
 
 						</div>
 
-						<?php submit_button( __( 'Save Settings', 'ai-ready-layer' ) ); ?>
+						<?php submit_button( __( 'Save Settings', 'ai-layer' ) ); ?>
 
 					</div><!-- /.wpail-llmstxt__settings -->
 
 					<div class="wpail-llmstxt__preview">
 						<div class="wpail-field-group">
-							<h2><?php esc_html_e( 'Preview', 'ai-ready-layer' ); ?></h2>
+							<h2><?php esc_html_e( 'Preview', 'ai-layer' ); ?></h2>
 							<textarea class="wpail-llmstxt__preview-area" id="wpail-llmstxt-preview" readonly><?php echo esc_textarea( $preview ); ?></textarea>
 							<div class="wpail-llmstxt__preview-actions">
 								<button type="button" class="button" id="wpail-llmstxt-copy">
-									<?php esc_html_e( 'Copy to clipboard', 'ai-ready-layer' ); ?>
+									<?php esc_html_e( 'Copy to clipboard', 'ai-layer' ); ?>
 								</button>
 								<?php if ( $is_enabled && ! $has_error ): ?>
 									<a href="<?php echo esc_url( $llms_url ); ?>" target="_blank" class="button">
-										<?php esc_html_e( 'View live', 'ai-ready-layer' ); ?>
+										<?php esc_html_e( 'View live', 'ai-layer' ); ?>
 									</a>
 								<?php endif; ?>
 							</div>
 							<p class="description" style="margin-top: 8px;">
-								<?php esc_html_e( 'Preview reflects your current business profile and settings. Save to update after changes.', 'ai-ready-layer' ); ?>
+								<?php esc_html_e( 'Preview reflects your current business profile and settings. Save to update after changes.', 'ai-layer' ); ?>
 							</p>
 						</div>
 					</div><!-- /.wpail-llmstxt__preview -->
@@ -330,8 +330,12 @@ class LLMsTxtPage {
 	}
 
 	private static function handle_save(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
 		$raw = isset( $_POST['wpail_llmstxt'] ) && is_array( $_POST['wpail_llmstxt'] )
-			? $_POST['wpail_llmstxt']
+			? (array) wp_unslash( $_POST['wpail_llmstxt'] )
 			: [];
 
 		$common = [];

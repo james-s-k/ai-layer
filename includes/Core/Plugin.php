@@ -78,7 +78,7 @@ final class Plugin {
 
 	private function load_textdomain(): void {
 		load_plugin_textdomain(
-			'ai-ready-layer',
+			'ai-layer',
 			false,
 			dirname( WPAIL_PLUGIN_BASE ) . '/languages'
 		);

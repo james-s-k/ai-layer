@@ -103,6 +103,11 @@ class ProofController extends BaseController {
 			return $this->bad_request( 'title (or headline) is required.' );
 		}
 
+		$cap = $this->assert_can_create_post_type( 'wpail_proof' );
+		if ( is_wp_error( $cap ) ) {
+			return $cap;
+		}
+
 		$post_id = wp_insert_post( [
 			'post_type'   => 'wpail_proof',
 			'post_title'  => $title,
@@ -131,6 +136,11 @@ class ProofController extends BaseController {
 		}
 
 		$post_id  = $proof->id;
+		$cap      = $this->assert_can_edit_post( $post_id );
+		if ( is_wp_error( $cap ) ) {
+			return $cap;
+		}
+
 		$params   = (array) ( $request->get_json_params() ?? [] );
 		$old_meta = RelationshipHelper::get_meta( $post_id );
 
@@ -155,6 +165,11 @@ class ProofController extends BaseController {
 		}
 
 		$post_id  = $proof->id;
+		$cap      = $this->assert_can_delete_post( $post_id );
+		if ( is_wp_error( $cap ) ) {
+			return $cap;
+		}
+
 		$old_meta = RelationshipHelper::get_meta( $post_id );
 		RelationshipSync::sync( $post_id, 'wpail_proof', $old_meta, [] );
 		wp_delete_post( $post_id, true );

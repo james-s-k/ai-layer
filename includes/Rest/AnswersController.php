@@ -98,7 +98,7 @@ class AnswersController extends BaseController {
 		if ( '' !== $query && ! Features::answers_enabled() ) {
 			return new \WP_Error(
 				'upgrade_required',
-				__( 'The /answers query engine requires AI Layer Pro.', 'ai-ready-layer' ),
+				__( 'The /answers query engine requires AI Layer Pro.', 'ai-layer' ),
 				[
 					'status'      => 402,
 					'upgrade_url' => License::upgrade_url(),
@@ -160,6 +160,11 @@ class AnswersController extends BaseController {
 			return $this->bad_request( 'short_answer is required.' );
 		}
 
+		$cap = $this->assert_can_create_post_type( 'wpail_answer' );
+		if ( is_wp_error( $cap ) ) {
+			return $cap;
+		}
+
 		// Derive an internal post title from the first query pattern or the answer itself.
 		$patterns    = $this->normalise_patterns( $params['query_patterns'] ?? [] );
 		$post_title  = sanitize_text_field( $params['title'] ?? ( $patterns[0] ?? substr( $short_answer, 0, 80 ) ) );
@@ -193,6 +198,11 @@ class AnswersController extends BaseController {
 		}
 
 		$post_id  = $answer->post_id;
+		$cap      = $this->assert_can_edit_post( $post_id );
+		if ( is_wp_error( $cap ) ) {
+			return $cap;
+		}
+
 		$params   = (array) ( $request->get_json_params() ?? [] );
 		$old_meta = RelationshipHelper::get_meta( $post_id );
 
@@ -217,6 +227,11 @@ class AnswersController extends BaseController {
 		}
 
 		$post_id  = $answer->post_id;
+		$cap      = $this->assert_can_delete_post( $post_id );
+		if ( is_wp_error( $cap ) ) {
+			return $cap;
+		}
+
 		$old_meta = RelationshipHelper::get_meta( $post_id );
 		RelationshipSync::sync( $post_id, 'wpail_answer', $old_meta, [] );
 		wp_delete_post( $post_id, true );

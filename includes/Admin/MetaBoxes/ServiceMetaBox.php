@@ -15,7 +15,7 @@ class ServiceMetaBox extends BaseMetaBox {
 
 	protected function post_type(): string { return 'wpail_service'; }
 	protected function box_id(): string    { return 'wpail_service_details'; }
-	protected function box_title(): string { return __( 'Service Details', 'ai-ready-layer' ); }
+	protected function box_title(): string { return __( 'Service Details', 'ai-layer' ); }
 
 	protected function field_definitions(): array {
 		return FieldDefinitions::service();

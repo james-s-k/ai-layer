@@ -31,9 +31,9 @@ class OverviewPage {
 			<div class="wpail-overview__header">
 				<span class="dashicons dashicons-networking wpail-overview__icon"></span>
 				<div>
-					<h1><?php esc_html_e( 'AI Layer', 'ai-ready-layer' ); ?></h1>
+					<h1><?php esc_html_e( 'AI Layer', 'ai-layer' ); ?></h1>
 					<p class="wpail-overview__tagline">
-						<?php esc_html_e( 'A structured knowledge layer that exposes your business data to AI systems, agents, and search tools via a clean REST API.', 'ai-ready-layer' ); ?>
+						<?php esc_html_e( 'A structured knowledge layer that exposes your business data to AI systems, agents, and search tools via a clean REST API.', 'ai-layer' ); ?>
 					</p>
 				</div>
 			</div>
@@ -41,13 +41,13 @@ class OverviewPage {
 			<?php if ( ! $profile_complete ) : ?>
 				<div class="notice notice-warning inline">
 					<p>
-						<strong><?php esc_html_e( 'Get started:', 'ai-ready-layer' ); ?></strong>
+						<strong><?php esc_html_e( 'Get started:', 'ai-layer' ); ?></strong>
 						<?php
 						printf(
 							/* translators: 1: link to Setup Wizard, 2: link to Business Profile */
-							esc_html__( 'Run the %1$s to auto-populate your Business Profile from existing plugins, or fill it in %2$s.', 'ai-ready-layer' ),
-							'<a href="' . esc_url( admin_url( 'admin.php?page=wpail_setup_wizard' ) ) . '">' . esc_html__( 'Setup Wizard', 'ai-ready-layer' ) . '</a>',
-							'<a href="' . esc_url( admin_url( 'admin.php?page=wpail_business_profile' ) ) . '">' . esc_html__( 'manually', 'ai-ready-layer' ) . '</a>'
+							esc_html__( 'Run the %1$s to auto-populate your Business Profile from existing plugins, or fill it in %2$s.', 'ai-layer' ),
+							'<a href="' . esc_url( admin_url( 'admin.php?page=wpail_setup_wizard' ) ) . '">' . esc_html__( 'Setup Wizard', 'ai-layer' ) . '</a>',
+							'<a href="' . esc_url( admin_url( 'admin.php?page=wpail_business_profile' ) ) . '">' . esc_html__( 'manually', 'ai-layer' ) . '</a>'
 						);
 						?>
 					</p>
@@ -55,15 +55,15 @@ class OverviewPage {
 			<?php endif; ?>
 
 			<?php /* ── How it works ── */ ?>
-			<h2><?php esc_html_e( 'How It Works', 'ai-ready-layer' ); ?></h2>
+			<h2><?php esc_html_e( 'How It Works', 'ai-layer' ); ?></h2>
 			<p class="wpail-overview__intro">
-				<?php esc_html_e( 'AI Layer stores your business data in structured, typed entities inside WordPress. Everything you enter here is served through a public REST API — no scraping, no guesswork. AI chatbots, voice assistants, and search integrations can query a single authoritative source for accurate information about your services, locations, FAQs, and more.', 'ai-ready-layer' ); ?>
+				<?php esc_html_e( 'AI Layer stores your business data in structured, typed entities inside WordPress. Everything you enter here is served through a public REST API — no scraping, no guesswork. AI chatbots, voice assistants, and search integrations can query a single authoritative source for accurate information about your services, locations, FAQs, and more.', 'ai-layer' ); ?>
 			</p>
 
 			<?php /* ── Content types: cards are the single hub (no duplicate step list) ── */ ?>
-			<h2><?php esc_html_e( 'Your content', 'ai-ready-layer' ); ?></h2>
+			<h2><?php esc_html_e( 'Your content', 'ai-layer' ); ?></h2>
 			<p class="wpail-overview__content-intro">
-				<?php esc_html_e( 'Typical order: Business Profile → Services & Locations → FAQs & Proof → Actions. Each card links to the editor; counts show published items. Connect integrations from the REST API section below.', 'ai-ready-layer' ); ?>
+				<?php esc_html_e( 'Typical order: Business Profile → Services & Locations → FAQs & Proof → Actions. Each card links to the editor; counts show published items. Connect integrations from the REST API section below.', 'ai-layer' ); ?>
 			</p>
 			<div class="wpail-cards">
 
@@ -71,77 +71,77 @@ class OverviewPage {
 				$cards = [
 					[
 						'icon'     => 'dashicons-store',
-						'label'    => __( 'Business Profile', 'ai-ready-layer' ),
-						'desc'     => __( 'Identity, contact, address, opening hours, and social links.', 'ai-ready-layer' ),
+						'label'    => __( 'Business Profile', 'ai-layer' ),
+						'desc'     => __( 'Identity, contact, address, opening hours, and social links.', 'ai-layer' ),
 						'count'    => null,
-						'status'   => $profile_complete ? __( 'Complete', 'ai-ready-layer' ) : __( 'Incomplete', 'ai-ready-layer' ),
+						'status'   => $profile_complete ? __( 'Complete', 'ai-layer' ) : __( 'Incomplete', 'ai-layer' ),
 						'status_ok'=> $profile_complete,
 						'url'      => admin_url( 'admin.php?page=wpail_business_profile' ),
-						'cta'      => __( 'Edit Profile', 'ai-ready-layer' ),
+						'cta'      => __( 'Edit Profile', 'ai-layer' ),
 					],
 					[
 						'icon'     => 'dashicons-clipboard',
-						'label'    => __( 'Services', 'ai-ready-layer' ),
-						'desc'     => __( 'What you offer — keywords, pricing, benefits, and customer types (used for intent matching).', 'ai-ready-layer' ),
+						'label'    => __( 'Services', 'ai-layer' ),
+						'desc'     => __( 'What you offer — keywords, pricing, benefits, and customer types (used for intent matching).', 'ai-layer' ),
 						'count'    => $counts['wpail_service'],
 						'url'      => admin_url( 'edit.php?post_type=wpail_service' ),
 						'new_url'  => admin_url( 'post-new.php?post_type=wpail_service' ),
-						'cta'      => __( 'Manage Services', 'ai-ready-layer' ),
+						'cta'      => __( 'Manage Services', 'ai-layer' ),
 					],
 					[
 						'icon'     => 'dashicons-location',
-						'label'    => __( 'Locations', 'ai-ready-layer' ),
-						'desc'     => __( 'Physical or virtual locations with postcodes, regions, and service radius.', 'ai-ready-layer' ),
+						'label'    => __( 'Locations', 'ai-layer' ),
+						'desc'     => __( 'Physical or virtual locations with postcodes, regions, and service radius.', 'ai-layer' ),
 						'count'    => $counts['wpail_location'],
 						'url'      => admin_url( 'edit.php?post_type=wpail_location' ),
 						'new_url'  => admin_url( 'post-new.php?post_type=wpail_location' ),
-						'cta'      => __( 'Manage Locations', 'ai-ready-layer' ),
+						'cta'      => __( 'Manage Locations', 'ai-layer' ),
 					],
 					[
 						'icon'     => 'dashicons-editor-help',
-						'label'    => __( 'FAQs', 'ai-ready-layer' ),
-						'desc'     => __( 'Questions and answers — main source for dynamic replies in /answers.', 'ai-ready-layer' ),
+						'label'    => __( 'FAQs', 'ai-layer' ),
+						'desc'     => __( 'Questions and answers — main source for dynamic replies in /answers.', 'ai-layer' ),
 						'count'    => $counts['wpail_faq'],
 						'url'      => admin_url( 'edit.php?post_type=wpail_faq' ),
 						'new_url'  => admin_url( 'post-new.php?post_type=wpail_faq' ),
-						'cta'      => __( 'Manage FAQs', 'ai-ready-layer' ),
+						'cta'      => __( 'Manage FAQs', 'ai-layer' ),
 					],
 					[
 						'icon'     => 'dashicons-awards',
-						'label'    => __( 'Proof & Trust', 'ai-ready-layer' ),
-						'desc'     => __( 'Testimonials, accreditations, stats, awards, and case studies returned alongside answers.', 'ai-ready-layer' ),
+						'label'    => __( 'Proof & Trust', 'ai-layer' ),
+						'desc'     => __( 'Testimonials, accreditations, stats, awards, and case studies returned alongside answers.', 'ai-layer' ),
 						'count'    => $counts['wpail_proof'],
 						'url'      => admin_url( 'edit.php?post_type=wpail_proof' ),
 						'new_url'  => admin_url( 'post-new.php?post_type=wpail_proof' ),
-						'cta'      => __( 'Manage Proof', 'ai-ready-layer' ),
+						'cta'      => __( 'Manage Proof', 'ai-layer' ),
 					],
 					[
 						'icon'     => 'dashicons-arrow-right-alt',
-						'label'    => __( 'Actions', 'ai-ready-layer' ),
-						'desc'     => __( 'Calls-to-action returned with every answer — book, call, email, quote, and more.', 'ai-ready-layer' ),
+						'label'    => __( 'Actions', 'ai-layer' ),
+						'desc'     => __( 'Calls-to-action returned with every answer — book, call, email, quote, and more.', 'ai-layer' ),
 						'count'    => $counts['wpail_action'],
 						'url'      => admin_url( 'edit.php?post_type=wpail_action' ),
 						'new_url'  => admin_url( 'post-new.php?post_type=wpail_action' ),
-						'cta'      => __( 'Manage Actions', 'ai-ready-layer' ),
+						'cta'      => __( 'Manage Actions', 'ai-layer' ),
 					],
 					Features::answers_enabled()
 					? [
 						'icon'    => 'dashicons-lightbulb',
-						'label'   => __( 'Answers', 'ai-ready-layer' ),
-						'desc'    => __( 'Manually authored answers that override the dynamic engine for predictable queries.', 'ai-ready-layer' ),
+						'label'   => __( 'Answers', 'ai-layer' ),
+						'desc'    => __( 'Manually authored answers that override the dynamic engine for predictable queries.', 'ai-layer' ),
 						'count'   => $counts['wpail_answer'],
 						'url'     => admin_url( 'edit.php?post_type=wpail_answer' ),
 						'new_url' => admin_url( 'post-new.php?post_type=wpail_answer' ),
-						'cta'     => __( 'Manage Answers', 'ai-ready-layer' ),
+						'cta'     => __( 'Manage Answers', 'ai-layer' ),
 					]
 					: [
 						'icon'    => 'dashicons-lightbulb',
-						'label'   => __( 'Answers', 'ai-ready-layer' ),
-						'desc'    => __( 'Author guaranteed responses and let the answer engine handle natural language queries — with service detection, location detection, and confidence scoring.', 'ai-ready-layer' ),
+						'label'   => __( 'Answers', 'ai-layer' ),
+						'desc'    => __( 'Author guaranteed responses and let the answer engine handle natural language queries — with service detection, location detection, and confidence scoring.', 'ai-layer' ),
 						'count'   => null,
 						'locked'  => true,
 						'url'     => admin_url( 'admin.php?page=wpail_answers_upgrade' ),
-						'cta'     => __( 'Learn More', 'ai-ready-layer' ),
+						'cta'     => __( 'Learn More', 'ai-layer' ),
 					],
 				];
 
@@ -154,7 +154,7 @@ class OverviewPage {
 							<span class="dashicons <?php echo esc_attr( $card['icon'] ); ?> wpail-card__icon"></span>
 							<strong class="wpail-card__title"><?php echo esc_html( $card['label'] ); ?></strong>
 							<?php if ( $is_locked ) : ?>
-								<span class="wpail-pro-badge"><?php esc_html_e( 'Pro', 'ai-ready-layer' ); ?></span>
+								<span class="wpail-pro-badge"><?php esc_html_e( 'Pro', 'ai-layer' ); ?></span>
 							<?php elseif ( null !== $card['count'] ) : ?>
 								<span class="wpail-card__count"><?php echo esc_html( (string) $card['count'] ); ?></span>
 							<?php endif; ?>
@@ -168,7 +168,7 @@ class OverviewPage {
 						<div class="wpail-card__actions">
 							<?php if ( $is_locked ) : ?>
 								<a href="<?php echo esc_url( License::upgrade_url() ); ?>" class="button button-primary" target="_blank" rel="noopener noreferrer">
-									<?php esc_html_e( 'Upgrade to Pro', 'ai-ready-layer' ); ?>
+									<?php esc_html_e( 'Upgrade to Pro', 'ai-layer' ); ?>
 								</a>
 								<a href="<?php echo esc_url( $card['url'] ); ?>" class="button button-secondary">
 									<?php echo esc_html( $card['cta'] ); ?>
@@ -179,7 +179,7 @@ class OverviewPage {
 								</a>
 								<?php if ( ! empty( $card['new_url'] ) ) : ?>
 									<a href="<?php echo esc_url( $card['new_url'] ); ?>" class="button">
-										+ <?php esc_html_e( 'Add New', 'ai-ready-layer' ); ?>
+										+ <?php esc_html_e( 'Add New', 'ai-layer' ); ?>
 									</a>
 								<?php endif; ?>
 							<?php endif; ?>
@@ -190,21 +190,21 @@ class OverviewPage {
 			</div>
 
 			<?php /* ── API reference (matches RestRegistrar + controllers) ── */ ?>
-			<h2><?php esc_html_e( 'REST API Endpoints', 'ai-ready-layer' ); ?></h2>
+			<h2><?php esc_html_e( 'REST API Endpoints', 'ai-layer' ); ?></h2>
 			<p>
-				<?php esc_html_e( 'All routes are GET, public, and read-only. Paths are relative to the base URL below.', 'ai-ready-layer' ); ?>
+				<?php esc_html_e( 'All routes are GET, public, and read-only. Paths are relative to the base URL below.', 'ai-layer' ); ?>
 			</p>
 			<p class="wpail-overview__endpoint-legend">
-				<?php esc_html_e( 'Path: part of the address after the base URL (some routes end with a slug you replace). Query string: text after ? in the URL — key=value pairs separated by &.', 'ai-ready-layer' ); ?>
+				<?php esc_html_e( 'Path: part of the address after the base URL (some routes end with a slug you replace). Query string: text after ? in the URL — key=value pairs separated by &.', 'ai-layer' ); ?>
 			</p>
 
 			<table class="widefat striped wpail-endpoint-table">
 				<thead>
 					<tr>
-						<th scope="col"><?php esc_html_e( 'Endpoint', 'ai-ready-layer' ); ?></th>
-						<th scope="col"><?php esc_html_e( 'What it returns', 'ai-ready-layer' ); ?></th>
-						<th scope="col"><?php esc_html_e( 'Path', 'ai-ready-layer' ); ?></th>
-						<th scope="col"><?php esc_html_e( 'Query string', 'ai-ready-layer' ); ?></th>
+						<th scope="col"><?php esc_html_e( 'Endpoint', 'ai-layer' ); ?></th>
+						<th scope="col"><?php esc_html_e( 'What it returns', 'ai-layer' ); ?></th>
+						<th scope="col"><?php esc_html_e( 'Path', 'ai-layer' ); ?></th>
+						<th scope="col"><?php esc_html_e( 'Query string', 'ai-layer' ); ?></th>
 					</tr>
 				</thead>
 				<tbody>
@@ -213,58 +213,58 @@ class OverviewPage {
 					$endpoints = [
 						[
 							'path' => '/profile',
-							'desc' => __( 'Canonical business name, contact details, address, and hours.', 'ai-ready-layer' ),
+							'desc' => __( 'Canonical business name, contact details, address, and hours.', 'ai-layer' ),
 							'path_note' => $dash,
 							'query_note' => $dash,
 							'pro' => false,
 						],
 						[
 							'path' => '/services',
-							'desc' => __( 'All published services (summary list).', 'ai-ready-layer' ),
+							'desc' => __( 'All published services (summary list).', 'ai-layer' ),
 							'path_note' => $dash,
 							'query_note' => $dash,
 							'pro' => false,
 						],
 						[
 							'path' => '/services/{slug}',
-							'desc' => __( 'Full service detail with related FAQs, proof, actions, and locations.', 'ai-ready-layer' ),
-							'path_note' => __( 'Swap {slug} for the service\'s URL slug (lowercase, hyphens). Example: …/services/acme-plumbing', 'ai-ready-layer' ),
+							'desc' => __( 'Full service detail with related FAQs, proof, actions, and locations.', 'ai-layer' ),
+							'path_note' => __( 'Swap {slug} for the service\'s URL slug (lowercase, hyphens). Example: …/services/acme-plumbing', 'ai-layer' ),
 							'query_note' => $dash,
 							'pro' => false,
 						],
 						[
 							'path' => '/locations',
-							'desc' => __( 'All published locations (summary list).', 'ai-ready-layer' ),
+							'desc' => __( 'All published locations (summary list).', 'ai-layer' ),
 							'path_note' => $dash,
 							'query_note' => $dash,
 							'pro' => false,
 						],
 						[
 							'path' => '/locations/{slug}',
-							'desc' => __( 'Full location detail with related services and local proof.', 'ai-ready-layer' ),
-							'path_note' => __( 'Swap {slug} for the location\'s URL slug (lowercase, hyphens).', 'ai-ready-layer' ),
+							'desc' => __( 'Full location detail with related services and local proof.', 'ai-layer' ),
+							'path_note' => __( 'Swap {slug} for the location\'s URL slug (lowercase, hyphens).', 'ai-layer' ),
 							'query_note' => $dash,
 							'pro' => false,
 						],
 						[
 							'path' => '/faqs',
-							'desc' => __( 'Published FAQs with short and long answers.', 'ai-ready-layer' ),
+							'desc' => __( 'Published FAQs with short and long answers.', 'ai-layer' ),
 							'path_note' => $dash,
-							'query_note' => __( 'Optional filters: service=N and/or location=N (N = WordPress post ID from the editor URL).', 'ai-ready-layer' ),
+							'query_note' => __( 'Optional filters: service=N and/or location=N (N = WordPress post ID from the editor URL).', 'ai-layer' ),
 							'pro' => false,
 						],
 						[
 							'path' => '/proof',
-							'desc' => __( 'Trust signals — testimonials, accreditations, stats, awards.', 'ai-ready-layer' ),
+							'desc' => __( 'Trust signals — testimonials, accreditations, stats, awards.', 'ai-layer' ),
 							'path_note' => $dash,
-							'query_note' => __( 'Optional: service=N (post ID) to limit proof linked to that service.', 'ai-ready-layer' ),
+							'query_note' => __( 'Optional: service=N (post ID) to limit proof linked to that service.', 'ai-layer' ),
 							'pro' => false,
 						],
 						[
 							'path' => '/actions',
-							'desc' => __( 'Calls-to-action — book, call, email, quote, etc.', 'ai-ready-layer' ),
+							'desc' => __( 'Calls-to-action — book, call, email, quote, etc.', 'ai-layer' ),
 							'path_note' => $dash,
-							'query_note' => __( 'Optional: service=N (post ID) to limit actions for that service.', 'ai-ready-layer' ),
+							'query_note' => __( 'Optional: service=N (post ID) to limit actions for that service.', 'ai-layer' ),
 							'pro' => false,
 						],
 					];
@@ -272,15 +272,15 @@ class OverviewPage {
 					if ( $has_woocommerce && $products_enabled ) {
 						$endpoints[] = [
 							'path'       => '/products',
-							'desc'       => __( 'WooCommerce product catalogue (summary list).', 'ai-ready-layer' ),
+							'desc'       => __( 'WooCommerce product catalogue (summary list).', 'ai-layer' ),
 							'path_note'  => $dash,
-							'query_note' => __( 'Optional: per_page (default 20, max 100), page, category=slug.', 'ai-ready-layer' ),
+							'query_note' => __( 'Optional: per_page (default 20, max 100), page, category=slug.', 'ai-layer' ),
 							'pro'        => false,
 						];
 						$endpoints[] = [
 							'path'       => '/products/{slug}',
-							'desc'       => __( 'Full product detail with description, pricing, categories, and tags.', 'ai-ready-layer' ),
-							'path_note'  => __( 'Swap {slug} for the product\'s URL slug (lowercase, hyphens).', 'ai-ready-layer' ),
+							'desc'       => __( 'Full product detail with description, pricing, categories, and tags.', 'ai-layer' ),
+							'path_note'  => __( 'Swap {slug} for the product\'s URL slug (lowercase, hyphens).', 'ai-layer' ),
 							'query_note' => $dash,
 							'pro'        => false,
 						];
@@ -289,9 +289,9 @@ class OverviewPage {
 					$endpoints = array_merge( $endpoints, [
 						[
 							'path' => '/answers',
-							'desc' => __( 'Assembled answer to a natural language query, with actions and supporting proof.', 'ai-ready-layer' ),
+							'desc' => __( 'Assembled answer to a natural language query, with actions and supporting proof.', 'ai-layer' ),
 							'path_note' => $dash,
-							'query_note' => __( 'Required: query=your question (URL-encoded). Optional hints: service=N, location=N (post IDs).', 'ai-ready-layer' ),
+							'query_note' => __( 'Required: query=your question (URL-encoded). Optional hints: service=N, location=N (post IDs).', 'ai-layer' ),
 							'pro' => true,
 						],
 					] );
@@ -304,7 +304,7 @@ class OverviewPage {
 							<td>
 								<code><?php echo esc_html( $row['path'] ); ?></code>
 								<?php if ( $pro_only && ! Features::answers_enabled() ) : ?>
-									<span class="wpail-pro-badge"><?php esc_html_e( 'Pro', 'ai-ready-layer' ); ?></span>
+									<span class="wpail-pro-badge"><?php esc_html_e( 'Pro', 'ai-layer' ); ?></span>
 								<?php endif; ?>
 							</td>
 							<td><?php echo esc_html( $row['desc'] ); ?></td>
@@ -316,27 +316,27 @@ class OverviewPage {
 			</table>
 
 			<p class="wpail-overview__api-url">
-				<?php esc_html_e( 'Base URL:', 'ai-ready-layer' ); ?>
+				<?php esc_html_e( 'Base URL:', 'ai-layer' ); ?>
 				<code><?php echo esc_html( $rest_base ); ?></code>
 			</p>
 
 			<?php /* ── Schema status ── */ ?>
-			<h2><?php esc_html_e( 'Structured data (Schema.org)', 'ai-ready-layer' ); ?></h2>
+			<h2><?php esc_html_e( 'Structured data (Schema.org)', 'ai-layer' ); ?></h2>
 			<p class="wpail-overview__schema-desc">
-				<?php esc_html_e( 'Optional JSON-LD in your site\'s <head> so search engines can understand your business data.', 'ai-ready-layer' ); ?>
+				<?php esc_html_e( 'Optional JSON-LD in your site\'s <head> so search engines can understand your business data.', 'ai-layer' ); ?>
 			</p>
 			<?php if ( $schema_enabled ) : ?>
 				<p class="wpail-overview__schema-status">
-					<span class="wpail-status wpail-status--on"><?php esc_html_e( 'On', 'ai-ready-layer' ); ?></span>
-					<?php esc_html_e( 'JSON-LD is active. Change the schema type in', 'ai-ready-layer' ); ?>
-					<a href="<?php echo esc_url( admin_url( 'admin.php?page=wpail_settings' ) ); ?>"><?php esc_html_e( 'Settings', 'ai-ready-layer' ); ?></a>.
+					<span class="wpail-status wpail-status--on"><?php esc_html_e( 'On', 'ai-layer' ); ?></span>
+					<?php esc_html_e( 'JSON-LD is active. Change the schema type in', 'ai-layer' ); ?>
+					<a href="<?php echo esc_url( admin_url( 'admin.php?page=wpail_settings' ) ); ?>"><?php esc_html_e( 'Settings', 'ai-layer' ); ?></a>.
 				</p>
 			<?php else : ?>
 				<p class="wpail-overview__schema-status">
-					<span class="wpail-status wpail-status--off"><?php esc_html_e( 'Off', 'ai-ready-layer' ); ?></span>
-					<?php esc_html_e( 'Turn it on in', 'ai-ready-layer' ); ?>
-					<a href="<?php echo esc_url( admin_url( 'admin.php?page=wpail_settings' ) ); ?>"><?php esc_html_e( 'Settings', 'ai-ready-layer' ); ?></a>
-					<?php esc_html_e( 'when you want rich-result markup in your HTML.', 'ai-ready-layer' ); ?>
+					<span class="wpail-status wpail-status--off"><?php esc_html_e( 'Off', 'ai-layer' ); ?></span>
+					<?php esc_html_e( 'Turn it on in', 'ai-layer' ); ?>
+					<a href="<?php echo esc_url( admin_url( 'admin.php?page=wpail_settings' ) ); ?>"><?php esc_html_e( 'Settings', 'ai-layer' ); ?></a>
+					<?php esc_html_e( 'when you want rich-result markup in your HTML.', 'ai-layer' ); ?>
 				</p>
 			<?php endif; ?>
 

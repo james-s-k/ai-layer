@@ -41,7 +41,7 @@ class ConflictDetector {
 				'type'     => 'physical_file',
 				'message'  => sprintf(
 					/* translators: %s: absolute path to the existing llms.txt file */
-					__( 'A physical <code>llms.txt</code> file already exists at <code>%s</code>. Your web server will serve that file directly — the AI Layer dynamic route will not be reached. Remove or rename the file to use AI Layer\'s generated version, or copy the preview below into the existing file.', 'ai-ready-layer' ),
+					__( 'A physical <code>llms.txt</code> file already exists at <code>%s</code>. Your web server will serve that file directly — the AI Layer dynamic route will not be reached. Remove or rename the file to use AI Layer\'s generated version, or copy the preview below into the existing file.', 'ai-layer' ),
 					esc_html( ABSPATH . 'llms.txt' )
 				),
 				'severity' => 'error',
@@ -53,7 +53,7 @@ class ConflictDetector {
 				'type'     => 'plain_permalinks',
 				'message'  => sprintf(
 					/* translators: %s: URL to WordPress permalink settings */
-					__( 'Your site is using plain permalinks. The AI Layer <code>llms.txt</code> dynamic route requires pretty permalinks. <a href="%s">Update your permalink structure</a>, then save these settings again to activate serving.', 'ai-ready-layer' ),
+					__( 'Your site is using plain permalinks. The AI Layer <code>llms.txt</code> dynamic route requires pretty permalinks. <a href="%s">Update your permalink structure</a>, then save these settings again to activate serving.', 'ai-layer' ),
 					esc_url( admin_url( 'options-permalink.php' ) )
 				),
 				'severity' => 'error',
@@ -63,7 +63,7 @@ class ConflictDetector {
 		if ( $this->is_yoast_active() ) {
 			$conflicts[] = [
 				'type'     => 'yoast',
-				'message'  => __( 'Yoast SEO is active. Some versions of Yoast SEO also generate an llms.txt file. Verify that only one source is managing your llms.txt output.', 'ai-ready-layer' ),
+				'message'  => __( 'Yoast SEO is active. Some versions of Yoast SEO also generate an llms.txt file. Verify that only one source is managing your llms.txt output.', 'ai-layer' ),
 				'severity' => 'warning',
 			];
 		}
@@ -71,7 +71,7 @@ class ConflictDetector {
 		if ( $this->is_rank_math_active() ) {
 			$conflicts[] = [
 				'type'     => 'rank_math',
-				'message'  => __( 'Rank Math SEO is active. Verify that only one source is managing your llms.txt output.', 'ai-ready-layer' ),
+				'message'  => __( 'Rank Math SEO is active. Verify that only one source is managing your llms.txt output.', 'ai-layer' ),
 				'severity' => 'warning',
 			];
 		}

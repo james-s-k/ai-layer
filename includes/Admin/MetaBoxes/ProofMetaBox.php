@@ -15,7 +15,7 @@ class ProofMetaBox extends BaseMetaBox {
 
 	protected function post_type(): string { return 'wpail_proof'; }
 	protected function box_id(): string    { return 'wpail_proof_details'; }
-	protected function box_title(): string { return __( 'Proof Details', 'ai-ready-layer' ); }
+	protected function box_title(): string { return __( 'Proof Details', 'ai-layer' ); }
 
 	protected function field_definitions(): array {
 		return FieldDefinitions::proof();

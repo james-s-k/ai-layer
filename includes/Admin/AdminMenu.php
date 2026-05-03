@@ -27,8 +27,8 @@ class AdminMenu {
 	public function add_menus(): void {
 		// Top-level menu — renders the Overview page.
 		add_menu_page(
-			__( 'AI Layer',             'ai-ready-layer' ),
-			__( 'AI Layer',             'ai-ready-layer' ),
+			__( 'AI Layer',             'ai-layer' ),
+			__( 'AI Layer',             'ai-layer' ),
 			'manage_options',
 			'wpail_dashboard',
 			[ OverviewPage::class, 'render' ],
@@ -39,8 +39,8 @@ class AdminMenu {
 		// Overview sub-menu (mirrors the top-level so the label reads "Overview" not "AI Layer").
 		add_submenu_page(
 			'wpail_dashboard',
-			__( 'Overview',             'ai-ready-layer' ),
-			__( 'Overview',             'ai-ready-layer' ),
+			__( 'Overview',             'ai-layer' ),
+			__( 'Overview',             'ai-layer' ),
 			'manage_options',
 			'wpail_dashboard',
 			[ OverviewPage::class, 'render' ]
@@ -49,8 +49,8 @@ class AdminMenu {
 		// Business Profile sub-menu.
 		add_submenu_page(
 			'wpail_dashboard',
-			__( 'Business Profile',     'ai-ready-layer' ),
-			__( 'Business Profile',     'ai-ready-layer' ),
+			__( 'Business Profile',     'ai-layer' ),
+			__( 'Business Profile',     'ai-layer' ),
 			'manage_options',
 			'wpail_business_profile',
 			[ BusinessProfilePage::class, 'render' ]
@@ -59,8 +59,8 @@ class AdminMenu {
 		// Setup Wizard sub-menu.
 		add_submenu_page(
 			'wpail_dashboard',
-			__( 'Setup Wizard',         'ai-ready-layer' ),
-			__( 'Setup Wizard',         'ai-ready-layer' ),
+			__( 'Setup Wizard',         'ai-layer' ),
+			__( 'Setup Wizard',         'ai-layer' ),
 			'manage_options',
 			'wpail_setup_wizard',
 			[ SetupWizardPage::class, 'render' ]
@@ -69,8 +69,8 @@ class AdminMenu {
 		// Settings sub-menu.
 		add_submenu_page(
 			'wpail_dashboard',
-			__( 'Settings',             'ai-ready-layer' ),
-			__( 'Settings',             'ai-ready-layer' ),
+			__( 'Settings',             'ai-layer' ),
+			__( 'Settings',             'ai-layer' ),
 			'manage_options',
 			'wpail_settings',
 			[ SettingsPage::class, 'render' ]
@@ -79,8 +79,8 @@ class AdminMenu {
 		// llms.txt sub-menu.
 		add_submenu_page(
 			'wpail_dashboard',
-			__( 'llms.txt',             'ai-ready-layer' ),
-			__( 'llms.txt',             'ai-ready-layer' ),
+			__( 'llms.txt',             'ai-layer' ),
+			__( 'llms.txt',             'ai-layer' ),
 			'manage_options',
 			'wpail_llmstxt',
 			[ LLMsTxtPage::class, 'render' ]
@@ -89,8 +89,8 @@ class AdminMenu {
 		// AI.txt sub-menu.
 		add_submenu_page(
 			'wpail_dashboard',
-			__( 'ai.txt (Beta)',         'ai-ready-layer' ),
-			__( 'ai.txt (Beta)',         'ai-ready-layer' ),
+			__( 'ai.txt (Beta)',         'ai-layer' ),
+			__( 'ai.txt (Beta)',         'ai-layer' ),
 			'manage_options',
 			'wpail_aitxt',
 			[ AiTxtPage::class, 'render' ]
@@ -99,8 +99,8 @@ class AdminMenu {
 		// Answer Engine test console.
 		add_submenu_page(
 			'wpail_dashboard',
-			__( 'Test Answer Engine',    'ai-ready-layer' ),
-			__( 'Test Answer Engine',    'ai-ready-layer' ),
+			__( 'Test Answer Engine',    'ai-layer' ),
+			__( 'Test Answer Engine',    'ai-layer' ),
 			'edit_posts',
 			'wpail_answer_test',
 			[ AnswerTestPage::class, 'render' ]
@@ -109,8 +109,8 @@ class AdminMenu {
 		// Help & documentation.
 		add_submenu_page(
 			'wpail_dashboard',
-			__( 'Help & Docs',           'ai-ready-layer' ),
-			__( 'Help & Docs',           'ai-ready-layer' ),
+			__( 'Help & Docs',           'ai-layer' ),
+			__( 'Help & Docs',           'ai-layer' ),
 			'manage_options',
 			'wpail_help',
 			[ HelpPage::class, 'render' ]
@@ -122,9 +122,9 @@ class AdminMenu {
 		if ( ! Features::answers_enabled() ) {
 			add_submenu_page(
 				'wpail_dashboard',
-				__( 'Answers — Pro Feature', 'ai-ready-layer' ),
+				__( 'Answers — Pro Feature', 'ai-layer' ),
 				// Translators: ★ is a visual Pro indicator, not translatable punctuation.
-				__( 'Answers ★', 'ai-ready-layer' ),
+				__( 'Answers ★', 'ai-layer' ),
 				'manage_options',
 				'wpail_answers_upgrade',
 				[ UpgradePage::class, 'render_answers' ]
@@ -195,12 +195,12 @@ class AdminMenu {
 	 */
 	public function post_updated_messages( array $messages ): array {
 		$cpts = [
-			'wpail_service'  => [ __( 'Service saved.',  'ai-ready-layer' ), __( 'Service updated.', 'ai-ready-layer' ) ],
-			'wpail_location' => [ __( 'Location saved.', 'ai-ready-layer' ), __( 'Location updated.','ai-ready-layer' ) ],
-			'wpail_faq'      => [ __( 'FAQ saved.',      'ai-ready-layer' ), __( 'FAQ updated.',     'ai-ready-layer' ) ],
-			'wpail_proof'    => [ __( 'Proof item saved.','ai-ready-layer' ), __( 'Proof updated.',   'ai-ready-layer' ) ],
-			'wpail_action'   => [ __( 'Action saved.',   'ai-ready-layer' ), __( 'Action updated.',  'ai-ready-layer' ) ],
-			'wpail_answer'   => [ __( 'Answer saved.',   'ai-ready-layer' ), __( 'Answer updated.',  'ai-ready-layer' ) ],
+			'wpail_service'  => [ __( 'Service saved.',  'ai-layer' ), __( 'Service updated.', 'ai-layer' ) ],
+			'wpail_location' => [ __( 'Location saved.', 'ai-layer' ), __( 'Location updated.','ai-layer' ) ],
+			'wpail_faq'      => [ __( 'FAQ saved.',      'ai-layer' ), __( 'FAQ updated.',     'ai-layer' ) ],
+			'wpail_proof'    => [ __( 'Proof item saved.','ai-layer' ), __( 'Proof updated.',   'ai-layer' ) ],
+			'wpail_action'   => [ __( 'Action saved.',   'ai-layer' ), __( 'Action updated.',  'ai-layer' ) ],
+			'wpail_answer'   => [ __( 'Answer saved.',   'ai-layer' ), __( 'Answer updated.',  'ai-layer' ) ],
 		];
 
 		foreach ( $cpts as $post_type => [ $created, $updated ] ) {

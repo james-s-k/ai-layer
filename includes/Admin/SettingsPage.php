@@ -62,26 +62,29 @@ class SettingsPage {
 		}
 
 		if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST[ self::NONCE_NAME ] ) ), self::NONCE_ACTION ) ) {
-			wp_die( esc_html__( 'Security check failed.', 'ai-ready-layer' ) );
+			wp_die( esc_html__( 'Security check failed.', 'ai-layer' ) );
 		}
 
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'Permission denied.', 'ai-ready-layer' ) );
+			wp_die( esc_html__( 'Permission denied.', 'ai-layer' ) );
 		}
 
 		$raw_page_ids = isset( $_POST[ self::SETTING_SCHEMA_FAQ_PAGE_IDS ] )
-			? (array) $_POST[ self::SETTING_SCHEMA_FAQ_PAGE_IDS ]
+			? (array) wp_unslash( $_POST[ self::SETTING_SCHEMA_FAQ_PAGE_IDS ] )
 			: [];
+
+		$faq_pages_mode_raw = sanitize_text_field( wp_unslash( $_POST[ self::SETTING_SCHEMA_FAQ_PAGES_MODE ] ?? '' ) );
+		$ai_discovery_raw   = sanitize_text_field( wp_unslash( $_POST[ self::SETTING_AI_DISCOVERY_MODE ] ?? '' ) );
 
 		$settings = [
 			self::SETTING_SCHEMA_ENABLED        => isset( $_POST[ self::SETTING_SCHEMA_ENABLED ] ),
 			self::SETTING_SCHEMA_ORG_TYPE       => sanitize_text_field( wp_unslash( $_POST[ self::SETTING_SCHEMA_ORG_TYPE ] ?? '' ) ),
 			self::SETTING_SCHEMA_FAQ_ENABLED    => isset( $_POST[ self::SETTING_SCHEMA_FAQ_ENABLED ] ),
-			self::SETTING_SCHEMA_FAQ_PAGES_MODE => in_array( $_POST[ self::SETTING_SCHEMA_FAQ_PAGES_MODE ] ?? '', [ 'all', 'specific' ], true )
-				? $_POST[ self::SETTING_SCHEMA_FAQ_PAGES_MODE ]
+			self::SETTING_SCHEMA_FAQ_PAGES_MODE => in_array( $faq_pages_mode_raw, [ 'all', 'specific' ], true )
+				? $faq_pages_mode_raw
 				: 'all',
 			self::SETTING_SCHEMA_FAQ_PAGE_IDS   => array_values( array_filter( array_map( 'absint', $raw_page_ids ) ) ),
-			self::SETTING_ENDPOINT_CACHE_TTL    => absint( $_POST[ self::SETTING_ENDPOINT_CACHE_TTL ] ?? 0 ),
+			self::SETTING_ENDPOINT_CACHE_TTL    => absint( wp_unslash( $_POST[ self::SETTING_ENDPOINT_CACHE_TTL ] ?? 0 ) ),
 			self::SETTING_PRODUCTS_ENABLED      => isset( $_POST[ self::SETTING_PRODUCTS_ENABLED ] ),
 			self::SETTING_SERVICE_PUBLIC        => isset( $_POST[ self::SETTING_SERVICE_PUBLIC ] ),
 			self::SETTING_SERVICE_SLUG          => self::sanitize_rewrite_slug( $_POST[ self::SETTING_SERVICE_SLUG ] ?? '', 'services' ),
@@ -91,8 +94,8 @@ class SettingsPage {
 			self::SETTING_FAQ_SLUG              => self::sanitize_rewrite_slug( $_POST[ self::SETTING_FAQ_SLUG ] ?? '', 'faqs' ),
 			self::SETTING_PROOF_PUBLIC          => isset( $_POST[ self::SETTING_PROOF_PUBLIC ] ),
 			self::SETTING_PROOF_SLUG            => self::sanitize_rewrite_slug( $_POST[ self::SETTING_PROOF_SLUG ] ?? '', 'proof' ),
-			self::SETTING_AI_DISCOVERY_MODE     => in_array( $_POST[ self::SETTING_AI_DISCOVERY_MODE ] ?? '', [ self::AI_DISCOVERY_WELL_KNOWN, self::AI_DISCOVERY_LLMSTXT ], true )
-				? $_POST[ self::SETTING_AI_DISCOVERY_MODE ]
+			self::SETTING_AI_DISCOVERY_MODE     => in_array( $ai_discovery_raw, [ self::AI_DISCOVERY_WELL_KNOWN, self::AI_DISCOVERY_LLMSTXT ], true )
+				? $ai_discovery_raw
 				: self::AI_DISCOVERY_WELL_KNOWN,
 			self::SETTING_HEAD_LINKS_ENABLED    => isset( $_POST[ self::SETTING_HEAD_LINKS_ENABLED ] ),
 			self::SETTING_DELETE_ON_UNINSTALL   => isset( $_POST[ self::SETTING_DELETE_ON_UNINSTALL ] ),
@@ -110,7 +113,7 @@ class SettingsPage {
 
 		add_action( 'admin_notices', function (): void {
 			echo '<div class="notice notice-success is-dismissible"><p>';
-			esc_html_e( 'Settings saved.', 'ai-ready-layer' );
+			esc_html_e( 'Settings saved.', 'ai-layer' );
 			echo '</p></div>';
 		} );
 	}
@@ -146,18 +149,18 @@ class SettingsPage {
 		$has_rank_math = defined( 'RANK_MATH_VERSION' );
 		?>
 		<div class="wrap wpail-admin">
-			<h1><?php esc_html_e( 'AI Layer Settings', 'ai-ready-layer' ); ?></h1>
+			<h1><?php esc_html_e( 'AI Layer Settings', 'ai-layer' ); ?></h1>
 
 			<?php if ( $has_yoast || $has_rank_math ) : ?>
 				<div class="notice notice-warning">
 					<p>
 						<?php if ( $has_yoast ) : ?>
-							<strong><?php esc_html_e( 'Yoast SEO detected.', 'ai-ready-layer' ); ?></strong>
+							<strong><?php esc_html_e( 'Yoast SEO detected.', 'ai-layer' ); ?></strong>
 						<?php endif; ?>
 						<?php if ( $has_rank_math ) : ?>
-							<strong><?php esc_html_e( 'Rank Math detected.', 'ai-ready-layer' ); ?></strong>
+							<strong><?php esc_html_e( 'Rank Math detected.', 'ai-layer' ); ?></strong>
 						<?php endif; ?>
-						<?php esc_html_e( 'Schema output is disabled by default to avoid duplication. Enable carefully and review your pages.', 'ai-ready-layer' ); ?>
+						<?php esc_html_e( 'Schema output is disabled by default to avoid duplication. Enable carefully and review your pages.', 'ai-layer' ); ?>
 					</p>
 				</div>
 			<?php endif; ?>
@@ -165,21 +168,21 @@ class SettingsPage {
 			<form method="post" action="">
 				<?php wp_nonce_field( self::NONCE_ACTION, self::NONCE_NAME ); ?>
 
-				<h2><?php esc_html_e( 'Schema.org Output', 'ai-ready-layer' ); ?></h2>
+				<h2><?php esc_html_e( 'Schema.org Output', 'ai-layer' ); ?></h2>
 				<table class="form-table" role="presentation">
 					<tr>
-						<th scope="row"><?php esc_html_e( 'Enable Schema Output', 'ai-ready-layer' ); ?></th>
+						<th scope="row"><?php esc_html_e( 'Enable Schema Output', 'ai-layer' ); ?></th>
 						<td>
 							<label>
 								<input type="checkbox" name="<?php echo esc_attr( self::SETTING_SCHEMA_ENABLED ); ?>" value="1"
 								       <?php checked( $schema_enabled ); ?>>
-								<?php esc_html_e( 'Output JSON-LD schema on site pages', 'ai-ready-layer' ); ?>
+								<?php esc_html_e( 'Output JSON-LD schema on site pages', 'ai-layer' ); ?>
 							</label>
-							<p class="description"><?php esc_html_e( 'Outputs a JSON-LD block in &lt;head&gt; using the Schema.org type selected below, populated from your Business Profile.', 'ai-ready-layer' ); ?></p>
+							<p class="description"><?php esc_html_e( 'Outputs a JSON-LD block in &lt;head&gt; using the Schema.org type selected below, populated from your Business Profile.', 'ai-layer' ); ?></p>
 						</td>
 					</tr>
 					<tr>
-						<th scope="row"><?php esc_html_e( 'Schema.org Type', 'ai-ready-layer' ); ?></th>
+						<th scope="row"><?php esc_html_e( 'Schema.org Type', 'ai-layer' ); ?></th>
 						<td>
 							<select name="<?php echo esc_attr( self::SETTING_SCHEMA_ORG_TYPE ); ?>">
 								<?php
@@ -204,28 +207,28 @@ class SettingsPage {
 						</td>
 					</tr>
 					<tr>
-						<th scope="row"><?php esc_html_e( 'Enable FAQPage Schema', 'ai-ready-layer' ); ?></th>
+						<th scope="row"><?php esc_html_e( 'Enable FAQPage Schema', 'ai-layer' ); ?></th>
 						<td>
 							<label>
 								<input type="checkbox" name="<?php echo esc_attr( self::SETTING_SCHEMA_FAQ_ENABLED ); ?>" value="1"
 								       <?php checked( $schema_faq_enabled ); ?>>
-								<?php esc_html_e( 'Output FAQPage JSON-LD using all published public FAQs', 'ai-ready-layer' ); ?>
+								<?php esc_html_e( 'Output FAQPage JSON-LD using all published public FAQs', 'ai-layer' ); ?>
 							</label>
 						</td>
 					</tr>
 					<tr>
-						<th scope="row"><?php esc_html_e( 'FAQPage target pages', 'ai-ready-layer' ); ?></th>
+						<th scope="row"><?php esc_html_e( 'FAQPage target pages', 'ai-layer' ); ?></th>
 						<td>
 							<label style="display:block; margin-bottom:6px;">
 								<input type="radio" name="<?php echo esc_attr( self::SETTING_SCHEMA_FAQ_PAGES_MODE ); ?>"
 								       value="all" <?php checked( $faq_pages_mode, 'all' ); ?>>
-								<?php esc_html_e( 'All pages', 'ai-ready-layer' ); ?>
+								<?php esc_html_e( 'All pages', 'ai-layer' ); ?>
 							</label>
 							<label style="display:block; margin-bottom:8px;">
 								<input type="radio" name="<?php echo esc_attr( self::SETTING_SCHEMA_FAQ_PAGES_MODE ); ?>"
 								       id="wpail_faq_mode_specific"
 								       value="specific" <?php checked( $faq_pages_mode, 'specific' ); ?>>
-								<?php esc_html_e( 'Specific pages', 'ai-ready-layer' ); ?>
+								<?php esc_html_e( 'Specific pages', 'ai-layer' ); ?>
 							</label>
 							<div id="wpail_faq_page_list" <?php echo 'specific' === $faq_pages_mode ? '' : 'style="display:none"'; ?>>
 								<div class="wpail-post-checklist">
@@ -240,24 +243,24 @@ class SettingsPage {
 									<?php endforeach; ?>
 								</div>
 								<p class="description" style="margin-top:6px;">
-									<?php esc_html_e( 'FAQPage schema will only be output on the pages checked above.', 'ai-ready-layer' ); ?>
+									<?php esc_html_e( 'FAQPage schema will only be output on the pages checked above.', 'ai-layer' ); ?>
 								</p>
 							</div>
 						</td>
 					</tr>
 				</table>
 
-				<h2><?php esc_html_e( 'API Endpoints', 'ai-ready-layer' ); ?></h2>
+				<h2><?php esc_html_e( 'API Endpoints', 'ai-layer' ); ?></h2>
 				<table class="form-table" role="presentation">
 					<tr>
-						<th scope="row"><?php esc_html_e( 'Endpoint Base URL', 'ai-ready-layer' ); ?></th>
+						<th scope="row"><?php esc_html_e( 'Endpoint Base URL', 'ai-layer' ); ?></th>
 						<td>
 							<code><?php echo esc_html( rest_url( WPAIL_REST_NS ) ); ?></code>
-							<p class="description"><?php esc_html_e( 'Versioned namespace for all AI Layer endpoints.', 'ai-ready-layer' ); ?></p>
+							<p class="description"><?php esc_html_e( 'Versioned namespace for all AI Layer endpoints.', 'ai-layer' ); ?></p>
 						</td>
 					</tr>
 					<tr>
-						<th scope="row"><?php esc_html_e( 'Products Endpoint', 'ai-ready-layer' ); ?></th>
+						<th scope="row"><?php esc_html_e( 'Products Endpoint', 'ai-layer' ); ?></th>
 						<td>
 							<label>
 								<input type="checkbox"
@@ -265,28 +268,28 @@ class SettingsPage {
 								       value="1"
 								       <?php checked( $products_enabled ); ?>
 								       <?php disabled( ! $has_woocommerce ); ?>>
-								<?php esc_html_e( 'Enable /products endpoint', 'ai-ready-layer' ); ?>
+								<?php esc_html_e( 'Enable /products endpoint', 'ai-layer' ); ?>
 							</label>
 							<?php if ( $has_woocommerce ) : ?>
 								<p class="description">
-									<?php esc_html_e( 'Exposes your WooCommerce product catalogue at /products. Reads live from WooCommerce — no data duplication or extra database usage.', 'ai-ready-layer' ); ?>
+									<?php esc_html_e( 'Exposes your WooCommerce product catalogue at /products. Reads live from WooCommerce — no data duplication or extra database usage.', 'ai-layer' ); ?>
 								</p>
 							<?php else : ?>
 								<p class="description">
-									<?php esc_html_e( 'WooCommerce is not active. Install and activate WooCommerce to use this endpoint.', 'ai-ready-layer' ); ?>
+									<?php esc_html_e( 'WooCommerce is not active. Install and activate WooCommerce to use this endpoint.', 'ai-layer' ); ?>
 								</p>
 							<?php endif; ?>
 						</td>
 					</tr>
 				</table>
 
-				<h2><?php esc_html_e( 'AI Discovery', 'ai-ready-layer' ); ?></h2>
+				<h2><?php esc_html_e( 'AI Discovery', 'ai-layer' ); ?></h2>
 				<p class="description" style="margin-bottom:12px;">
-					<?php esc_html_e( 'Controls how AI systems and agents discover your AI Layer endpoints. This affects both /.well-known/ai-layer and the endpoints section of /llms.txt.', 'ai-ready-layer' ); ?>
+					<?php esc_html_e( 'Controls how AI systems and agents discover your AI Layer endpoints. This affects both /.well-known/ai-layer and the endpoints section of /llms.txt.', 'ai-layer' ); ?>
 				</p>
 				<table class="form-table" role="presentation">
 					<tr>
-						<th scope="row"><?php esc_html_e( 'Endpoint discovery mode', 'ai-ready-layer' ); ?></th>
+						<th scope="row"><?php esc_html_e( 'Endpoint discovery mode', 'ai-layer' ); ?></th>
 						<td>
 							<fieldset>
 								<label style="display:block; margin-bottom:12px;">
@@ -294,12 +297,12 @@ class SettingsPage {
 									       name="<?php echo esc_attr( self::SETTING_AI_DISCOVERY_MODE ); ?>"
 									       value="<?php echo esc_attr( self::AI_DISCOVERY_WELL_KNOWN ); ?>"
 									       <?php checked( $ai_discovery_mode, self::AI_DISCOVERY_WELL_KNOWN ); ?>>
-									<strong><?php esc_html_e( '/.well-known/ai-layer — recommended', 'ai-ready-layer' ); ?></strong>
+									<strong><?php esc_html_e( '/.well-known/ai-layer — recommended', 'ai-layer' ); ?></strong>
 									<span class="description" style="display:block; margin-left:22px; margin-top:3px;">
 										<?php
 										printf(
 											/* translators: %s: well-known URL */
-											esc_html__( 'Endpoints defined as machine-readable JSON at %s — the single source of truth. /llms.txt links to it. Best for agents and tools that query the discovery document directly.', 'ai-ready-layer' ),
+											esc_html__( 'Endpoints defined as machine-readable JSON at %s — the single source of truth. /llms.txt links to it. Best for agents and tools that query the discovery document directly.', 'ai-layer' ),
 											'<code>' . esc_html( home_url( '/.well-known/ai-layer' ) ) . '</code>'
 										);
 										?>
@@ -310,46 +313,46 @@ class SettingsPage {
 									       name="<?php echo esc_attr( self::SETTING_AI_DISCOVERY_MODE ); ?>"
 									       value="<?php echo esc_attr( self::AI_DISCOVERY_LLMSTXT ); ?>"
 									       <?php checked( $ai_discovery_mode, self::AI_DISCOVERY_LLMSTXT ); ?>>
-									<strong><?php esc_html_e( '/llms.txt only', 'ai-ready-layer' ); ?></strong>
+									<strong><?php esc_html_e( '/llms.txt only', 'ai-layer' ); ?></strong>
 									<span class="description" style="display:block; margin-left:22px; margin-top:3px;">
-										<?php esc_html_e( 'Endpoints listed directly in /llms.txt. /.well-known/ai-layer returns 404. Use this if you prefer a single plain-text discovery file.', 'ai-ready-layer' ); ?>
+										<?php esc_html_e( 'Endpoints listed directly in /llms.txt. /.well-known/ai-layer returns 404. Use this if you prefer a single plain-text discovery file.', 'ai-layer' ); ?>
 									</span>
 								</label>
 							</fieldset>
 						</td>
 					</tr>
 					<tr>
-						<th scope="row"><?php esc_html_e( 'Discovery link tags', 'ai-ready-layer' ); ?></th>
+						<th scope="row"><?php esc_html_e( 'Discovery link tags', 'ai-layer' ); ?></th>
 						<td>
 							<label>
 								<input type="checkbox"
 								       name="<?php echo esc_attr( self::SETTING_HEAD_LINKS_ENABLED ); ?>"
 								       value="1"
 								       <?php checked( $head_links_enabled ); ?>>
-								<?php esc_html_e( 'Output AI discovery', 'ai-ready-layer' ); ?>
+								<?php esc_html_e( 'Output AI discovery', 'ai-layer' ); ?>
 								<code>&lt;link&gt;</code>
-								<?php esc_html_e( 'tags in every page', 'ai-ready-layer' ); ?>
+								<?php esc_html_e( 'tags in every page', 'ai-layer' ); ?>
 								<code>&lt;head&gt;</code>
 							</label>
 							<p class="description">
-								<?php esc_html_e( 'Signals to AI crawlers and agents where to find machine-readable business data. Outputs a rel="ai-layer" link for /.well-known/ai-layer (when active) and a rel="llms-txt" link for /llms.txt (when enabled). Enabled by default.', 'ai-ready-layer' ); ?>
+								<?php esc_html_e( 'Signals to AI crawlers and agents where to find machine-readable business data. Outputs a rel="ai-layer" link for /.well-known/ai-layer (when active) and a rel="llms-txt" link for /llms.txt (when enabled). Enabled by default.', 'ai-layer' ); ?>
 							</p>
 						</td>
 					</tr>
 				</table>
 
-				<h2><?php esc_html_e( 'Post Type Visibility', 'ai-ready-layer' ); ?></h2>
+				<h2><?php esc_html_e( 'Post Type Visibility', 'ai-layer' ); ?></h2>
 				<p>
-					<?php esc_html_e( 'By default, all AI Layer post types are private — they serve the REST API only and have no front-end URLs. Enable public access to make a post type available in your theme so your content and API layer share a single source of data.', 'ai-ready-layer' ); ?>
+					<?php esc_html_e( 'By default, all AI Layer post types are private — they serve the REST API only and have no front-end URLs. Enable public access to make a post type available in your theme so your content and API layer share a single source of data.', 'ai-layer' ); ?>
 				</p>
 				<p class="description">
-					<?php esc_html_e( 'When enabled, WordPress creates a front-end archive and single-post URL for that post type. Add a template file in your theme (e.g. archive-wpail_service.php, single-wpail_service.php) to control how the content displays. Permalink rules are refreshed automatically after saving.', 'ai-ready-layer' ); ?>
+					<?php esc_html_e( 'When enabled, WordPress creates a front-end archive and single-post URL for that post type. Add a template file in your theme (e.g. archive-wpail_service.php, single-wpail_service.php) to control how the content displays. Permalink rules are refreshed automatically after saving.', 'ai-layer' ); ?>
 				</p>
 
 				<?php
 				$cpt_rows = [
 					[
-						'label'      => __( 'Services', 'ai-ready-layer' ),
+						'label'      => __( 'Services', 'ai-layer' ),
 						'public_key' => self::SETTING_SERVICE_PUBLIC,
 						'slug_key'   => self::SETTING_SERVICE_SLUG,
 						'is_public'  => $service_public,
@@ -357,7 +360,7 @@ class SettingsPage {
 						'default'    => 'services',
 					],
 					[
-						'label'      => __( 'Locations', 'ai-ready-layer' ),
+						'label'      => __( 'Locations', 'ai-layer' ),
 						'public_key' => self::SETTING_LOCATION_PUBLIC,
 						'slug_key'   => self::SETTING_LOCATION_SLUG,
 						'is_public'  => $location_public,
@@ -365,7 +368,7 @@ class SettingsPage {
 						'default'    => 'locations',
 					],
 					[
-						'label'      => __( 'FAQs', 'ai-ready-layer' ),
+						'label'      => __( 'FAQs', 'ai-layer' ),
 						'public_key' => self::SETTING_FAQ_PUBLIC,
 						'slug_key'   => self::SETTING_FAQ_SLUG,
 						'is_public'  => $faq_public,
@@ -373,7 +376,7 @@ class SettingsPage {
 						'default'    => 'faqs',
 					],
 					[
-						'label'      => __( 'Proof & Trust', 'ai-ready-layer' ),
+						'label'      => __( 'Proof & Trust', 'ai-layer' ),
 						'public_key' => self::SETTING_PROOF_PUBLIC,
 						'slug_key'   => self::SETTING_PROOF_SLUG,
 						'is_public'  => $proof_public,
@@ -393,11 +396,11 @@ class SettingsPage {
 									       name="<?php echo esc_attr( $row['public_key'] ); ?>"
 									       value="1"
 									       <?php checked( $row['is_public'] ); ?>>
-									<?php esc_html_e( 'Enable public front-end access', 'ai-ready-layer' ); ?>
+									<?php esc_html_e( 'Enable public front-end access', 'ai-layer' ); ?>
 								</label>
 								<div style="margin-top: 8px;">
 									<label>
-										<?php esc_html_e( 'Rewrite slug:', 'ai-ready-layer' ); ?>
+										<?php esc_html_e( 'Rewrite slug:', 'ai-layer' ); ?>
 										<input type="text"
 										       name="<?php echo esc_attr( $row['slug_key'] ); ?>"
 										       value="<?php echo esc_attr( $row['slug'] ); ?>"
@@ -409,7 +412,7 @@ class SettingsPage {
 										<?php
 										printf(
 											/* translators: 1: archive URL, 2: single post URL example */
-											esc_html__( 'Archive: %1$s — Single: %2$s', 'ai-ready-layer' ),
+											esc_html__( 'Archive: %1$s — Single: %2$s', 'ai-layer' ),
 											'<code>' . esc_html( home_url( '/' . $row['slug'] . '/' ) ) . '</code>',
 											'<code>' . esc_html( home_url( '/' . $row['slug'] . '/example-post/' ) ) . '</code>'
 										);
@@ -422,20 +425,20 @@ class SettingsPage {
 					<?php endforeach; ?>
 				</table>
 
-				<h2><?php esc_html_e( 'Data Management', 'ai-ready-layer' ); ?></h2>
+				<h2><?php esc_html_e( 'Data Management', 'ai-layer' ); ?></h2>
 				<table class="form-table" role="presentation">
 					<tr>
-						<th scope="row"><?php esc_html_e( 'Remove data on deletion', 'ai-ready-layer' ); ?></th>
+						<th scope="row"><?php esc_html_e( 'Remove data on deletion', 'ai-layer' ); ?></th>
 						<td>
 							<label>
 								<input type="checkbox"
 								       name="<?php echo esc_attr( self::SETTING_DELETE_ON_UNINSTALL ); ?>"
 								       value="1"
 								       <?php checked( $delete_on_uninstall ); ?>>
-								<?php esc_html_e( 'Delete all AI Layer data when the plugin is removed', 'ai-ready-layer' ); ?>
+								<?php esc_html_e( 'Delete all AI Layer data when the plugin is removed', 'ai-layer' ); ?>
 							</label>
 							<p class="description">
-								<?php esc_html_e( 'When enabled, deleting this plugin will permanently erase all posts (services, locations, FAQs, proof, actions, answers), the business profile, all settings, and all cached data. This cannot be undone. Leave disabled if you may reinstall the plugin later.', 'ai-ready-layer' ); ?>
+								<?php esc_html_e( 'When enabled, deleting this plugin will permanently erase all posts (services, locations, FAQs, proof, actions, answers), the business profile, all settings, and all cached data. This cannot be undone. Leave disabled if you may reinstall the plugin later.', 'ai-layer' ); ?>
 							</p>
 						</td>
 					</tr>
@@ -443,7 +446,7 @@ class SettingsPage {
 
 				<p class="submit">
 					<input type="submit" name="submit" class="button button-primary"
-					       value="<?php esc_attr_e( 'Save Settings', 'ai-ready-layer' ); ?>">
+					       value="<?php esc_attr_e( 'Save Settings', 'ai-layer' ); ?>">
 				</p>
 			</form>
 		</div>

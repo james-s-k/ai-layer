@@ -27,8 +27,8 @@ class RestRegistrar {
 		if ( $is_api_request ) {
 			return true;
 		}
-		$uri = $_SERVER['REQUEST_URI'] ?? '';
-		return false !== strpos( $uri, '/wp-json/' );
+		$uri = isset( $_SERVER['REQUEST_URI'] ) ? (string) wp_unslash( $_SERVER['REQUEST_URI'] ) : '';
+		return '' !== $uri && false !== strpos( $uri, '/wp-json/' );
 	}
 
 	public function register_routes(): void {
