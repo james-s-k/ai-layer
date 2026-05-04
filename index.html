@@ -256,9 +256,9 @@
   p code, li code { font-size: inherit; }
 
   pre {
-    padding: 24px; overflow-x: auto; font-size: 13px; line-height: 1.7;
+    padding: 24px; overflow-x: auto; overflow-y: auto; font-size: 13px; line-height: 1.7;
     font-family: 'Fira Code', 'Cascadia Code', Consolas, monospace;
-    max-width: 100%;
+    max-width: 100%; max-height: 630px;
   }
   .t-k { color: #79c0ff; }   /* key */
   .t-s { color: #a5d6ff; }   /* string */
@@ -696,20 +696,54 @@
             <span class="code-tag">response</span>
           </div>
           <pre><span class="t-p">{</span>
-  <span class="t-k">"answer_short"</span><span class="t-p">:</span> <span class="t-s">"Yes, we offer SEO audits in Manchester."</span><span class="t-p">,</span>
-  <span class="t-k">"confidence"</span><span class="t-p">:</span>    <span class="t-s">"high"</span><span class="t-p">,</span>
-  <span class="t-k">"source"</span><span class="t-p">:</span>       <span class="t-s">"faq"</span><span class="t-p">,</span>
-  <span class="t-k">"services"</span><span class="t-p">:</span>     <span class="t-p">[{</span> <span class="t-k">"name"</span><span class="t-p">:</span> <span class="t-s">"SEO Audit"</span> <span class="t-p">}],</span>
-  <span class="t-k">"locations"</span><span class="t-p">:</span>    <span class="t-p">[{</span> <span class="t-k">"name"</span><span class="t-p">:</span> <span class="t-s">"Manchester"</span> <span class="t-p">}],</span>
+  <span class="t-k">"answer_short"</span><span class="t-p">:</span>   <span class="t-s">"Yes, we offer SEO audits in London."</span><span class="t-p">,</span>
+  <span class="t-k">"answer_long"</span><span class="t-p">:</span>    <span class="t-s">"Our London SEO audit covers..."</span><span class="t-p">,</span>
+  <span class="t-k">"confidence"</span><span class="t-p">:</span>     <span class="t-s">"high"</span><span class="t-p">,</span>
+  <span class="t-k">"source"</span><span class="t-p">:</span>         <span class="t-s">"faq"</span><span class="t-p">,</span>
+  <span class="t-k">"services"</span><span class="t-p">:</span>       <span class="t-p">[{</span>
+    <span class="t-k">"id"</span><span class="t-p">:</span>   <span class="t-n">12</span><span class="t-p">,</span>
+    <span class="t-k">"slug"</span><span class="t-p">:</span> <span class="t-s">"seo-audit"</span><span class="t-p">,</span>
+    <span class="t-k">"name"</span><span class="t-p">:</span> <span class="t-s">"SEO Audit"</span>
+  <span class="t-p">}],</span>
+  <span class="t-k">"locations"</span><span class="t-p">:</span>      <span class="t-p">[{</span>
+    <span class="t-k">"id"</span><span class="t-p">:</span>   <span class="t-n">5</span><span class="t-p">,</span>
+    <span class="t-k">"slug"</span><span class="t-p">:</span> <span class="t-s">"London"</span><span class="t-p">,</span>
+    <span class="t-k">"name"</span><span class="t-p">:</span> <span class="t-s">"London"</span>
+  <span class="t-p">}],</span>
   <span class="t-k">"actions"</span><span class="t-p">:</span> <span class="t-p">[</span>
-    <span class="t-p">{</span> <span class="t-k">"type"</span><span class="t-p">:</span> <span class="t-s">"book"</span><span class="t-p">,</span> <span class="t-k">"label"</span><span class="t-p">:</span> <span class="t-s">"Book a Free Consultation"</span> <span class="t-p">},</span>
-    <span class="t-p">{</span> <span class="t-k">"type"</span><span class="t-p">:</span> <span class="t-s">"call"</span><span class="t-p">,</span> <span class="t-k">"label"</span><span class="t-p">:</span> <span class="t-s">"Call Us Now"</span> <span class="t-p">}</span>
+    <span class="t-p">{</span>
+      <span class="t-k">"id"</span><span class="t-p">:</span>     <span class="t-n">3</span><span class="t-p">,</span>
+      <span class="t-k">"type"</span><span class="t-p">:</span>   <span class="t-s">"book"</span><span class="t-p">,</span>
+      <span class="t-k">"label"</span><span class="t-p">:</span>  <span class="t-s">"Book a Free Consultation"</span><span class="t-p">,</span>
+      <span class="t-k">"url"</span><span class="t-p">:</span>    <span class="t-s">"https://example.com/book"</span><span class="t-p">,</span>
+      <span class="t-k">"phone"</span><span class="t-p">:</span>  <span class="t-l">null</span><span class="t-p">,</span>
+      <span class="t-k">"method"</span><span class="t-p">:</span> <span class="t-s">"get"</span>
+    <span class="t-p">},</span>
+    <span class="t-p">{</span>
+      <span class="t-k">"id"</span><span class="t-p">:</span>     <span class="t-n">7</span><span class="t-p">,</span>
+      <span class="t-k">"type"</span><span class="t-p">:</span>   <span class="t-s">"call"</span><span class="t-p">,</span>
+      <span class="t-k">"label"</span><span class="t-p">:</span>  <span class="t-s">"Call Us Now"</span><span class="t-p">,</span>
+      <span class="t-k">"url"</span><span class="t-p">:</span>    <span class="t-l">null</span><span class="t-p">,</span>
+      <span class="t-k">"phone"</span><span class="t-p">:</span>  <span class="t-s">"+44 161 123 4567"</span><span class="t-p">,</span>
+      <span class="t-k">"method"</span><span class="t-p">:</span> <span class="t-s">"get"</span>
+    <span class="t-p">}</span>
   <span class="t-p">],</span>
+  <span class="t-k">"source_faqs"</span><span class="t-p">:</span> <span class="t-p">[{</span>
+    <span class="t-k">"id"</span><span class="t-p">:</span>           <span class="t-n">42</span><span class="t-p">,</span>
+    <span class="t-k">"question"</span><span class="t-p">:</span>     <span class="t-s">"Do you offer SEO audits in London?"</span><span class="t-p">,</span>
+    <span class="t-k">"short_answer"</span><span class="t-p">:</span> <span class="t-s">"Yes, we offer SEO audits in London."</span>
+  <span class="t-p">}],</span>
   <span class="t-k">"supporting_data"</span><span class="t-p">:</span> <span class="t-p">[</span>
-    <span class="t-p">{</span> <span class="t-k">"type"</span><span class="t-p">:</span> <span class="t-s">"statistic"</span><span class="t-p">,</span>
-      <span class="t-k">"headline"</span><span class="t-p">:</span> <span class="t-s">"214% avg organic traffic increase"</span> <span class="t-p">},</span>
-    <span class="t-p">{</span> <span class="t-k">"type"</span><span class="t-p">:</span> <span class="t-s">"accreditation"</span><span class="t-p">,</span>
-      <span class="t-k">"headline"</span><span class="t-p">:</span> <span class="t-s">"Certified Google Partner since 2019"</span> <span class="t-p">}</span>
+    <span class="t-p">{</span>
+      <span class="t-k">"id"</span><span class="t-p">:</span>       <span class="t-n">8</span><span class="t-p">,</span>
+      <span class="t-k">"type"</span><span class="t-p">:</span>     <span class="t-s">"statistic"</span><span class="t-p">,</span>
+      <span class="t-k">"headline"</span><span class="t-p">:</span> <span class="t-s">"214% avg organic traffic increase"</span>
+    <span class="t-p">},</span>
+    <span class="t-p">{</span>
+      <span class="t-k">"id"</span><span class="t-p">:</span>       <span class="t-n">11</span><span class="t-p">,</span>
+      <span class="t-k">"type"</span><span class="t-p">:</span>     <span class="t-s">"accreditation"</span><span class="t-p">,</span>
+      <span class="t-k">"headline"</span><span class="t-p">:</span> <span class="t-s">"Certified Google Partner since 2019"</span>
+    <span class="t-p">}</span>
   <span class="t-p">]</span>
 <span class="t-p">}</span></pre>
         </div>
