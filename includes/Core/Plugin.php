@@ -38,6 +38,11 @@ use WPAIL\Head\AiDiscoveryLinks;
 use WPAIL\LLMsTxt\LLMsTxtController;
 use WPAIL\WellKnown\AiLayerController;
 use WPAIL\AiTxt\AiTxtController;
+use WPAIL\Shortcodes\AnswerConsoleShortcode;
+use WPAIL\Analytics\AnalyticsLogger;
+use WPAIL\Analytics\AnalyticsCleanup;
+use WPAIL\Analytics\AnalyticsTable;
+use WPAIL\Admin\AnalyticsPage;
 
 /**
  * Central plugin class. Lightweight service locator.
@@ -74,6 +79,8 @@ final class Plugin {
 		$this->register_wellknown();
 		$this->register_aitxt();
 		$this->register_head_links();
+		$this->register_shortcodes();
+		$this->register_analytics();
 	}
 
 	private function load_textdomain(): void {
@@ -162,6 +169,17 @@ final class Plugin {
 
 	private function register_head_links(): void {
 		( new AiDiscoveryLinks() )->register();
+	}
+
+	private function register_shortcodes(): void {
+		( new AnswerConsoleShortcode() )->register();
+	}
+
+	private function register_analytics(): void {
+		// Ensure the table exists (handles upgrades where activate() wasn't re-run).
+		AnalyticsTable::install();
+		( new AnalyticsLogger() )->register();
+		( new AnalyticsCleanup() )->register();
 	}
 
 	// -------------------------------------------------------------------

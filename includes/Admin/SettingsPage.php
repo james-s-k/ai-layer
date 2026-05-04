@@ -35,7 +35,8 @@ class SettingsPage {
 	const SETTING_HEAD_LINKS_ENABLED = 'head_links_enabled'; // Output <link> tags in <head>
 
 	// Data management.
-	const SETTING_DELETE_ON_UNINSTALL = 'delete_data_on_uninstall';
+	const SETTING_DELETE_ON_UNINSTALL         = 'delete_data_on_uninstall';
+	const SETTING_ANALYTICS_RETENTION_DAYS    = 'analytics_retention_days';
 
 	// Post type visibility.
 	const SETTING_SERVICE_PUBLIC          = 'service_public';
@@ -97,8 +98,9 @@ class SettingsPage {
 			self::SETTING_AI_DISCOVERY_MODE     => in_array( $ai_discovery_raw, [ self::AI_DISCOVERY_WELL_KNOWN, self::AI_DISCOVERY_LLMSTXT ], true )
 				? $ai_discovery_raw
 				: self::AI_DISCOVERY_WELL_KNOWN,
-			self::SETTING_HEAD_LINKS_ENABLED    => isset( $_POST[ self::SETTING_HEAD_LINKS_ENABLED ] ),
-			self::SETTING_DELETE_ON_UNINSTALL   => isset( $_POST[ self::SETTING_DELETE_ON_UNINSTALL ] ),
+			self::SETTING_HEAD_LINKS_ENABLED         => isset( $_POST[ self::SETTING_HEAD_LINKS_ENABLED ] ),
+			self::SETTING_DELETE_ON_UNINSTALL        => isset( $_POST[ self::SETTING_DELETE_ON_UNINSTALL ] ),
+			self::SETTING_ANALYTICS_RETENTION_DAYS  => self::sanitize_retention_days( $_POST[ self::SETTING_ANALYTICS_RETENTION_DAYS ] ?? '' ),
 		];
 
 		update_option( WPAIL_OPT_SETTINGS, $settings );
@@ -143,6 +145,7 @@ class SettingsPage {
 		$proof_public        = (bool) self::get( self::SETTING_PROOF_PUBLIC, false );
 		$proof_slug          = (string) self::get( self::SETTING_PROOF_SLUG, 'proof' );
 		$delete_on_uninstall = (bool) self::get( self::SETTING_DELETE_ON_UNINSTALL, false );
+		$analytics_retention = (int) self::get( self::SETTING_ANALYTICS_RETENTION_DAYS, 365 );
 
 		// Detect conflicting SEO plugins.
 		$has_yoast     = defined( 'WPSEO_VERSION' );
@@ -427,6 +430,21 @@ class SettingsPage {
 
 				<h2><?php esc_html_e( 'Data Management', 'ai-layer' ); ?></h2>
 				<table class="form-table" role="presentation">
+					<tr id="wpail-analytics-retention">
+						<th scope="row"><?php esc_html_e( 'Analytics retention', 'ai-layer' ); ?></th>
+						<td>
+							<input type="number"
+							       name="<?php echo esc_attr( self::SETTING_ANALYTICS_RETENTION_DAYS ); ?>"
+							       value="<?php echo $analytics_retention > 0 ? esc_attr( (string) $analytics_retention ) : ''; ?>"
+							       min="1"
+							       placeholder="365"
+							       class="small-text">
+							<span style="margin-left:6px;"><?php esc_html_e( 'days', 'ai-layer' ); ?></span>
+							<p class="description">
+								<?php esc_html_e( 'How long to keep analytics data. Leave blank for unlimited. Data older than this threshold is automatically deleted each day. Default: 365 days.', 'ai-layer' ); ?>
+							</p>
+						</td>
+					</tr>
 					<tr>
 						<th scope="row"><?php esc_html_e( 'Remove data on deletion', 'ai-layer' ); ?></th>
 						<td>
@@ -456,5 +474,13 @@ class SettingsPage {
 	private static function sanitize_rewrite_slug( string $raw, string $default ): string {
 		$slug = sanitize_title( wp_unslash( $raw ) );
 		return $slug !== '' ? $slug : $default;
+	}
+
+	private static function sanitize_retention_days( mixed $raw ): int {
+		$str = trim( (string) wp_unslash( $raw ) );
+		if ( '' === $str ) {
+			return 0; // 0 = unlimited.
+		}
+		return max( 1, absint( $str ) );
 	}
 }

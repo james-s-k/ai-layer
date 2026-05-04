@@ -48,6 +48,7 @@ class Assets {
 			'wpail_aitxt',
 			'wpail_answers_upgrade',
 			'wpail_answer_test',
+			'wpail_analytics',
 			'wpail_help',
 		];
 		foreach ( $wpail_pages as $page ) {

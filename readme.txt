@@ -4,7 +4,7 @@ Tags:              ai, structured data, rest api, llms.txt, ai discovery
 Requires at least: 6.0
 Tested up to:      6.7
 Requires PHP:      8.1
-Stable tag:        1.1.0
+Stable tag:        1.4.0
 License:           GPLv2 or later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -86,6 +86,14 @@ A revisitable wizard at AI Layer → Setup Wizard auto-populates your Business P
 **Test Answer Engine**
 
 A built-in test console at AI Layer → Test Answer Engine. Enter any natural language question and see exactly what the engine returns — confidence level, matched source, detected service and location, matched FAQ, suggested actions, supporting proof, and the raw JSON response. Useful for verifying keyword matching, FAQ linking, and manual Answer priority without making external API calls.
+
+**Answer Console shortcode**
+
+Use `[wpail_answer_console]` to embed the query console on any page or post. Visitors can type a natural language question and see the full structured response — including confidence, source, matched FAQ, suggested actions, supporting proof, and the raw JSON — without accessing the admin.
+
+**Analytics dashboard**
+
+AI Layer → Analytics tracks every request to your `ai-layer/v1` endpoints automatically. The dashboard shows total endpoint hits, answer engine query volume, answered vs unanswered counts, and answer rate. Two tables highlight the most frequent questions AI systems are asking and — crucially — the questions that could not be answered, so you know exactly which FAQs or Authored Answers to add next. Configurable data retention (default 365 days) with automatic daily cleanup.
 
 **Schema.org JSON-LD**
 
@@ -176,6 +184,18 @@ Single-site only in the current version. Multisite support is not explicitly blo
 
 == Changelog ==
 
+= 1.4.0 =
+* **Analytics dashboard** — new AI Layer → Analytics admin page; tracks every GET request to `ai-layer/v1/*` endpoints automatically; no configuration required
+* **Top questions** — ranked table of the most frequent query strings sent to the answer engine; shows ask count and per-query answer rate so you can see what AI systems are most interested in
+* **Missing intents** — unanswered queries ranked by frequency with direct "Add FAQ" shortcut links; shows exactly where the answer engine is failing and what content to add next
+* **Endpoint hit breakdown** — per-endpoint hit counts and relative share across all active endpoints (`answers`, `services`, `locations`, `faqs`, `proof`, `actions`, `profile`, `products`)
+* **Period filtering** — all stats and tables switch between Last 7 days, Last 30 days, Last 90 days, and All time
+* **Configurable data retention** — default 365 days; configurable in Settings → Data Management → Analytics retention; leave blank for unlimited; old records pruned automatically by WP-Cron each day; no IP addresses or personal data stored
+
+= 1.3.0 =
+* **Answer Console shortcode** — `[wpail_answer_console]` embeds the full answer engine query console on any page or post; visitors can ask natural language questions and see the full structured response (confidence, source, matched FAQ, actions, proof, raw JSON); no login required when Pro is active
+* **Shared rendering layer** — admin test page and frontend shortcode share a single rendering class, eliminating duplicated markup and JS
+
 = 1.2.0 =
 * **MCP integration** — 33 WordPress Abilities registered under the `ai-layer/` namespace; the WordPress MCP Adapter plugin exposes them as MCP tools automatically; any MCP-compatible AI client can connect and fully manage AI Layer content; requires WordPress 6.9+ (Abilities API is in core) and the WordPress MCP Adapter plugin
 * **MCP tools** — full CRUD for Services, Locations, FAQs, Proof & Trust, Actions, and Answers; read and partial-update for Business Profile; natural-language query via `ai-layer-query-answers`
@@ -214,6 +234,12 @@ Single-site only in the current version. Multisite support is not explicitly blo
 * Freemius licensing infrastructure
 
 == Upgrade Notice ==
+
+= 1.4.0 =
+A new `wpail_analytics` database table is created automatically on first load. No data migration required. Visit AI Layer → Analytics to see endpoint and query data. Set a data retention period in Settings → Data Management if needed.
+
+= 1.3.0 =
+No data migration required. Use `[wpail_answer_console]` on any page to embed the answer engine console for site visitors.
 
 = 1.1.0 =
 New features require no data migration. The Setup Wizard Discovery step will help you configure endpoint discovery mode, llms.txt, and AI.txt if you have not already done so in Settings.

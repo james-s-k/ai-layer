@@ -15,6 +15,7 @@ use WPAIL\Licensing\Features;
 use WPAIL\Admin\AiTxtPage;
 use WPAIL\Admin\AnswerTestPage;
 use WPAIL\Admin\HelpPage;
+use WPAIL\Admin\AnalyticsPage;
 
 class AdminMenu {
 
@@ -106,6 +107,16 @@ class AdminMenu {
 			[ AnswerTestPage::class, 'render' ]
 		);
 
+		// Analytics dashboard.
+		add_submenu_page(
+			'wpail_dashboard',
+			__( 'Analytics',            'ai-layer' ),
+			__( 'Analytics',            'ai-layer' ),
+			'manage_options',
+			'wpail_analytics',
+			[ AnalyticsPage::class, 'render' ]
+		);
+
 		// Help & documentation.
 		add_submenu_page(
 			'wpail_dashboard',
@@ -145,6 +156,7 @@ class AdminMenu {
 		}
 
 		$overview   = [];
+		$analytics  = [];
 		$profile    = [];
 		$wizard     = [];
 		$middle     = [];
@@ -161,6 +173,8 @@ class AdminMenu {
 			}
 			if ( 'wpail_dashboard' === $item[2] ) {
 				$overview[] = $item;
+			} elseif ( 'wpail_analytics' === $item[2] ) {
+				$analytics[] = $item;
 			} elseif ( 'wpail_business_profile' === $item[2] ) {
 				$profile[] = $item;
 			} elseif ( 'wpail_setup_wizard' === $item[2] ) {
@@ -184,7 +198,7 @@ class AdminMenu {
 			return;
 		}
 
-		$submenu['wpail_dashboard'] = array_merge( $overview, $wizard, $settings, $profile, $middle, $llmstxt, $aitxt, $answertest, $help );
+		$submenu['wpail_dashboard'] = array_merge( $overview, $wizard, $settings, $profile, $middle, $llmstxt, $aitxt, $analytics, $answertest, $help );
 	}
 
 	/**

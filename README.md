@@ -346,6 +346,94 @@ Requires `edit_posts` capability.
 
 ---
 
+### Analytics
+
+**AI Layer → Analytics**
+
+A built-in analytics dashboard showing what AI systems and agents are doing with your endpoints. All data is collected automatically — no configuration required.
+
+**Period selector:**
+
+Switch between Last 7 days, Last 30 days, Last 90 days, and All time using the buttons at the top of the page. All tables and stats update to the selected window.
+
+**Summary stats:**
+
+Four cards at the top of the page:
+
+| Stat | Description |
+|------|-------------|
+| Endpoint hits | Total GET requests to any `ai-layer/v1` endpoint |
+| Answer engine queries | Requests to `/answers?query=` specifically |
+| Queries answered | Answer engine requests that returned a successful match |
+| Answer rate | Percentage of queries that were answered |
+
+**Top questions AI is asking about your business:**
+
+A ranked table of the most frequent query strings sent to the `/answers` endpoint. Each row shows how many times the question was asked and what percentage of those requests were successfully answered. Use this to understand what topics external AI systems are most interested in.
+
+**Missing intents — unanswered queries:**
+
+Queries that reached the answer engine but returned no match, ranked by frequency. Each row links directly to the "New FAQ" screen so you can close the gap immediately. These are your highest-priority content gaps — questions AI systems are asking that your site cannot currently answer.
+
+**Endpoint hit breakdown:**
+
+A table of all endpoints (`answers`, `services`, `locations`, `faqs`, `proof`, `actions`, `profile`, `products`) with hit counts and an inline bar chart showing relative share. Useful for understanding which parts of your data layer are being actively consumed.
+
+**Data retention:**
+
+Analytics data is retained for 365 days by default. Change this in **AI Layer → Settings → Data Management → Analytics retention**. Enter any number of days, or leave blank for unlimited. Records older than the threshold are automatically deleted each day by a scheduled background job (WP-Cron). Retention of zero means data is kept indefinitely.
+
+**What is logged:**
+
+- Endpoint name (e.g. `answers`, `services`)
+- For `/answers?query=` requests: the query text, whether a match was found, confidence level, and source
+- Timestamp
+
+No IP addresses or personal data are stored.
+
+---
+
+### Answer Console Shortcode
+
+**`[wpail_answer_console]`**
+
+Embeds the answer engine query console on any page or post. Visitors can type a natural language question and see the structured response — confidence level, matched source, answer text, suggested actions, matched FAQ, supporting proof, and the raw JSON — without leaving the page.
+
+**Usage:**
+
+Add the shortcode to any page, post, or widget area in the WordPress editor:
+
+```
+[wpail_answer_console]
+```
+
+No attributes are needed. The console is self-contained.
+
+**What it renders:**
+
+Identical to the admin test console at **AI Layer → Test Answer Engine**, including:
+
+- Query input with Enter-to-submit support
+- Optional service and location hint dropdowns (shown only when those entities exist)
+- Confidence badge, source badge, and service/location tags on each result
+- Short answer with expandable long answer toggle
+- Matched FAQ, suggested Actions, and supporting Proof sections
+- Collapsible raw JSON panel showing the exact `/answers` API response
+
+**Authentication and access:**
+
+The `/answers` endpoint is publicly accessible when Pro is enabled — no login is required. For logged-in users, a WP REST nonce is automatically included in the request. For guests, the request is made without a nonce (the endpoint does not require one for GET requests).
+
+**Styling:**
+
+The plugin's stylesheet is enqueued automatically on any page that contains the shortcode. No manual asset registration is needed.
+
+**Implementation note:**
+
+The shortcode and the admin test page share a single rendering class (`WPAIL\Frontend\AnswerConsole::render_card()`). Changes to the form layout, result display, or JS logic apply to both surfaces simultaneously.
+
+---
+
 ### llms.txt
 
 **AI Layer → llms.txt**
@@ -1580,6 +1668,7 @@ The settings page detects Yoast SEO and Rank Math and shows a warning — schema
 | All CPT metadata | `wp_postmeta` | `_wpail_data` (JSON) |
 | Plugin settings | `wp_options` | `wpail_settings` |
 | llms.txt settings | `wp_options` | `wpail_llmstxt` |
+| Analytics data | Custom table | `{prefix}wpail_analytics` |
 
 All CPT metadata is stored as a single JSON blob per post. Schema versioning is embedded in each blob for future migrations.
 
@@ -1612,6 +1701,9 @@ WPAIL\Core\
 WPAIL\Admin\
 WPAIL\Admin\MetaBoxes\
 WPAIL\Abilities\
+WPAIL\Analytics\
+WPAIL\Frontend\
+WPAIL\Shortcodes\
 WPAIL\Models\
 WPAIL\Transformers\
 WPAIL\Repositories\
@@ -1629,6 +1721,20 @@ WPAIL\PostTypes\
 ---
 
 ## Changelog
+
+### 1.4.0
+
+- **Analytics dashboard** — new **AI Layer → Analytics** admin page; tracks every GET request to `ai-layer/v1/*` endpoints automatically; records query text, match status, confidence, and source for `/answers?query=` requests; no PII or IP addresses stored
+- **Top questions** — ranked table of most-frequent query strings showing ask count and per-query answer rate; reveals what AI systems are most interested in about your business
+- **Missing intents** — unanswered queries ranked by frequency with direct "Add FAQ" links to close content gaps; the fastest way to identify where the answer engine is failing
+- **Endpoint hit breakdown** — per-endpoint hit counts with inline bar chart showing relative share across all active endpoints
+- **Configurable retention** — data kept for 365 days by default; configurable in **Settings → Data Management → Analytics retention**; leave blank for unlimited; old records pruned automatically each day by WP-Cron
+- **Period filtering** — all dashboard tables and stats switch between Last 7 days, Last 30 days, Last 90 days, and All time
+
+### 1.3.0
+
+- **Answer Console shortcode** — `[wpail_answer_console]` embeds the full answer engine test console on any frontend page or post; visitors can query the answer engine and see the structured response without accessing the admin; nonce included automatically for logged-in users, omitted for guests (endpoint is public when Pro is active)
+- **Shared rendering layer** — `WPAIL\Frontend\AnswerConsole::render_card()` is the single source of truth for the query form and result panel; both the admin test page and the frontend shortcode delegate to this method, eliminating duplicated markup and JS
 
 ### 1.2.0
 
