@@ -2,6 +2,8 @@
 
 AI Layer transforms your WordPress site from a collection of pages into a structured system that can answer questions, expose clean data, and drive actions. Instead of AI scraping messy content and guessing at relationships, it queries your site directly and gets accurate, structured responses.
 
+Explainer landing page: https://james-s-k.github.io/ai-layer/
+
 ---
 
 ## In Simple Terms
