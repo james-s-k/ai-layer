@@ -4,7 +4,7 @@ Tags:              ai, structured data, rest api, llms.txt, ai discovery
 Requires at least: 6.0
 Tested up to:      6.7
 Requires PHP:      8.1
-Stable tag:        1.4.0
+Stable tag:        1.5.0
 License:           GPLv2 or later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -61,10 +61,18 @@ Returns the matched service, location, a direct answer, supporting testimonial, 
 
 **AI discovery features**
 
-* `/.well-known/ai-layer` — Machine-readable JSON discovery document listing all active endpoints. The recommended canonical source of truth for agents.
+AI Layer broadcasts your structured data endpoints across ten independent discovery channels — all enabled by default, all independently toggleable:
+
+* `GET /wp-json/ai-layer/v1/manifest` — Semantic manifest listing all active entity endpoint URLs, discovery channel URLs, relationship capabilities, query capabilities, and authentication details. The recommended first request for any agent integrating with your site.
+* `GET /wp-json/ai-layer/v1/openapi` — Full OpenAPI 3.1.0 specification generated dynamically from live plugin state. Import into Postman, Insomnia, or any AI coding assistant.
+* `/.well-known/ai-layer` — Machine-readable JSON discovery document. The canonical source of truth for agents.
 * `llms.txt` — Dynamically generated at `/llms.txt` following the emerging llms.txt standard. In well-known mode it links to the JSON document; in llms.txt-only mode it lists endpoints directly.
 * `AI.txt` *(Beta)* — `/ai.txt` file declaring your crawling, training, and attribution preferences to AI systems.
-* Discovery `<link>` tags — `rel="ai-layer"` and `rel="llms-txt"` injected into every page `<head>` by default, so crawlers can find your data from any page.
+* `/ai-layer` — Human-readable HTML discovery page listing all endpoints, discovery links, and a live query example. `/ai-layer.md` serves the same content as Markdown.
+* `/ai-layer-sitemap.xml` — XML sitemap listing all AI Layer endpoints. Automatically injected into Yoast SEO's sitemap index when Yoast is active.
+* `robots.txt` injection — `AI-Layer:`, `AI-Layer-Manifest:`, and `AI-Layer-OpenAPI:` directives appended to the WordPress-generated `robots.txt`.
+* HTTP headers — `Link: rel="service"`, `Link: rel="service-desc"`, and `X-AI-Layer` headers injected on every frontend response.
+* `<head>` link tags — `rel="ai-layer"`, `rel="llms-txt"`, `rel="alternate"` (manifest), and `rel="service-desc"` (OpenAPI) plus a DataCatalog JSON-LD block injected into every page `<head>`.
 
 **Entity types (custom post types)**
 
@@ -184,6 +192,19 @@ Single-site only in the current version. Multisite support is not explicitly blo
 
 == Changelog ==
 
+= 1.5.0 =
+* **Manifest endpoint** — `GET /wp-json/ai-layer/v1/manifest` returns a semantic manifest: site info, all active entity endpoint URLs, discovery channel URLs, relationship capabilities, query capabilities, and authentication details
+* **OpenAPI 3.1.0 specification** — `GET /wp-json/ai-layer/v1/openapi` generates a complete OpenAPI spec dynamically; covers all routes, parameters, and response schemas; import into any API client or AI coding assistant
+* **robots.txt injection** — `AI-Layer:`, `AI-Layer-Manifest:`, and `AI-Layer-OpenAPI:` directives appended to the WordPress-generated `robots.txt` (toggle in Settings → AI Discovery)
+* **HTTP discovery headers** — `Link: rel="service"`, `Link: rel="service-desc"`, and `X-AI-Layer` headers injected on every frontend response (toggle in Settings → AI Discovery)
+* **`<head>` link tags expanded** — `rel="alternate"` pointing to the manifest and `rel="service-desc"` pointing to the OpenAPI spec added alongside existing tags; DataCatalog JSON-LD block added to `<head>`
+* **`/ai-layer` HTML discovery page** — human-readable endpoint listing at `/ai-layer`; Markdown version at `/ai-layer.md` (toggle in Settings → AI Discovery)
+* **`/ai-layer-sitemap.xml` XML sitemap** — XML sitemap listing all AI Layer endpoints; injected into Yoast SEO's sitemap index automatically when Yoast is active (toggle in Settings → AI Discovery)
+* **llms.txt updated** — manifest and OpenAPI URLs added to the AI Layer Structured Endpoints section
+* **Well-known document updated** — `manifest` and `openapi` keys added to `/.well-known/ai-layer`
+* **Settings** — four new toggles in AI Discovery: robots.txt injection, HTTP discovery headers, /ai-layer page, AI Layer sitemap; all enabled by default
+* **Setup Wizard** — four new checkboxes in the Discovery step for the same settings
+
 = 1.4.0 =
 * **Analytics dashboard** — new AI Layer → Analytics admin page; tracks every GET request to `ai-layer/v1/*` endpoints automatically; no configuration required
 * **Top questions** — ranked table of the most frequent query strings sent to the answer engine; shows ask count and per-query answer rate so you can see what AI systems are most interested in
@@ -234,6 +255,9 @@ Single-site only in the current version. Multisite support is not explicitly blo
 * Freemius licensing infrastructure
 
 == Upgrade Notice ==
+
+= 1.5.0 =
+No data migration required. Ten new discovery channels are activated automatically — all enabled by default and independently toggleable in AI Layer → Settings → AI Discovery. Flush your permalinks once after upgrading (Settings → Permalinks → Save Changes) to register the new rewrite rules for `/ai-layer`, `/ai-layer.md`, and `/ai-layer-sitemap.xml`.
 
 = 1.4.0 =
 A new `wpail_analytics` database table is created automatically on first load. No data migration required. Visit AI Layer → Analytics to see endpoint and query data. Set a data retention period in Settings → Data Management if needed.

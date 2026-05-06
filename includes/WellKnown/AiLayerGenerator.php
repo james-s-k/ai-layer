@@ -105,6 +105,8 @@ class AiLayerGenerator {
 
 		return [
 			'schema_version' => '1.0',
+			'manifest'       => $api_base . '/manifest',
+			'openapi'        => $api_base . '/openapi',
 			'name'           => $name,
 			'description'    => $description ?: '',
 			'api'            => [

@@ -32,6 +32,8 @@ class RestRegistrar {
 	}
 
 	public function register_routes(): void {
+		( new ManifestController() )->register_routes();
+		( new OpenApiController() )->register_routes();
 		( new ProfileController() )->register_routes();
 		( new ServicesController() )->register_routes();
 		( new LocationsController() )->register_routes();

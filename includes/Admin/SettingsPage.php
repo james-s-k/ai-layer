@@ -34,6 +34,12 @@ class SettingsPage {
 	const AI_DISCOVERY_LLMSTXT       = 'llmstxt';    // Endpoints listed in /llms.txt; /.well-known/ai-layer disabled
 	const SETTING_HEAD_LINKS_ENABLED = 'head_links_enabled'; // Output <link> tags in <head>
 
+	// Agent discovery signals.
+	const SETTING_ROBOTS_INJECTION_ENABLED = 'robots_injection_enabled';
+	const SETTING_HTTP_HEADERS_ENABLED     = 'http_headers_enabled';
+	const SETTING_AI_LAYER_PAGE_ENABLED    = 'ai_layer_page_enabled';
+	const SETTING_SITEMAP_ENABLED          = 'sitemap_enabled';
+
 	// Data management.
 	const SETTING_DELETE_ON_UNINSTALL         = 'delete_data_on_uninstall';
 	const SETTING_ANALYTICS_RETENTION_DAYS    = 'analytics_retention_days';
@@ -99,6 +105,10 @@ class SettingsPage {
 				? $ai_discovery_raw
 				: self::AI_DISCOVERY_WELL_KNOWN,
 			self::SETTING_HEAD_LINKS_ENABLED         => isset( $_POST[ self::SETTING_HEAD_LINKS_ENABLED ] ),
+			self::SETTING_ROBOTS_INJECTION_ENABLED   => isset( $_POST[ self::SETTING_ROBOTS_INJECTION_ENABLED ] ),
+			self::SETTING_HTTP_HEADERS_ENABLED       => isset( $_POST[ self::SETTING_HTTP_HEADERS_ENABLED ] ),
+			self::SETTING_AI_LAYER_PAGE_ENABLED      => isset( $_POST[ self::SETTING_AI_LAYER_PAGE_ENABLED ] ),
+			self::SETTING_SITEMAP_ENABLED            => isset( $_POST[ self::SETTING_SITEMAP_ENABLED ] ),
 			self::SETTING_DELETE_ON_UNINSTALL        => isset( $_POST[ self::SETTING_DELETE_ON_UNINSTALL ] ),
 			self::SETTING_ANALYTICS_RETENTION_DAYS  => self::sanitize_retention_days( $_POST[ self::SETTING_ANALYTICS_RETENTION_DAYS ] ?? '' ),
 		];
@@ -135,6 +145,11 @@ class SettingsPage {
 		$has_woocommerce     = class_exists( 'WooCommerce' );
 		$ai_discovery_mode   = (string) self::get( self::SETTING_AI_DISCOVERY_MODE, self::AI_DISCOVERY_WELL_KNOWN );
 		$head_links_enabled  = (bool) self::get( self::SETTING_HEAD_LINKS_ENABLED, true );
+
+		$robots_injection    = (bool) self::get( self::SETTING_ROBOTS_INJECTION_ENABLED, true );
+		$http_headers        = (bool) self::get( self::SETTING_HTTP_HEADERS_ENABLED, true );
+		$ai_layer_page       = (bool) self::get( self::SETTING_AI_LAYER_PAGE_ENABLED, true );
+		$sitemap_enabled     = (bool) self::get( self::SETTING_SITEMAP_ENABLED, true );
 
 		$service_public      = (bool) self::get( self::SETTING_SERVICE_PUBLIC, false );
 		$service_slug        = (string) self::get( self::SETTING_SERVICE_SLUG, 'services' );
@@ -339,6 +354,85 @@ class SettingsPage {
 							</label>
 							<p class="description">
 								<?php esc_html_e( 'Signals to AI crawlers and agents where to find machine-readable business data. Outputs a rel="ai-layer" link for /.well-known/ai-layer (when active) and a rel="llms-txt" link for /llms.txt (when enabled). Enabled by default.', 'ai-layer' ); ?>
+							</p>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><?php esc_html_e( 'robots.txt injection', 'ai-layer' ); ?></th>
+						<td>
+							<label>
+								<input type="checkbox"
+								       name="<?php echo esc_attr( self::SETTING_ROBOTS_INJECTION_ENABLED ); ?>"
+								       value="1"
+								       <?php checked( $robots_injection ); ?>>
+								<?php esc_html_e( 'Add AI Layer discovery directives to robots.txt', 'ai-layer' ); ?>
+							</label>
+							<p class="description">
+								<?php esc_html_e( 'Appends AI-Layer:, AI-Layer-Manifest:, and AI-Layer-OpenAPI: directives to the dynamically generated robots.txt. Does not modify any physical file.', 'ai-layer' ); ?>
+							</p>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><?php esc_html_e( 'HTTP discovery headers', 'ai-layer' ); ?></th>
+						<td>
+							<label>
+								<input type="checkbox"
+								       name="<?php echo esc_attr( self::SETTING_HTTP_HEADERS_ENABLED ); ?>"
+								       value="1"
+								       <?php checked( $http_headers ); ?>>
+								<?php esc_html_e( 'Output Link and X-AI-Layer headers on every frontend response', 'ai-layer' ); ?>
+							</label>
+							<p class="description">
+								<?php
+								printf(
+									/* translators: %s: header examples */
+									esc_html__( 'Injects %s headers pointing to the manifest and OpenAPI spec. Allows agents to discover AI Layer without parsing HTML.', 'ai-layer' ),
+									'<code>Link: rel="service"</code>, <code>Link: rel="service-desc"</code>, <code>X-AI-Layer</code>'
+								);
+								?>
+							</p>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><?php esc_html_e( '/ai-layer discovery page', 'ai-layer' ); ?></th>
+						<td>
+							<label>
+								<input type="checkbox"
+								       name="<?php echo esc_attr( self::SETTING_AI_LAYER_PAGE_ENABLED ); ?>"
+								       value="1"
+								       <?php checked( $ai_layer_page ); ?>>
+								<?php esc_html_e( 'Enable the /ai-layer and /ai-layer.md discovery pages', 'ai-layer' ); ?>
+							</label>
+							<p class="description">
+								<?php
+								printf(
+									/* translators: 1: /ai-layer URL, 2: /ai-layer.md URL */
+									esc_html__( 'Human and agent-readable endpoint listing at %1$s (HTML) and %2$s (Markdown).', 'ai-layer' ),
+									'<code>' . esc_html( home_url( '/ai-layer' ) ) . '</code>',
+									'<code>' . esc_html( home_url( '/ai-layer.md' ) ) . '</code>'
+								);
+								?>
+							</p>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><?php esc_html_e( 'AI Layer sitemap', 'ai-layer' ); ?></th>
+						<td>
+							<label>
+								<input type="checkbox"
+								       name="<?php echo esc_attr( self::SETTING_SITEMAP_ENABLED ); ?>"
+								       value="1"
+								       <?php checked( $sitemap_enabled ); ?>>
+								<?php esc_html_e( 'Enable the AI Layer XML sitemap', 'ai-layer' ); ?>
+							</label>
+							<p class="description">
+								<?php
+								printf(
+									/* translators: %s: sitemap URL */
+									esc_html__( 'Dedicated sitemap at %s listing the manifest, OpenAPI spec, and key endpoints. Added to the Yoast sitemap index automatically when Yoast is active.', 'ai-layer' ),
+									'<code>' . esc_html( home_url( '/ai-layer-sitemap.xml' ) ) . '</code>'
+								);
+								?>
 							</p>
 						</td>
 					</tr>

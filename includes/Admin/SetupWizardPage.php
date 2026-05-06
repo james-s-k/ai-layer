@@ -173,7 +173,11 @@ class SetupWizardPage {
 			[ SettingsPage::AI_DISCOVERY_WELL_KNOWN, SettingsPage::AI_DISCOVERY_LLMSTXT ],
 			true
 		) ? $mode : SettingsPage::AI_DISCOVERY_WELL_KNOWN;
-		$settings[ SettingsPage::SETTING_HEAD_LINKS_ENABLED ] = ! empty( $_POST['head_links_enabled'] );
+		$settings[ SettingsPage::SETTING_HEAD_LINKS_ENABLED ]       = ! empty( $_POST['head_links_enabled'] );
+		$settings[ SettingsPage::SETTING_ROBOTS_INJECTION_ENABLED ] = ! empty( $_POST['robots_injection_enabled'] );
+		$settings[ SettingsPage::SETTING_HTTP_HEADERS_ENABLED ]     = ! empty( $_POST['http_headers_enabled'] );
+		$settings[ SettingsPage::SETTING_AI_LAYER_PAGE_ENABLED ]    = ! empty( $_POST['ai_layer_page_enabled'] );
+		$settings[ SettingsPage::SETTING_SITEMAP_ENABLED ]          = ! empty( $_POST['sitemap_enabled'] );
 		update_option( WPAIL_OPT_SETTINGS, $settings );
 
 		// llms.txt — merge enabled flag into existing settings.
@@ -488,10 +492,14 @@ class SetupWizardPage {
 	}
 
 	private static function render_discovery( bool $has_woo ): void {
-		$discovery_mode  = SettingsPage::get( SettingsPage::SETTING_AI_DISCOVERY_MODE, SettingsPage::AI_DISCOVERY_WELL_KNOWN );
-		$head_links      = SettingsPage::get( SettingsPage::SETTING_HEAD_LINKS_ENABLED, true );
-		$llmstxt_enabled = LLMsTxtSettings::get( 'enabled', true );
-		$aitxt_enabled   = AiTxtSettings::get( 'enabled', true );
+		$discovery_mode    = SettingsPage::get( SettingsPage::SETTING_AI_DISCOVERY_MODE, SettingsPage::AI_DISCOVERY_WELL_KNOWN );
+		$head_links        = SettingsPage::get( SettingsPage::SETTING_HEAD_LINKS_ENABLED, true );
+		$robots_injection  = SettingsPage::get( SettingsPage::SETTING_ROBOTS_INJECTION_ENABLED, true );
+		$http_headers      = SettingsPage::get( SettingsPage::SETTING_HTTP_HEADERS_ENABLED, true );
+		$ai_layer_page     = SettingsPage::get( SettingsPage::SETTING_AI_LAYER_PAGE_ENABLED, true );
+		$sitemap_enabled   = SettingsPage::get( SettingsPage::SETTING_SITEMAP_ENABLED, true );
+		$llmstxt_enabled   = LLMsTxtSettings::get( 'enabled', true );
+		$aitxt_enabled     = AiTxtSettings::get( 'enabled', true );
 		$back_step       = $has_woo ? self::STEP_WOOCOMMERCE : self::STEP_PROFILE;
 		?>
 		<div class="wpail-wizard__body">
@@ -550,6 +558,50 @@ class SetupWizardPage {
 							);
 							?>
 						</p>
+					</div>
+				</div>
+
+				<div class="wpail-wizard__field">
+					<label class="wpail-wizard__field-check">
+						<input type="checkbox" name="robots_injection_enabled" value="1"
+							<?php checked( $robots_injection ); ?>>
+						<span class="wpail-wizard__field-label"><?php esc_html_e( 'Inject discovery directives into robots.txt', 'ai-layer' ); ?></span>
+					</label>
+					<div class="wpail-wizard__field-body">
+						<p class="description"><?php esc_html_e( 'Appends AI-Layer: directives to your dynamically generated robots.txt so crawlers can find the manifest without parsing HTML.', 'ai-layer' ); ?></p>
+					</div>
+				</div>
+
+				<div class="wpail-wizard__field">
+					<label class="wpail-wizard__field-check">
+						<input type="checkbox" name="http_headers_enabled" value="1"
+							<?php checked( $http_headers ); ?>>
+						<span class="wpail-wizard__field-label"><?php esc_html_e( 'Send HTTP discovery headers', 'ai-layer' ); ?></span>
+					</label>
+					<div class="wpail-wizard__field-body">
+						<p class="description"><?php esc_html_e( 'Outputs Link: rel="service" and X-AI-Layer headers on every frontend response so agents can find AI Layer without reading the page.', 'ai-layer' ); ?></p>
+					</div>
+				</div>
+
+				<div class="wpail-wizard__field">
+					<label class="wpail-wizard__field-check">
+						<input type="checkbox" name="ai_layer_page_enabled" value="1"
+							<?php checked( $ai_layer_page ); ?>>
+						<span class="wpail-wizard__field-label"><?php esc_html_e( 'Enable /ai-layer discovery page', 'ai-layer' ); ?></span>
+					</label>
+					<div class="wpail-wizard__field-body">
+						<p class="description"><?php esc_html_e( 'Serves a human and agent-readable endpoint listing at /ai-layer (HTML) and /ai-layer.md (Markdown).', 'ai-layer' ); ?></p>
+					</div>
+				</div>
+
+				<div class="wpail-wizard__field">
+					<label class="wpail-wizard__field-check">
+						<input type="checkbox" name="sitemap_enabled" value="1"
+							<?php checked( $sitemap_enabled ); ?>>
+						<span class="wpail-wizard__field-label"><?php esc_html_e( 'Enable AI Layer sitemap', 'ai-layer' ); ?></span>
+					</label>
+					<div class="wpail-wizard__field-body">
+						<p class="description"><?php esc_html_e( 'Serves a dedicated XML sitemap at /ai-layer-sitemap.xml and adds it to the Yoast sitemap index automatically when Yoast is active.', 'ai-layer' ); ?></p>
 					</div>
 				</div>
 

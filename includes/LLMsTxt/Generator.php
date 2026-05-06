@@ -53,6 +53,9 @@ class Generator {
 
 			$lines[] = '## AI Layer Structured Endpoints';
 			$lines[] = '';
+			$lines[] = "Canonical manifest (JSON): [{$base}/manifest]({$base}/manifest)";
+			$lines[] = "OpenAPI specification: [{$base}/openapi]({$base}/openapi)";
+			$lines[] = '';
 
 			if ( $discovery_mode === SettingsPage::AI_DISCOVERY_WELL_KNOWN ) {
 				// Well-known mode: llms.txt is a pointer only — the JSON document is the source of truth.

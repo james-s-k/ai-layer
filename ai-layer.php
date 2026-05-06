@@ -3,7 +3,7 @@
  * Plugin Name:       AI Layer
  * Plugin URI:        https://strivewp.com/ai-layer
  * Description:       Structured business knowledge layer for WordPress. Exposes canonical business data via versioned REST endpoints for AI systems, agents, and search tools.
- * Version:           1.0.0
+ * Version:           1.5.0
  * Requires at least: 6.0
  * Requires PHP:      8.0
  * Author:            AI Layer
@@ -25,7 +25,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Plugin constants.
-define( 'WPAIL_VERSION',       '1.0.0' );
+define( 'WPAIL_VERSION',       '1.5.0' );
 define( 'WPAIL_PLUGIN_FILE',   __FILE__ );
 define( 'WPAIL_PLUGIN_DIR',    plugin_dir_path( __FILE__ ) );
 define( 'WPAIL_PLUGIN_URL',    plugin_dir_url( __FILE__ ) );

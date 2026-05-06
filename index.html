@@ -561,9 +561,50 @@
       </div>
 
       <div class="feature-card">
-        <div class="feature-icon" style="background:rgba(251,146,60,.1);">📄</div>
-        <h3>llms.txt &amp; AI Discovery</h3>
-        <p>Dynamically generated <code style="color:var(--accent);font-size:12px;">/llms.txt</code>, a machine-readable <code style="color:var(--accent);font-size:12px;">/.well-known/ai-layer</code> discovery document, and <code style="color:var(--accent);font-size:12px;">rel="ai-layer"</code> link tags in every page head. AI systems can find and understand your data from any entry point.</p>
+        <div class="feature-icon" style="background:rgba(52,211,153,.1);">🛒</div>
+        <h3>WooCommerce Products</h3>
+        <p>Enable the <code style="color:var(--accent);font-size:12px;">/products</code> endpoint for a live, read-only proxy over your WooCommerce catalogue. Pagination, category filtering, and full product detail including pricing, availability, and images. No data duplication — always in sync.</p>
+      </div>
+
+      <div class="feature-card feature-card--wide">
+        <div>
+          <div class="feature-icon" style="background:rgba(251,146,60,.1);margin-bottom:18px;">📡</div>
+          <h3>10-Channel Agent Discovery</h3>
+          <p>AI Layer broadcasts your structured data endpoints across ten independent discovery signals — so any AI system, agent, or crawler can find your API from any entry point. All enabled by default. All independently toggleable.</p>
+          <p style="margin-top:12px;font-size:14px;color:var(--muted);">Manifest, OpenAPI spec, robots.txt, HTTP headers, &lt;head&gt; link tags, DataCatalog JSON-LD, /ai-layer page, /ai-layer.md, XML sitemap, and /.well-known/ai-layer.</p>
+        </div>
+        <div>
+          <ul style="list-style:none;display:flex;flex-direction:column;gap:14px;">
+            <li style="display:flex;gap:14px;align-items:flex-start;">
+              <span style="min-width:36px;height:36px;border-radius:8px;background:rgba(79,142,247,.12);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">🗂️</span>
+              <div>
+                <p style="font-size:14px;font-weight:700;color:#fff;margin-bottom:2px;">Semantic manifest <code style="font-size:11px;color:var(--accent);">GET /wp-json/ai-layer/v1/</code></p>
+                <p style="font-size:13px;color:var(--muted);line-height:1.55;">One document listing every active endpoint URL, query capabilities, discovery pointers, and auth requirements. The recommended first request for any integrating agent.</p>
+              </div>
+            </li>
+            <li style="display:flex;gap:14px;align-items:flex-start;">
+              <span style="min-width:36px;height:36px;border-radius:8px;background:rgba(124,90,247,.12);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">📋</span>
+              <div>
+                <p style="font-size:14px;font-weight:700;color:#fff;margin-bottom:2px;">OpenAPI 3.1.0 spec <code style="font-size:11px;color:var(--accent);">GET /wp-json/ai-layer/v1/openapi</code></p>
+                <p style="font-size:13px;color:var(--muted);line-height:1.55;">Full specification generated dynamically from live plugin state. Import into Postman, Insomnia, or any AI coding assistant. Covers all routes, schemas, and the BasicAuth security scheme.</p>
+              </div>
+            </li>
+            <li style="display:flex;gap:14px;align-items:flex-start;">
+              <span style="min-width:36px;height:36px;border-radius:8px;background:rgba(52,211,153,.1);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">🌐</span>
+              <div>
+                <p style="font-size:14px;font-weight:700;color:#fff;margin-bottom:2px;">robots.txt, HTTP headers &amp; &lt;head&gt; link tags</p>
+                <p style="font-size:13px;color:var(--muted);line-height:1.55;"><code style="font-size:11px;color:var(--accent);">AI-Layer:</code> directives in robots.txt. <code style="font-size:11px;color:var(--accent);">Link: rel="service"</code> and <code style="font-size:11px;color:var(--accent);">X-AI-Layer</code> HTTP headers on every response. Four <code style="font-size:11px;color:var(--accent);">&lt;link&gt;</code> tags plus a DataCatalog JSON-LD block in every page <code style="font-size:11px;color:var(--accent);">&lt;head&gt;</code>.</p>
+              </div>
+            </li>
+            <li style="display:flex;gap:14px;align-items:flex-start;">
+              <span style="min-width:36px;height:36px;border-radius:8px;background:rgba(251,146,60,.12);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">📄</span>
+              <div>
+                <p style="font-size:14px;font-weight:700;color:#fff;margin-bottom:2px;">Discovery pages, sitemap &amp; llms.txt</p>
+                <p style="font-size:13px;color:var(--muted);line-height:1.55;">Human-readable HTML at <code style="font-size:11px;color:var(--accent);">/ai-layer</code>, Markdown at <code style="font-size:11px;color:var(--accent);">/ai-layer.md</code>, XML sitemap at <code style="font-size:11px;color:var(--accent);">/ai-layer-sitemap.xml</code> (auto-injected into Yoast's index), <code style="font-size:11px;color:var(--accent);">/llms.txt</code>, and <code style="font-size:11px;color:var(--accent);">/.well-known/ai-layer</code>.</p>
+              </div>
+            </li>
+          </ul>
+        </div>
       </div>
 
       <div class="feature-card">

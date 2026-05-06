@@ -43,6 +43,10 @@ use WPAIL\Analytics\AnalyticsLogger;
 use WPAIL\Analytics\AnalyticsCleanup;
 use WPAIL\Analytics\AnalyticsTable;
 use WPAIL\Admin\AnalyticsPage;
+use WPAIL\Discovery\RobotsInjector;
+use WPAIL\Discovery\HttpHeadersInjector;
+use WPAIL\Discovery\AiLayerPage;
+use WPAIL\Discovery\SitemapController;
 
 /**
  * Central plugin class. Lightweight service locator.
@@ -68,6 +72,7 @@ final class Plugin {
 	 * Boot all plugin subsystems in dependency order.
 	 */
 	public function boot(): void {
+		$this->maybe_upgrade();
 		$this->load_textdomain();
 		$this->register_post_types();
 		$this->register_admin();
@@ -81,6 +86,29 @@ final class Plugin {
 		$this->register_head_links();
 		$this->register_shortcodes();
 		$this->register_analytics();
+		$this->register_discovery();
+	}
+
+	/**
+	 * Run any pending upgrade steps when the stored version is behind WPAIL_VERSION.
+	 * Fires on plugins_loaded before init, so the flush transient is picked up by
+	 * maybe_flush_rewrites() on the same request.
+	 */
+	private function maybe_upgrade(): void {
+		// One-time flush for 1.5.0 — uses its own flag so it fires even if
+		// wpail_version was already bumped before the flush logic was added.
+		if ( ! get_option( 'wpail_rewrites_flushed_150' ) ) {
+			set_transient( 'wpail_flush_rewrite', true, MINUTE_IN_SECONDS );
+			update_option( 'wpail_rewrites_flushed_150', true );
+		}
+
+		$installed = get_option( 'wpail_version', '1.0.0' );
+
+		if ( version_compare( $installed, WPAIL_VERSION, '>=' ) ) {
+			return;
+		}
+
+		update_option( 'wpail_version', WPAIL_VERSION );
 	}
 
 	private function load_textdomain(): void {
@@ -180,6 +208,13 @@ final class Plugin {
 		AnalyticsTable::install();
 		( new AnalyticsLogger() )->register();
 		( new AnalyticsCleanup() )->register();
+	}
+
+	private function register_discovery(): void {
+		( new RobotsInjector() )->register();
+		( new HttpHeadersInjector() )->register();
+		( new AiLayerPage() )->register();
+		( new SitemapController() )->register();
 	}
 
 	// -------------------------------------------------------------------

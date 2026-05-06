@@ -251,6 +251,10 @@ A revisitable, step-by-step wizard that pre-populates your AI Layer data from ex
 | **AI Discovery** | |
 | Endpoint discovery mode | **/.well-known/ai-layer (recommended)** — machine-readable JSON is the source of truth; /llms.txt links to it. **llms.txt only** — endpoints listed in /llms.txt; `/.well-known/ai-layer` returns 404 |
 | Discovery link tags | Output `<link rel="ai-layer">` and `<link rel="llms-txt">` in every page `<head>`. Enabled by default — uncheck to suppress |
+| robots.txt injection | Append `AI-Layer:`, `AI-Layer-Manifest:`, and `AI-Layer-OpenAPI:` directives to the virtual `robots.txt`. Enabled by default |
+| HTTP discovery headers | Inject `Link: rel="service"` and `Link: rel="service-desc"` headers plus `X-AI-Layer` on every frontend response. Enabled by default |
+| /ai-layer discovery page | Serve a human-readable HTML discovery page at `/ai-layer` and a Markdown version at `/ai-layer.md`. Enabled by default |
+| AI Layer sitemap | Serve an XML sitemap at `/ai-layer-sitemap.xml` listing all AI Layer endpoints. Also injects into Yoast SEO's sitemap index when Yoast is active. Enabled by default |
 | **Post Type Visibility** | |
 | Services — Enable public | Make the Services CPT publicly accessible on the front-end |
 | Services — Rewrite slug | URL base for the Services archive and single posts (default: `services`) |
@@ -574,27 +578,145 @@ Each agent block fully overrides the global `*` block for that agent, so all app
 
 ---
 
-### AI Discovery Link Tags
+### AI Discovery & Agent Signals
 
-**AI Layer → Settings → AI Discovery → Discovery link tags**
+AI Layer broadcasts your structured data endpoints across ten independent discovery channels. Each channel is independently toggleable in **AI Layer → Settings → AI Discovery**. All default to enabled.
 
-When enabled (the default), AI Layer injects two `<link>` tags into the `<head>` of every front-end page:
+---
+
+#### `<head>` link tags
+
+AI Layer injects four `<link>` tags into every front-end page `<head>`:
 
 ```html
-<link rel="ai-layer" href="https://strivewp.com/.well-known/ai-layer" type="application/json">
-<link rel="llms-txt" href="https://strivewp.com/llms.txt" type="text/plain">
+<!-- AI Layer legacy discovery tags -->
+<link rel="ai-layer" href="https://example.com/.well-known/ai-layer" type="application/json">
+<link rel="llms-txt" href="https://example.com/llms.txt" type="text/plain">
+
+<!-- Standard service discovery (new in 1.5.0) -->
+<link rel="alternate" type="application/json" href="https://example.com/wp-json/ai-layer/v1/manifest">
+<link rel="service-desc" type="application/vnd.oai.openapi+json" href="https://example.com/wp-json/ai-layer/v1/openapi">
 ```
 
-Each tag is only output when its corresponding feature is active:
+The `rel="alternate"` and `rel="service-desc"` tags follow standard web conventions for API discoverability and are understood by a growing range of AI tools.
 
-| Tag | Output when |
-|-----|-------------|
-| `rel="ai-layer"` | Discovery mode is set to `/.well-known/ai-layer` (the default) |
-| `rel="llms-txt"` | llms.txt is enabled in **AI Layer → llms.txt** |
+---
 
-**Why this matters:** AI crawlers and agents that index page source — including search-grounded tools like Perplexity and Bing Copilot — can read `<link>` tags to discover where structured data lives without needing prior knowledge of the URL. This follows the same convention as `rel="canonical"` and `rel="alternate"` used for search engines today.
+#### DataCatalog JSON-LD
 
-**To disable:** uncheck **Discovery link tags** in **AI Layer → Settings → AI Discovery** and save.
+When the Manifest endpoint is active, AI Layer also outputs a `DataCatalog` JSON-LD block in `<head>`:
+
+```html
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "mainEntity": {
+    "@type": "DataCatalog",
+    "name": "AI Layer — Business Name",
+    "url": "https://example.com/wp-json/ai-layer/v1/manifest"
+  }
+}
+</script>
+```
+
+This makes the API discoverable to any tool that processes Schema.org structured data.
+
+---
+
+#### robots.txt injection
+
+**AI Layer → Settings → AI Discovery → robots.txt injection**
+
+AI Layer appends discovery directives to the WordPress-generated `robots.txt`. No filesystem writes are involved — it hooks the `robots_txt` filter.
+
+```
+# AI Layer — structured business data endpoints
+AI-Layer: https://example.com/ai-layer
+AI-Layer-Manifest: https://example.com/wp-json/ai-layer/v1/manifest
+AI-Layer-OpenAPI: https://example.com/wp-json/ai-layer/v1/openapi
+```
+
+Only appended when the site is set to public (not in search-engine-discouraged mode).
+
+---
+
+#### HTTP discovery headers
+
+**AI Layer → Settings → AI Discovery → HTTP discovery headers**
+
+On every frontend response, AI Layer injects three HTTP headers following the IETF `Link` header standard:
+
+```
+Link: <https://example.com/wp-json/ai-layer/v1/manifest>; rel="service"
+Link: <https://example.com/wp-json/ai-layer/v1/openapi>; rel="service-desc"
+X-AI-Layer: https://example.com/wp-json/ai-layer/v1/manifest
+```
+
+HTTP crawlers and agents that inspect response headers can discover the API without reading any page content.
+
+---
+
+#### `/ai-layer` — HTML discovery page
+
+**AI Layer → Settings → AI Discovery → /ai-layer discovery page**
+
+A human-readable discovery page served at `/ai-layer`. Lists all active endpoints in a table, links to the manifest, OpenAPI spec, and well-known document, and provides a live query example for the answer engine.
+
+Useful as a landing page for developers or agents that receive a referral to your domain without a specific endpoint URL.
+
+**To disable:** toggle **AI Layer discovery page** off in **AI Layer → Settings → AI Discovery**.
+
+---
+
+#### `/ai-layer.md` — Markdown discovery page
+
+A machine-friendly Markdown version of the discovery page, served at `/ai-layer.md` with `Content-Type: text/markdown`. Contains the same endpoint table and base URL in a format suitable for LLM context windows. Enabled and disabled together with the HTML page.
+
+---
+
+#### `/ai-layer-sitemap.xml` — XML sitemap
+
+**AI Layer → Settings → AI Discovery → AI Layer sitemap**
+
+An XML sitemap listing all AI Layer REST endpoints and the `/ai-layer` discovery page:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://example.com/wp-json/ai-layer/v1/manifest</loc><changefreq>daily</changefreq></url>
+  <url><loc>https://example.com/wp-json/ai-layer/v1/openapi</loc><changefreq>daily</changefreq></url>
+  <url><loc>https://example.com/wp-json/ai-layer/v1/profile</loc><changefreq>daily</changefreq></url>
+  <url><loc>https://example.com/wp-json/ai-layer/v1/services</loc><changefreq>daily</changefreq></url>
+  <url><loc>https://example.com/wp-json/ai-layer/v1/locations</loc><changefreq>daily</changefreq></url>
+  <url><loc>https://example.com/wp-json/ai-layer/v1/faqs</loc><changefreq>daily</changefreq></url>
+  <url><loc>https://example.com/wp-json/ai-layer/v1/proof</loc><changefreq>daily</changefreq></url>
+  <url><loc>https://example.com/wp-json/ai-layer/v1/actions</loc><changefreq>daily</changefreq></url>
+  <url><loc>https://example.com/wp-json/ai-layer/v1/answers</loc><changefreq>daily</changefreq></url>
+  <url><loc>https://example.com/ai-layer</loc><changefreq>daily</changefreq></url>
+  <url><loc>https://example.com/ai-layer.md</loc><changefreq>daily</changefreq></url>
+  <url><loc>https://example.com/.well-known/ai-layer</loc><changefreq>daily</changefreq></url>
+</urlset>
+```
+
+When Yoast SEO is active, the sitemap is automatically injected into Yoast's sitemap index so it appears alongside your post type sitemaps.
+
+---
+
+#### Summary of discovery channels
+
+| Channel | URL / Mechanism | Toggleable |
+|---------|-----------------|------------|
+| `<link>` tags in `<head>` | Every frontend page | Yes (Discovery link tags) |
+| DataCatalog JSON-LD | `<head>` on every frontend page | Yes (follows manifest) |
+| robots.txt directives | `https://example.com/robots.txt` | Yes |
+| HTTP `Link` + `X-AI-Layer` headers | Every frontend response | Yes |
+| HTML discovery page | `/ai-layer` | Yes |
+| Markdown discovery page | `/ai-layer.md` | Yes (same toggle as HTML) |
+| XML sitemap | `/ai-layer-sitemap.xml` + Yoast index | Yes |
+| `/.well-known/ai-layer` | Standard well-known endpoint | Follows discovery mode setting |
+| `llms.txt` | `/llms.txt` | AI Layer → llms.txt settings |
+| `ai.txt` | `/ai.txt` | AI Layer → AI.txt settings |
 
 ---
 
@@ -726,6 +848,102 @@ curl -X POST https://strivewp.com/wp-json/ai-layer/v1/services \
 | 401 | `wpail_unauthorized` | No credentials supplied |
 | 403 | `wpail_forbidden` | Credentials valid but insufficient capability |
 | 404 | `wpail_not_found` | Item not found |
+
+---
+
+### GET `/manifest` — Manifest
+
+The semantic manifest for the entire AI Layer API. Returns a structured JSON document describing the site, all active endpoints with their full URLs, the answer engine's query capabilities, discovery pointers (well-known, llms.txt, sitemap, /ai-layer page), and authentication requirements.
+
+This is the **recommended first request** for any agent or integration that has discovered AI Layer and needs to understand what is available.
+
+**Example response:**
+```json
+{
+  "name": "Acme Ltd",
+  "description": "We help businesses grow.",
+  "website": "https://example.com",
+  "version": "1.0",
+  "ai_layer_version": "1.5.0",
+  "language": "en-GB",
+  "updated_at": "2025-11-01T14:22:00Z",
+  "entities": {
+    "profile":   "https://example.com/wp-json/ai-layer/v1/profile",
+    "services":  "https://example.com/wp-json/ai-layer/v1/services",
+    "locations": "https://example.com/wp-json/ai-layer/v1/locations",
+    "faqs":      "https://example.com/wp-json/ai-layer/v1/faqs",
+    "proof":     "https://example.com/wp-json/ai-layer/v1/proof",
+    "actions":   "https://example.com/wp-json/ai-layer/v1/actions",
+    "answers":   "https://example.com/wp-json/ai-layer/v1/answers"
+  },
+  "discovery": {
+    "openapi":        "https://example.com/wp-json/ai-layer/v1/openapi",
+    "well_known":     "https://example.com/.well-known/ai-layer",
+    "discovery_page": "https://example.com/ai-layer",
+    "sitemap":        "https://example.com/ai-layer-sitemap.xml",
+    "llms_txt":       "https://example.com/llms.txt"
+  },
+  "relationships": {
+    "services.related_faqs":      true,
+    "services.related_locations": true,
+    "services.related_proof":     true,
+    "services.related_actions":   true,
+    "locations.related_services": true,
+    "faqs.related_services":      true,
+    "proof.related_services":     true
+  },
+  "query": {
+    "supports_semantic_answers": true,
+    "supports_filters":          true,
+    "supports_keyword_search":   true,
+    "answer_endpoint":           "https://example.com/wp-json/ai-layer/v1/answers?query={question}"
+  },
+  "authentication": {
+    "required":         false,
+    "write_required":   true,
+    "write_method":     "WordPress Application Passwords (HTTP Basic Auth)",
+    "write_capability": "edit_posts"
+  }
+}
+```
+
+`entities` values are flat URLs. `answers` is included as an entity endpoint alongside the others. `discovery.llms_txt` and `discovery.ai_txt` appear only when those features are enabled. The `products` entity key appears only when WooCommerce is active and the Products endpoint is enabled.
+
+Response includes `Cache-Control: public, max-age=3600`.
+
+---
+
+### GET `/openapi` — OpenAPI Specification
+
+Returns a full **OpenAPI 3.1.0** specification for every AI Layer endpoint, in JSON format. Covers all routes, parameters, request bodies, response shapes, and the BasicAuth security scheme.
+
+Suitable for:
+- Importing into API clients (Insomnia, Postman, Bruno)
+- Feeding to AI coding assistants as a schema reference
+- Auto-generating SDK clients
+- Powering interactive documentation
+
+**Structure:**
+```json
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "AI Layer — Acme Ltd",
+    "version": "1.5.0",
+    "description": "Structured business knowledge API."
+  },
+  "servers": [{ "url": "https://example.com/wp-json/ai-layer/v1" }],
+  "paths": { ... },
+  "components": {
+    "schemas": { ... },
+    "securitySchemes": {
+      "BasicAuth": { "type": "http", "scheme": "basic" }
+    }
+  }
+}
+```
+
+The specification is generated dynamically on every request from live plugin state — the `/products` paths and schemas are included only when WooCommerce is active and the Products endpoint is enabled.
 
 ---
 
@@ -1687,7 +1905,7 @@ All CPT metadata is stored as a single JSON blob per post. Schema versioning is 
 ### Constants
 
 ```php
-WPAIL_VERSION          // '1.0.0'
+WPAIL_VERSION          // '1.5.0'
 WPAIL_REST_NS          // 'ai-layer/v1'
 WPAIL_META_KEY         // '_wpail_data'
 WPAIL_OPT_BUSINESS     // 'wpail_business_profile'
@@ -1704,6 +1922,7 @@ WPAIL\Admin\
 WPAIL\Admin\MetaBoxes\
 WPAIL\Abilities\
 WPAIL\Analytics\
+WPAIL\Discovery\
 WPAIL\Frontend\
 WPAIL\Shortcodes\
 WPAIL\Models\
@@ -1723,6 +1942,23 @@ WPAIL\PostTypes\
 ---
 
 ## Changelog
+
+### 1.5.0
+
+- **Manifest endpoint** — `GET /wp-json/ai-layer/v1/manifest` returns a full semantic manifest: site info, all active entity endpoint URLs (including `answers`), a `discovery` object listing every active channel, relationship capabilities, query capabilities, and authentication details; `updated_at` reflects the latest CPT modification; `Cache-Control: public, max-age=3600`
+- **OpenAPI 3.1.0 specification** — `GET /wp-json/ai-layer/v1/openapi` generates a complete OpenAPI spec dynamically from live plugin state; covers all 15+ routes, request parameters, response schemas, and the BasicAuth security scheme; `/products` paths included only when WooCommerce is active
+- **robots.txt injection** — `AI-Layer:`, `AI-Layer-Manifest:`, and `AI-Layer-OpenAPI:` directives appended to the WordPress virtual `robots.txt` via the `robots_txt` filter; only when site is set to public; toggle in **Settings → AI Discovery**
+- **HTTP discovery headers** — `Link: rel="service"`, `Link: rel="service-desc"`, and `X-AI-Layer` headers injected on every frontend response via `send_headers`; toggle in **Settings → AI Discovery**
+- **`<head>` link tags expanded** — added `rel="alternate" type="application/json"` pointing to the manifest and `rel="service-desc" type="application/vnd.oai.openapi+json"` pointing to the OpenAPI spec; output alongside existing `rel="ai-layer"` and `rel="llms-txt"` tags
+- **DataCatalog JSON-LD** — a `DataCatalog` Schema.org structured data block output in `<head>` pointing to the manifest and OpenAPI endpoints; makes the API discoverable to tools that process schema markup
+- **`/ai-layer` HTML discovery page** — human-readable discovery page listing all endpoints, discovery links, and a live query example; served via a WordPress rewrite rule; toggle in **Settings → AI Discovery**
+- **`/ai-layer.md` Markdown discovery page** — structured Markdown version of the discovery page at `/ai-layer.md` with `Content-Type: text/markdown`; enabled and disabled with the HTML page
+- **`/ai-layer-sitemap.xml` XML sitemap** — XML sitemap listing all AI Layer REST endpoints; automatically injected into Yoast SEO's sitemap index when Yoast is active; toggle in **Settings → AI Discovery**
+- **llms.txt updated** — manifest and OpenAPI spec URLs added to the AI Layer Structured Endpoints section of the generated `llms.txt`
+- **Well-known document updated** — `manifest` and `openapi` keys added to the `/.well-known/ai-layer` response
+- **Settings** — four new toggles in **AI Layer → Settings → AI Discovery**: robots.txt injection, HTTP discovery headers, /ai-layer page, AI Layer sitemap; all enabled by default
+- **Setup Wizard** — four new checkboxes in the Discovery step for the same settings
+- **Activation** — three new rewrite rules registered on plugin activation for `/ai-layer`, `/ai-layer.md`, and `/ai-layer-sitemap.xml`
 
 ### 1.4.0
 
