@@ -51,9 +51,10 @@ class ProofModel {
 
 	public function to_summary_array(): array {
 		return [
-			'id'       => $this->id,
-			'type'     => $this->proof_type,
-			'headline' => $this->headline,
+			'id'          => $this->id,
+			'type'        => $this->proof_type,
+			'headline'    => $this->headline,
+			'modified_at' => $this->modified_at ?: null,
 		];
 	}
 }

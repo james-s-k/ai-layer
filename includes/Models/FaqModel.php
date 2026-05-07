@@ -53,6 +53,7 @@ class FaqModel {
 			'id'           => $this->id,
 			'question'     => $this->question,
 			'short_answer' => $this->short_answer,
+			'modified_at'  => $this->modified_at ?: null,
 		];
 	}
 }
