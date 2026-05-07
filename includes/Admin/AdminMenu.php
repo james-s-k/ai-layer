@@ -212,7 +212,7 @@ class AdminMenu {
 			return;
 		}
 
-		$submenu['wpail_dashboard'] = array_merge( $overview, $wizard, $aiimport, $settings, $profile, $middle, $llmstxt, $aitxt, $analytics, $answertest, $help );
+		$submenu['wpail_dashboard'] = array_merge( $overview, $wizard, $settings, $aiimport, $profile, $middle, $llmstxt, $aitxt, $analytics, $answertest, $help );
 	}
 
 	/**
