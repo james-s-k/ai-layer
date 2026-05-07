@@ -248,9 +248,11 @@ Configure your AI provider and API key at the top of the AI Import page. Three p
 
 | Provider | Models |
 |----------|--------|
-| OpenAI | GPT-4o Mini *(recommended default)*, GPT-5 Nano, GPT-4o, GPT-4 Turbo |
-| Anthropic | Claude Haiku 4.5, Claude Sonnet 4.6 |
-| Google | Gemini 2.0 Flash-Lite, Gemini 2.5 Flash |
+| OpenAI | GPT-4o Mini *(recommended default)*, GPT-4.1 Mini, GPT-4o, GPT-4.1 |
+| Anthropic | Claude Haiku 4.5, Claude Sonnet 4.6, Claude Opus 4.7 |
+| Google | Gemini 2.5 Flash, Gemini 2.5 Pro |
+
+> **Tip:** GPT-4o Mini works well for entity extraction. The relationship-linking step — which requires cross-entity reasoning across all your content — benefits from a stronger model: GPT-4.1, Claude Sonnet 4.6, or Gemini 2.5 Pro will produce more accurate results there.
 
 Each provider has a separate API key field. Keys are stored encrypted in `wp_options`. Leave a key field blank to keep the existing key. A saved-key indicator is shown when a key is already stored.
 

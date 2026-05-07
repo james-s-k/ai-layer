@@ -23,16 +23,17 @@ class AiSettings {
 	 */
 	const MODELS = [
 		// OpenAI.
-		'gpt-4o-mini'               => [ 'provider' => 'openai',    'name' => 'GPT-4o Mini',          'cost' => '$0.28–$0.30 / 1K req', 'speed' => 'Very Fast' ],
-		'gpt-5-nano'                => [ 'provider' => 'openai',    'name' => 'GPT-5 Nano',           'cost' => '$0.37–$0.40 / 1K req', 'speed' => 'Very Fast' ],
-		'gpt-4o'                    => [ 'provider' => 'openai',    'name' => 'GPT-4o',               'cost' => '$4.75–$5.00 / 1K req', 'speed' => 'Fast' ],
-		'gpt-4-turbo'               => [ 'provider' => 'openai',    'name' => 'GPT-4 Turbo',          'cost' => '$3.80–$4.00 / 1K req', 'speed' => 'Fast' ],
+		'gpt-4o-mini'               => [ 'provider' => 'openai',    'name' => 'GPT-4o Mini',       'speed' => 'Very Fast' ],
+		'gpt-4.1-mini'              => [ 'provider' => 'openai',    'name' => 'GPT-4.1 Mini',      'speed' => 'Very Fast' ],
+		'gpt-4o'                    => [ 'provider' => 'openai',    'name' => 'GPT-4o',            'speed' => 'Fast' ],
+		'gpt-4.1'                   => [ 'provider' => 'openai',    'name' => 'GPT-4.1',           'speed' => 'Fast' ],
 		// Anthropic.
-		'claude-haiku-4-5-20251001' => [ 'provider' => 'anthropic', 'name' => 'Claude Haiku 4.5',     'cost' => '$2.00–$2.10 / 1K req', 'speed' => 'Very Fast' ],
-		'claude-sonnet-4-6'         => [ 'provider' => 'anthropic', 'name' => 'Claude Sonnet 4.6',    'cost' => '$6.00–$6.50 / 1K req', 'speed' => 'Medium' ],
+		'claude-haiku-4-5-20251001' => [ 'provider' => 'anthropic', 'name' => 'Claude Haiku 4.5',  'speed' => 'Very Fast' ],
+		'claude-sonnet-4-6'         => [ 'provider' => 'anthropic', 'name' => 'Claude Sonnet 4.6', 'speed' => 'Medium' ],
+		'claude-opus-4-7'           => [ 'provider' => 'anthropic', 'name' => 'Claude Opus 4.7',   'speed' => 'Slower' ],
 		// Google.
-		'gemini-2.0-flash-lite'     => [ 'provider' => 'google',    'name' => 'Gemini 2.0 Flash-Lite','cost' => '$0.10–$0.15 / 1K req', 'speed' => 'Very Fast' ],
-		'gemini-2.5-flash'          => [ 'provider' => 'google',    'name' => 'Gemini 2.5 Flash',     'cost' => '$0.70–$0.75 / 1K req', 'speed' => 'Very Fast' ],
+		'gemini-2.5-flash'          => [ 'provider' => 'google',    'name' => 'Gemini 2.5 Flash',  'speed' => 'Very Fast' ],
+		'gemini-2.5-pro'            => [ 'provider' => 'google',    'name' => 'Gemini 2.5 Pro',    'speed' => 'Medium' ],
 	];
 
 	const PROVIDER_LABELS = [

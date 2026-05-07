@@ -95,7 +95,7 @@ A revisitable wizard at AI Layer → Setup Wizard auto-populates your Business P
 
 Point the AI Import tool at your existing published pages and let AI do the initial data entry for you. Select one or more pages (for example your Services, About, and Areas pages), tick the entity types you want to extract (Services, FAQs, Locations, Proof & Trust, Actions), and click Start AI Extraction. The AI reads the page content and creates draft items for each entity it identifies. A final pass automatically links relationships between all extracted entities. You review and publish the drafts you want to keep — nothing goes live until you say so.
 
-Supports OpenAI (GPT-4o Mini recommended, plus GPT-5 Nano, GPT-4o, GPT-4 Turbo), Anthropic (Claude Haiku 4.5, Claude Sonnet 4.6), and Google (Gemini 2.0 Flash-Lite, Gemini 2.5 Flash). Bring your own API key from any supported provider. Running an import on a typical business site costs a few cents.
+Supports OpenAI (GPT-4o Mini recommended, plus GPT-4.1 Mini, GPT-4o, GPT-4.1), Anthropic (Claude Haiku 4.5, Claude Sonnet 4.6, Claude Opus 4.7), and Google (Gemini 2.5 Flash, Gemini 2.5 Pro). Bring your own API key from any supported provider. Running an import on a typical business site costs a few cents.
 
 All extracted items are saved as drafts. AI can make mistakes — review titles, content, and relationships manually before publishing.
 
@@ -169,7 +169,7 @@ It can. The tool does not check for existing entries before creating drafts — 
 
 = Which AI providers and models are supported? =
 
-OpenAI (GPT-4o Mini, GPT-5 Nano, GPT-4o, GPT-4 Turbo), Anthropic (Claude Haiku 4.5, Claude Sonnet 4.6), and Google (Gemini 2.0 Flash-Lite, Gemini 2.5 Flash). GPT-4o Mini is the recommended default — fast, accurate, and low cost for most imports.
+OpenAI (GPT-4o Mini, GPT-4.1 Mini, GPT-4o, GPT-4.1), Anthropic (Claude Haiku 4.5, Claude Sonnet 4.6, Claude Opus 4.7), and Google (Gemini 2.5 Flash, Gemini 2.5 Pro). GPT-4o Mini is the recommended default — fast, accurate, and low cost for most imports. For the relationship-linking step, a stronger model such as GPT-4.1, Claude Sonnet 4.6, or Gemini 2.5 Pro will produce more accurate results.
 
 = What is the difference between the three relationship tools? =
 
@@ -234,7 +234,7 @@ Single-site only in the current version. Multisite support is not explicitly blo
 
 = 1.6.0 =
 * **AI Import** — new admin page at AI Layer → AI Import; point the tool at any published page and AI extracts Services, FAQs, Locations, Proof & Trust, and Actions as drafts; step-by-step extraction with a live progress bar; final automatic relationship-linking pass after all entity types are processed
-* **Multi-provider AI support** — OpenAI (GPT-4o, GPT-4o Mini), Anthropic (Claude Haiku, Claude Sonnet), and Google (Gemini 1.5 Flash, Gemini 1.5 Pro); configure API keys per provider in AI Import settings; GPT-4o Mini is the recommended default
+* **Multi-provider AI support** — OpenAI (GPT-4o Mini, GPT-4.1 Mini, GPT-4o, GPT-4.1), Anthropic (Claude Haiku 4.5, Claude Sonnet 4.6, Claude Opus 4.7), and Google (Gemini 2.5 Flash, Gemini 2.5 Pro); configure API keys per provider in AI Import settings; GPT-4o Mini is the recommended default
 * **Selective entity extraction** — choose which entity types to extract per import run; run again with only the types you want to top up
 * **Relationship management tools** — three dedicated tools in the Relationships section: Resync All Relationships (non-AI, repairs missing inverse links, additive), Find New Relationships (AI-powered, additive), Rebuild All Relationships (AI-powered, authoritative — replaces all relationship data)
 * **Relationship rules** — AI is instructed to link FAQs to services, proof to services and explicitly-named locations only, actions to services, and locations to services; strict prompt constraints prevent the AI from inventing location links when no place name appears in the proof text
