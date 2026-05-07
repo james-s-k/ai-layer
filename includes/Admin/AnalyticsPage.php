@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace WPAIL\Admin;
 
 use WPAIL\Analytics\AnalyticsRepository;
+use WPAIL\Analytics\AuditRepository;
 use WPAIL\Admin\SettingsPage;
 
 class AnalyticsPage {
@@ -45,6 +46,9 @@ class AnalyticsPage {
 		$top    = $repo->get_top_queries( 20, $period );
 		$missed = $repo->get_unanswered_queries( 20, $period );
 		$hits   = $repo->get_endpoint_hits( $period );
+
+		$audit_repo    = new AuditRepository();
+		$audit_entries = $audit_repo->get_recent( 20 );
 
 		$retention_days = (int) SettingsPage::get( SettingsPage::SETTING_ANALYTICS_RETENTION_DAYS, 365 );
 		?>
@@ -236,6 +240,50 @@ class AnalyticsPage {
 											<span class="wpail-analytics__bar-label"><?php echo esc_html( (string) $pct ); ?>%</span>
 										</div>
 									</td>
+								</tr>
+							<?php endforeach; ?>
+						</tbody>
+					</table>
+				<?php endif; ?>
+			</div>
+
+			<?php // Recent write operations (audit log). ?>
+			<div class="wpail-card" style="margin-top:20px;">
+				<h3 class="wpail-analytics__card-title">
+					<?php esc_html_e( 'Recent write operations', 'ai-layer' ); ?>
+				</h3>
+				<?php if ( empty( $audit_entries ) ) : ?>
+					<p class="wpail-analytics__empty">
+						<?php esc_html_e( 'No write operations logged yet. Create, update, or delete actions will appear here.', 'ai-layer' ); ?>
+					</p>
+				<?php else : ?>
+					<table class="widefat striped wpail-analytics__table">
+						<thead>
+							<tr>
+								<th><?php esc_html_e( 'Date / Time (UTC)', 'ai-layer' ); ?></th>
+								<th><?php esc_html_e( 'Action', 'ai-layer' ); ?></th>
+								<th><?php esc_html_e( 'Entity type', 'ai-layer' ); ?></th>
+								<th class="wpail-analytics__col-num"><?php esc_html_e( 'ID', 'ai-layer' ); ?></th>
+								<th><?php esc_html_e( 'User', 'ai-layer' ); ?></th>
+							</tr>
+						</thead>
+						<tbody>
+							<?php foreach ( $audit_entries as $entry ) : ?>
+								<tr>
+									<td><code><?php echo esc_html( $entry['created_at'] ); ?></code></td>
+									<td>
+										<?php
+										$action_color = 'delete' === $entry['action'] ? '#c02b0a' : ( 'create' === $entry['action'] ? '#00a32a' : '#996800' );
+										printf(
+											'<span style="color:%s;font-weight:600;">%s</span>',
+											esc_attr( $action_color ),
+											esc_html( $entry['action'] )
+										);
+										?>
+									</td>
+									<td><code><?php echo esc_html( $entry['entity_type'] ); ?></code></td>
+									<td class="wpail-analytics__col-num"><?php echo esc_html( (string) $entry['entity_id'] ); ?></td>
+									<td><?php echo esc_html( $entry['user_login'] ); ?></td>
 								</tr>
 							<?php endforeach; ?>
 						</tbody>

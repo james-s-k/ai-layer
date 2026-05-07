@@ -415,7 +415,7 @@ class OpenApiController extends BaseController {
 				],
 				'post' => [
 					'summary'     => 'Create an authored Answer',
-					'description' => 'Creates a new manually authored Answer that takes guaranteed priority in the answer engine.',
+					'description' => 'Creates a new manually authored Answer that takes guaranteed priority in the answer engine. Requires the `wpail_manage_content` capability (Administrators by default).',
 					'operationId' => 'createAnswer',
 					'tags'        => [ 'Answers' ],
 					'security'    => [ [ 'BasicAuth' => [] ] ],
@@ -455,6 +455,7 @@ class OpenApiController extends BaseController {
 				],
 				'patch'  => [
 					'summary'     => 'Update an authored Answer',
+					'description' => 'Requires the `wpail_manage_content` capability (Administrators by default).',
 					'operationId' => 'updateAnswer',
 					'tags'        => [ 'Answers' ],
 					'security'    => [ [ 'BasicAuth' => [] ] ],
@@ -483,6 +484,7 @@ class OpenApiController extends BaseController {
 				],
 				'delete' => [
 					'summary'     => 'Delete an authored Answer',
+					'description' => 'Requires the `wpail_manage_content` capability (Administrators by default).',
 					'operationId' => 'deleteAnswer',
 					'tags'        => [ 'Answers' ],
 					'security'    => [ [ 'BasicAuth' => [] ] ],
@@ -604,6 +606,7 @@ class OpenApiController extends BaseController {
 					'relationships'    => [ 'type' => 'object' ],
 					'query'            => [ 'type' => 'object' ],
 					'authentication'   => [ 'type' => 'object' ],
+					'content_policy'   => [ 'type' => 'object' ],
 				],
 			],
 			'ServiceSummary'        => [
@@ -626,8 +629,8 @@ class OpenApiController extends BaseController {
 				'type'       => 'object',
 				'properties' => [
 					'id'           => [ 'type' => 'integer' ],
-					'question'     => [ 'type' => 'string' ],
-					'short_answer' => [ 'type' => 'string' ],
+					'question'     => [ 'type' => 'string', 'x-content-trust' => 'user-authored' ],
+					'short_answer' => [ 'type' => 'string', 'x-content-trust' => 'user-authored' ],
 				],
 			],
 			'ActionSummary'         => [
@@ -646,7 +649,7 @@ class OpenApiController extends BaseController {
 				'properties' => [
 					'id'       => [ 'type' => 'integer' ],
 					'type'     => [ 'type' => 'string', 'enum' => [ 'testimonial', 'statistic', 'accreditation', 'case_study', 'award', 'media_mention' ] ],
-					'headline' => [ 'type' => 'string' ],
+					'headline' => [ 'type' => 'string', 'x-content-trust' => 'user-authored' ],
 				],
 			],
 			'AnswerResponse'        => [
@@ -655,8 +658,8 @@ class OpenApiController extends BaseController {
 					'data' => [
 						'type'       => 'object',
 						'properties' => [
-							'answer_short'    => [ 'type' => 'string' ],
-							'answer_long'     => [ 'type' => 'string' ],
+							'answer_short'    => [ 'type' => 'string', 'x-content-trust' => 'user-authored' ],
+							'answer_long'     => [ 'type' => 'string', 'x-content-trust' => 'user-authored' ],
 							'confidence'      => [ 'type' => 'string', 'enum' => [ 'high', 'medium', 'low' ] ],
 							'source'          => [ 'type' => 'string', 'enum' => [ 'manual', 'faq', 'dynamic' ] ],
 							'services'        => [ 'type' => 'array', 'items' => [ '$ref' => '#/components/schemas/ServiceSummary' ] ],
@@ -716,8 +719,8 @@ class OpenApiController extends BaseController {
 							'id'            => [ 'type' => 'integer' ],
 							'slug'          => [ 'type' => 'string' ],
 							'name'          => [ 'type' => 'string' ],
-							'short_summary' => [ 'type' => 'string' ],
-							'long_summary'  => [ 'type' => 'string' ],
+							'short_summary' => [ 'type' => 'string', 'x-content-trust' => 'user-authored' ],
+							'long_summary'  => [ 'type' => 'string', 'x-content-trust' => 'user-authored' ],
 							'faqs'          => [ 'type' => 'array', 'items' => [ '$ref' => '#/components/schemas/FaqSummary' ] ],
 							'locations'     => [ 'type' => 'array', 'items' => [ '$ref' => '#/components/schemas/LocationSummary' ] ],
 							'proof'         => [ 'type' => 'array', 'items' => [ '$ref' => '#/components/schemas/ProofSummary' ] ],

@@ -33,6 +33,7 @@ class Activator {
 		flush_rewrite_rules();
 
 		\WPAIL\Analytics\AnalyticsTable::install();
+		\WPAIL\Analytics\AuditTable::install();
 		\WPAIL\Analytics\AnalyticsCleanup::schedule();
 
 		$installed = get_option( 'wpail_version', '' );
@@ -56,9 +57,10 @@ class Activator {
 	 * Migrations must be idempotent.
 	 */
 	private static function upgrade( string $from_version ): void {
-		// Ensure the analytics table exists when upgrading from older versions.
+		// Ensure tables exist when upgrading from older versions.
 		// dbDelta is idempotent — safe to call unconditionally.
 		\WPAIL\Analytics\AnalyticsTable::install();
+		\WPAIL\Analytics\AuditTable::install();
 
 		// Example:
 		// if ( version_compare( $from_version, '1.1.0', '<' ) ) {

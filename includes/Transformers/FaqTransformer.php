@@ -35,6 +35,7 @@ class FaqTransformer {
 			intent_tags:          Sanitizer::csv_to_array( $s( 'intent_tags' ) ),
 			priority:             (int) ( $data['priority'] ?? 0 ),
 			is_public:            isset( $data['is_public'] ) ? (bool) $data['is_public'] : true,
+			modified_at:          gmdate( 'Y-m-d\TH:i:s\Z', strtotime( $post->post_modified_gmt ) ),
 		);
 	}
 }

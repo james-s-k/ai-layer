@@ -27,6 +27,7 @@ class FaqModel {
 		/** Private — higher = matched first. */
 		public readonly int    $priority        = 0,
 		public readonly bool   $is_public       = true,
+		public readonly string $modified_at     = '',
 	) {}
 
 	/**
@@ -38,6 +39,7 @@ class FaqModel {
 		return [
 			'id'           => $this->id,
 			'slug'         => $this->slug,
+			'modified_at'  => $this->modified_at ?: null,
 			'question'     => $this->question,
 			'short_answer' => $this->short_answer,
 			'long_answer'  => $this->long_answer,

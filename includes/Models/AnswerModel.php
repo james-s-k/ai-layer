@@ -30,6 +30,7 @@ class AnswerModel {
 		/** @var array<int> */
 		public readonly array   $source_faq_ids   = [],
 		public readonly ?int    $post_id          = null,
+		public readonly ?string $modified_at     = null,
 	) {}
 
 	/**
@@ -52,6 +53,7 @@ class AnswerModel {
 		return [
 			'answer_short'     => $this->short_answer,
 			'answer_long'      => $this->long_answer,
+			'modified_at'      => $this->modified_at,
 			'confidence'       => $this->confidence,
 			'source'           => $this->source,
 			'services'         => $services,

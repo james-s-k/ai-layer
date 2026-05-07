@@ -34,6 +34,7 @@ class AnswerTransformer {
 			next_action_ids:       $ai( 'next_actions' ),
 			source_faq_ids:        $ai( 'source_faq_ids' ),
 			post_id:               $post->ID,
+			modified_at:           gmdate( 'Y-m-d\TH:i:s\Z', strtotime( $post->post_modified_gmt ) ),
 		);
 	}
 }

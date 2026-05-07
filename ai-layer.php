@@ -34,6 +34,7 @@ define( 'WPAIL_REST_NS',       'ai-layer/v1' );
 define( 'WPAIL_META_KEY',      '_wpail_data' );
 define( 'WPAIL_OPT_BUSINESS',  'wpail_business_profile' );
 define( 'WPAIL_OPT_SETTINGS',  'wpail_settings' );
+define( 'WPAIL_CAP_WRITE',     'wpail_manage_content' );
 
 // Autoloader: WPAIL\Foo\Bar  ->  includes/Foo/Bar.php
 spl_autoload_register( function ( string $class ): void {

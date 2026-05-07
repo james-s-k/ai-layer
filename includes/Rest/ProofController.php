@@ -20,6 +20,7 @@ use WPAIL\Support\FieldDefinitions;
 use WPAIL\Support\RelationshipHelper;
 use WPAIL\Support\RelationshipSync;
 use WPAIL\Support\Sanitizer;
+use WPAIL\Analytics\AuditLogger;
 
 class ProofController extends BaseController {
 
@@ -124,6 +125,7 @@ class ProofController extends BaseController {
 		RelationshipSync::sync( $post_id, 'wpail_proof', [], $meta );
 
 		$proof = ( new ProofRepository() )->find_by_id( $post_id );
+		AuditLogger::log( AuditLogger::ACTION_CREATE, 'wpail_proof', $post_id );
 		return $this->created( $proof ? $this->resolve( $proof ) : null );
 	}
 
@@ -153,6 +155,7 @@ class ProofController extends BaseController {
 		RelationshipSync::sync( $post_id, 'wpail_proof', $old_meta, $new_meta );
 
 		$updated = $repo->find_by_id( $post_id );
+		AuditLogger::log( AuditLogger::ACTION_UPDATE, 'wpail_proof', $post_id );
 		return $this->success( $updated ? $this->resolve( $updated ) : null );
 	}
 
@@ -173,6 +176,7 @@ class ProofController extends BaseController {
 		$old_meta = RelationshipHelper::get_meta( $post_id );
 		RelationshipSync::sync( $post_id, 'wpail_proof', $old_meta, [] );
 		wp_delete_post( $post_id, true );
+		AuditLogger::log( AuditLogger::ACTION_DELETE, 'wpail_proof', $post_id );
 
 		return $this->success( [ 'deleted' => true, 'id' => $post_id ] );
 	}

@@ -27,6 +27,7 @@ class ActionModel {
 		/** @var array<int> */
 		public readonly array  $related_location_ids = [],
 		public readonly bool   $is_public         = true,
+		public readonly string $modified_at       = '',
 	) {}
 
 	/**
@@ -36,6 +37,7 @@ class ActionModel {
 		return [
 			'id'          => $this->id,
 			'slug'        => $this->slug,
+			'modified_at' => $this->modified_at ?: null,
 			'type'        => $this->action_type,
 			'label'       => $this->label,
 			'description' => $this->description,

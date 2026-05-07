@@ -54,6 +54,7 @@ class ServiceTransformer {
 			related_location_ids: $ai( 'related_locations' ),
 			linked_page_url:      $s( 'linked_page_url' ),
 			schema_type:          $s( 'schema_type' ),
+			modified_at:          gmdate( 'Y-m-d\TH:i:s\Z', strtotime( $post->post_modified_gmt ) ),
 		);
 	}
 }

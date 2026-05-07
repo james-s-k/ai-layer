@@ -35,6 +35,7 @@ class ActionTransformer {
 			related_service_ids:  $ai( 'related_services' ),
 			related_location_ids: $ai( 'related_locations' ),
 			is_public:            isset( $data['is_public'] ) ? (bool) $data['is_public'] : true,
+			modified_at:          gmdate( 'Y-m-d\TH:i:s\Z', strtotime( $post->post_modified_gmt ) ),
 		);
 	}
 }

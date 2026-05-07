@@ -24,6 +24,7 @@ use WPAIL\Support\RelationshipSync;
 use WPAIL\Support\Sanitizer;
 use WPAIL\Licensing\Features;
 use WPAIL\Licensing\License;
+use WPAIL\Analytics\AuditLogger;
 
 class AnswersController extends BaseController {
 
@@ -186,6 +187,7 @@ class AnswersController extends BaseController {
 		RelationshipSync::sync( $post_id, 'wpail_answer', [], $meta );
 
 		$answer = ( new AnswerRepository() )->find_by_id( $post_id );
+		AuditLogger::log( AuditLogger::ACTION_CREATE, 'wpail_answer', $post_id );
 		return $this->created( $answer ? $this->resolve( $answer ) : null );
 	}
 
@@ -216,6 +218,7 @@ class AnswersController extends BaseController {
 		RelationshipSync::sync( $post_id, 'wpail_answer', $old_meta, $new_meta );
 
 		$updated = $repo->find_by_id( $post_id );
+		AuditLogger::log( AuditLogger::ACTION_UPDATE, 'wpail_answer', $post_id );
 		return $this->success( $updated ? $this->resolve( $updated ) : null );
 	}
 
@@ -235,6 +238,7 @@ class AnswersController extends BaseController {
 		$old_meta = RelationshipHelper::get_meta( $post_id );
 		RelationshipSync::sync( $post_id, 'wpail_answer', $old_meta, [] );
 		wp_delete_post( $post_id, true );
+		AuditLogger::log( AuditLogger::ACTION_DELETE, 'wpail_answer', $post_id );
 
 		return $this->success( [ 'deleted' => true, 'id' => $post_id ] );
 	}
@@ -248,6 +252,7 @@ class AnswersController extends BaseController {
 			'id'             => $answer->post_id,
 			'short_answer'   => $answer->short_answer,
 			'long_answer'    => $answer->long_answer,
+			'modified_at'    => $answer->modified_at,
 			'confidence'     => $answer->confidence,
 			'query_patterns' => $answer->query_patterns,
 			'services'       => RelationshipHelper::resolve_summaries( $answer->related_service_ids ),

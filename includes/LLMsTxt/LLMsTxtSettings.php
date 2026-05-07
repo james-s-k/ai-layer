@@ -23,6 +23,9 @@ class LLMsTxtSettings {
 	}
 
 	public static function save( array $data ): void {
+		if ( isset( $data['custom_intro'] ) ) {
+			$data['custom_intro'] = mb_substr( sanitize_textarea_field( (string) $data['custom_intro'] ), 0, 1000 );
+		}
 		update_option( self::OPT_KEY, $data );
 	}
 

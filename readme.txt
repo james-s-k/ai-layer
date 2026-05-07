@@ -204,6 +204,12 @@ Single-site only in the current version. Multisite support is not explicitly blo
 * **Well-known document updated** — `manifest` and `openapi` keys added to `/.well-known/ai-layer`
 * **Settings** — four new toggles in AI Discovery: robots.txt injection, HTTP discovery headers, /ai-layer page, AI Layer sitemap; all enabled by default
 * **Setup Wizard** — four new checkboxes in the Discovery step for the same settings
+* **`modified_at` on all entity endpoints** — Services, Locations, FAQs, Proof & Trust, Actions, and Answers now include a `modified_at` ISO 8601 UTC timestamp in every REST response; `null` for engine-assembled answers
+* **Write audit log** — every create, update, and delete is recorded in `{prefix}wpail_audit_log`; recent entries visible on the Analytics page
+* **Field length caps** — `text` capped at 2,000 chars, `textarea` at 50,000, analytics query text at 500, llms.txt custom intro at 1,000
+* **Custom write capability** — all write endpoints now require `wpail_manage_content`; Administrators have it by default; grant to other roles via User Role Editor
+* **Content policy signals** — `content_policy` key added to manifest and `.well-known/ai-layer` to guide agent consumers
+* **`x-content-trust` OpenAPI extension** — user-authored string fields annotated in the OpenAPI spec
 
 = 1.4.0 =
 * **Analytics dashboard** — new AI Layer → Analytics admin page; tracks every GET request to `ai-layer/v1/*` endpoints automatically; no configuration required

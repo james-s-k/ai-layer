@@ -25,6 +25,7 @@ class ProofModel {
 		/** @var array<int> */
 		public readonly array  $related_location_ids = [],
 		public readonly bool   $is_public      = true,
+		public readonly string $modified_at    = '',
 	) {}
 
 	/**
@@ -36,6 +37,7 @@ class ProofModel {
 		return [
 			'id'             => $this->id,
 			'slug'           => $this->slug,
+			'modified_at'    => $this->modified_at ?: null,
 			'type'           => $this->proof_type,
 			'headline'       => $this->headline,
 			'content'        => $this->content,

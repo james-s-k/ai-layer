@@ -46,6 +46,7 @@ class ServiceModel {
 		public readonly array   $related_location_ids = [],
 		public readonly string  $linked_page_url  = '',
 		public readonly string  $schema_type      = '',
+		public readonly string  $modified_at      = '',
 	) {}
 
 	/**
@@ -68,6 +69,7 @@ class ServiceModel {
 			'id'             => $this->id,
 			'slug'           => $this->slug,
 			'name'           => $this->name,
+			'modified_at'    => $this->modified_at ?: null,
 			'category'       => $this->category,
 			'status'         => $this->status,
 			'short_summary'  => $this->short_summary,
@@ -94,9 +96,10 @@ class ServiceModel {
 	/** Minimal summary for embedding in other objects. */
 	public function to_summary_array(): array {
 		return [
-			'id'   => $this->id,
-			'slug' => $this->slug,
-			'name' => $this->name,
+			'id'          => $this->id,
+			'slug'        => $this->slug,
+			'name'        => $this->name,
+			'modified_at' => $this->modified_at ?: null,
 		];
 	}
 }

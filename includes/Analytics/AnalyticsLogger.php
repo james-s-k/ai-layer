@@ -39,7 +39,7 @@ class AnalyticsLogger {
 
 		$query_param = trim( (string) $request->get_param( 'query' ) );
 		if ( 'answers' === $endpoint && '' !== $query_param ) {
-			$query_text = sanitize_text_field( $query_param );
+			$query_text = mb_substr( sanitize_text_field( $query_param ), 0, 500 );
 			$status     = method_exists( $result, 'get_status' ) ? (int) $result->get_status() : 200;
 			$matched    = ( 200 === $status ) ? 1 : 0;
 

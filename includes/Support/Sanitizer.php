@@ -23,8 +23,8 @@ class Sanitizer {
 	 */
 	public static function sanitize_by_type( mixed $value, string $type ): mixed {
 		return match ( $type ) {
-			'text'        => sanitize_text_field( (string) $value ),
-			'textarea'    => sanitize_textarea_field( (string) $value ),
+			'text'        => mb_substr( sanitize_text_field( (string) $value ), 0, 2000 ),
+			'textarea'    => mb_substr( sanitize_textarea_field( (string) $value ), 0, 50000 ),
 			'url'         => esc_url_raw( (string) $value ),
 			'email'       => sanitize_email( (string) $value ),
 			'tel'         => preg_replace( '/[^\d\s\+\-\(\)]/', '', (string) $value ),

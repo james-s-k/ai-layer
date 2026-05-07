@@ -39,6 +39,7 @@ class LocationTransformer {
 			related_service_ids: $ai( 'related_services' ),
 			local_proof_ids:     $ai( 'local_proof' ),
 			linked_page_url:     $s( 'linked_page_url' ),
+			modified_at:         gmdate( 'Y-m-d\TH:i:s\Z', strtotime( $post->post_modified_gmt ) ),
 		);
 	}
 }

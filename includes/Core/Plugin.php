@@ -29,6 +29,7 @@ use WPAIL\PostTypes\FaqPostType;
 use WPAIL\PostTypes\ProofPostType;
 use WPAIL\PostTypes\ActionPostType;
 use WPAIL\PostTypes\AnswerPostType;
+use WPAIL\Core\Capabilities;
 use WPAIL\Abilities\AbilitiesRegistrar;
 use WPAIL\Rest\RestRegistrar;
 use WPAIL\Schema\SchemaManager;
@@ -74,6 +75,7 @@ final class Plugin {
 	public function boot(): void {
 		$this->maybe_upgrade();
 		$this->load_textdomain();
+		$this->register_capabilities();
 		$this->register_post_types();
 		$this->register_admin();
 		$this->register_rest();
@@ -117,6 +119,10 @@ final class Plugin {
 			false,
 			dirname( WPAIL_PLUGIN_BASE ) . '/languages'
 		);
+	}
+
+	private function register_capabilities(): void {
+		( new Capabilities() )->register();
 	}
 
 	private function register_post_types(): void {

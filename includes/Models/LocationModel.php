@@ -28,6 +28,7 @@ class LocationModel {
 		/** @var array<int> */
 		public readonly array  $local_proof_ids     = [],
 		public readonly string $linked_page_url  = '',
+		public readonly string $modified_at      = '',
 	) {}
 
 	/**
@@ -40,6 +41,7 @@ class LocationModel {
 			'id'               => $this->id,
 			'slug'             => $this->slug,
 			'name'             => $this->name,
+			'modified_at'      => $this->modified_at ?: null,
 			'type'             => $this->location_type,
 			'region'           => $this->region,
 			'country'          => $this->country,
@@ -55,9 +57,10 @@ class LocationModel {
 
 	public function to_summary_array(): array {
 		return [
-			'id'   => $this->id,
-			'slug' => $this->slug,
-			'name' => $this->name,
+			'id'          => $this->id,
+			'slug'        => $this->slug,
+			'name'        => $this->name,
+			'modified_at' => $this->modified_at ?: null,
 		];
 	}
 }

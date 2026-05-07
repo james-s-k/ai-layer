@@ -60,14 +60,15 @@ abstract class BaseController extends \WP_REST_Controller {
 	}
 
 	/**
-	 * Require an authenticated user with edit_posts capability.
-	 * Used as the permission_callback for all write endpoints.
+	 * Require an authenticated user with the wpail_manage_content capability.
+	 * Granted to Administrators by default; other roles can be granted it via
+	 * a capability management plugin (e.g. User Role Editor).
 	 */
 	public function write_permissions_check( $request ): bool|\WP_Error {
 		if ( ! is_user_logged_in() ) {
 			return new \WP_Error( 'wpail_unauthorized', 'Authentication required.', [ 'status' => 401 ] );
 		}
-		if ( ! current_user_can( 'edit_posts' ) ) {
+		if ( ! current_user_can( WPAIL_CAP_WRITE ) ) {
 			return new \WP_Error( 'wpail_forbidden', 'You do not have permission to perform this action.', [ 'status' => 403 ] );
 		}
 		return true;

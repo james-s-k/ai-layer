@@ -20,6 +20,7 @@ use WPAIL\Support\FieldDefinitions;
 use WPAIL\Support\RelationshipHelper;
 use WPAIL\Support\RelationshipSync;
 use WPAIL\Support\Sanitizer;
+use WPAIL\Analytics\AuditLogger;
 
 class ServicesController extends BaseController {
 
@@ -121,6 +122,7 @@ class ServicesController extends BaseController {
 		RelationshipSync::sync( $post_id, 'wpail_service', [], $meta );
 
 		$service = ( new ServiceRepository() )->find_by_id( $post_id );
+		AuditLogger::log( AuditLogger::ACTION_CREATE, 'wpail_service', $post_id );
 		return $this->created( $service ? $this->resolve( $service ) : null );
 	}
 
@@ -150,6 +152,7 @@ class ServicesController extends BaseController {
 		RelationshipSync::sync( $post_id, 'wpail_service', $old_meta, $new_meta );
 
 		$updated = $repo->find_by_id( $post_id );
+		AuditLogger::log( AuditLogger::ACTION_UPDATE, 'wpail_service', $post_id );
 		return $this->success( $updated ? $this->resolve( $updated ) : null );
 	}
 
@@ -170,6 +173,7 @@ class ServicesController extends BaseController {
 		$old_meta = RelationshipHelper::get_meta( $post_id );
 		RelationshipSync::sync( $post_id, 'wpail_service', $old_meta, [] );
 		wp_delete_post( $post_id, true );
+		AuditLogger::log( AuditLogger::ACTION_DELETE, 'wpail_service', $post_id );
 
 		return $this->success( [ 'deleted' => true, 'id' => $post_id ] );
 	}
