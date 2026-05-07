@@ -43,6 +43,7 @@ class Assets {
 			'wpail_dashboard',
 			'wpail_business_profile',
 			'wpail_setup_wizard',
+			'wpail_ai_import',
 			'wpail_settings',
 			'wpail_llmstxt',
 			'wpail_aitxt',

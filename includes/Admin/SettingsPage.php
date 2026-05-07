@@ -167,7 +167,12 @@ class SettingsPage {
 		$has_rank_math = defined( 'RANK_MATH_VERSION' );
 		?>
 		<div class="wrap wpail-admin">
-			<h1><?php esc_html_e( 'AI Layer Settings', 'ai-layer' ); ?></h1>
+
+			<div class="wpail-admin__header">
+				<div>
+					<h1><?php esc_html_e( 'AI Layer Settings', 'ai-layer' ); ?></h1>
+				</div>
+			</div>
 
 			<?php if ( $has_yoast || $has_rank_math ) : ?>
 				<div class="notice notice-warning">
@@ -186,7 +191,8 @@ class SettingsPage {
 			<form method="post" action="">
 				<?php wp_nonce_field( self::NONCE_ACTION, self::NONCE_NAME ); ?>
 
-				<h2><?php esc_html_e( 'Schema.org Output', 'ai-layer' ); ?></h2>
+				<div class="wpail-card" style="margin-top:24px;">
+				<h2 style="margin-top:0;"><?php esc_html_e( 'Schema.org Output', 'ai-layer' ); ?></h2>
 				<table class="form-table" role="presentation">
 					<tr>
 						<th scope="row"><?php esc_html_e( 'Enable Schema Output', 'ai-layer' ); ?></th>
@@ -267,8 +273,10 @@ class SettingsPage {
 						</td>
 					</tr>
 				</table>
+				</div><!-- /.wpail-card Schema.org Output -->
 
-				<h2><?php esc_html_e( 'API Endpoints', 'ai-layer' ); ?></h2>
+				<div class="wpail-card" style="margin-top:24px;">
+				<h2 style="margin-top:0;"><?php esc_html_e( 'API Endpoints', 'ai-layer' ); ?></h2>
 				<table class="form-table" role="presentation">
 					<tr>
 						<th scope="row"><?php esc_html_e( 'Endpoint Base URL', 'ai-layer' ); ?></th>
@@ -300,8 +308,10 @@ class SettingsPage {
 						</td>
 					</tr>
 				</table>
+				</div><!-- /.wpail-card API Endpoints -->
 
-				<h2><?php esc_html_e( 'AI Discovery', 'ai-layer' ); ?></h2>
+				<div class="wpail-card" style="margin-top:24px;">
+				<h2 style="margin-top:0;"><?php esc_html_e( 'AI Discovery', 'ai-layer' ); ?></h2>
 				<p class="description" style="margin-bottom:12px;">
 					<?php esc_html_e( 'Controls how AI systems and agents discover your AI Layer endpoints. This affects both /.well-known/ai-layer and the endpoints section of /llms.txt.', 'ai-layer' ); ?>
 				</p>
@@ -437,8 +447,10 @@ class SettingsPage {
 						</td>
 					</tr>
 				</table>
+				</div><!-- /.wpail-card AI Discovery -->
 
-				<h2><?php esc_html_e( 'Post Type Visibility', 'ai-layer' ); ?></h2>
+				<div class="wpail-card" style="margin-top:24px;">
+				<h2 style="margin-top:0;"><?php esc_html_e( 'Post Type Visibility', 'ai-layer' ); ?></h2>
 				<p>
 					<?php esc_html_e( 'By default, all AI Layer post types are private — they serve the REST API only and have no front-end URLs. Enable public access to make a post type available in your theme so your content and API layer share a single source of data.', 'ai-layer' ); ?>
 				</p>
@@ -521,8 +533,10 @@ class SettingsPage {
 					</tr>
 					<?php endforeach; ?>
 				</table>
+				</div><!-- /.wpail-card Post Type Visibility -->
 
-				<h2><?php esc_html_e( 'Data Management', 'ai-layer' ); ?></h2>
+				<div class="wpail-card" style="margin-top:24px;">
+				<h2 style="margin-top:0;"><?php esc_html_e( 'Data Management', 'ai-layer' ); ?></h2>
 				<table class="form-table" role="presentation">
 					<tr id="wpail-analytics-retention">
 						<th scope="row"><?php esc_html_e( 'Analytics retention', 'ai-layer' ); ?></th>
@@ -555,8 +569,9 @@ class SettingsPage {
 						</td>
 					</tr>
 				</table>
+				</div><!-- /.wpail-card Data Management -->
 
-				<p class="submit">
+				<p class="submit" style="margin-top:24px;">
 					<input type="submit" name="submit" class="button button-primary"
 					       value="<?php esc_attr_e( 'Save Settings', 'ai-layer' ); ?>">
 				</p>

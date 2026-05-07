@@ -149,13 +149,6 @@ class AiImportPage {
 		$provider   = $model_info['provider'] ?? 'openai';
 		$has_key    = '' !== AiSettings::get_api_key( $provider );
 
-		$pages = get_posts( [
-			'post_type'      => 'page',
-			'post_status'    => 'publish',
-			'posts_per_page' => 50,
-			'orderby'        => 'title',
-			'order'          => 'ASC',
-		] );
 		?>
 		<div class="wrap wpail-admin">
 
@@ -168,8 +161,15 @@ class AiImportPage {
 				</div>
 			</div>
 
-			<?php // ── Settings ─────────────────────────────────────────── ?>
-			<div class="wpail-card" style="margin-top:20px;">
+			<div class="notice notice-warning" style="margin:20px 0 0;">
+				<p>
+					<strong><?php esc_html_e( 'Back up your database before importing.', 'ai-layer' ); ?></strong>
+					<?php esc_html_e( 'AI Import creates new posts and modifies relationship data. Use a backup plugin or your host\'s backup tool to take a full database backup before running an import or any relationship operation.', 'ai-layer' ); ?>
+				</p>
+			</div>
+
+			<?php // ── Provider & Model ──────────────────────────────────── ?>
+			<div class="wpail-card" style="margin-top:24px;">
 				<h2 style="margin-top:0;"><?php esc_html_e( 'Provider & Model', 'ai-layer' ); ?></h2>
 
 				<form method="post" action="">
@@ -201,7 +201,7 @@ class AiImportPage {
 									if ( '' !== $current_provider ) echo '</optgroup>';
 									?>
 								</select>
-								<p class="description"><?php esc_html_e( 'GPT-4o Mini is the recommended default — fast, cheap, and accurate for most sites.', 'ai-layer' ); ?></p>
+								<p class="description"><?php esc_html_e( 'GPT-4o Mini is the recommended default — fast, cheap, and accurate for most sites. For the relationship step, a stronger model such as GPT-4.1 or Claude Sonnet 4.6 gives more accurate results.', 'ai-layer' ); ?></p>
 							</td>
 						</tr>
 
@@ -231,16 +231,19 @@ class AiImportPage {
 						<?php endforeach; ?>
 					</table>
 
-					<p><button type="submit" class="button button-secondary"><?php esc_html_e( 'Save Settings', 'ai-layer' ); ?></button></p>
+					<p style="margin-top:16px;"><button type="submit" class="button button-secondary"><?php esc_html_e( 'Save Settings', 'ai-layer' ); ?></button></p>
 				</form>
 			</div>
 
-			<?php // ── Import ────────────────────────────────────────────── ?>
-			<div class="wpail-card" style="margin-top:20px;" id="wpail-ai-import-card">
+			<?php // ── Import from Pages ─────────────────────────────────── ?>
+			<div class="wpail-card" style="margin-top:24px;" id="wpail-ai-import-card">
 				<h2 style="margin-top:0;"><?php esc_html_e( 'Import from Pages', 'ai-layer' ); ?></h2>
+				<p class="description" style="margin:0 0 20px;max-width:680px;">
+					<?php esc_html_e( 'Select the pages that describe your business (e.g. Services, About, Areas). The AI will read them and create draft items for each entity type. You can review and publish the drafts afterwards.', 'ai-layer' ); ?>
+				</p>
 
 				<?php if ( ! $has_key ) : ?>
-					<div class="notice notice-warning inline" style="margin:0 0 16px;">
+					<div class="notice notice-warning inline" style="margin:0 0 20px;">
 						<p>
 							<?php
 							printf(
@@ -253,29 +256,32 @@ class AiImportPage {
 					</div>
 				<?php endif; ?>
 
-				<p class="description" style="margin:0 0 16px;">
-					<?php esc_html_e( 'Select the pages that describe your business (e.g. Services, About, Areas). The AI will read them and create draft items for each entity type. You can review and publish the drafts afterwards.', 'ai-layer' ); ?>
-				</p>
-				<div class="notice notice-warning inline" style="margin:0 0 16px;">
-					<p><?php esc_html_e( 'AI can make mistakes. All extracted items should be reviewed manually before publishing — check titles, content, and relationships for accuracy.', 'ai-layer' ); ?></p>
+				<?php // ── Page search picker ────────────────────────────── ?>
+				<div style="background:#f6f7f7;border:1px solid #dcdcde;border-radius:4px;padding:16px 20px;margin-bottom:20px;max-width:680px;">
+					<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+						<strong style="font-size:13px;"><?php esc_html_e( 'Pages to scan', 'ai-layer' ); ?></strong>
+						<a href="#" id="wpail-clear-pages" style="font-size:13px;display:none;"><?php esc_html_e( 'Deselect all', 'ai-layer' ); ?></a>
+					</div>
+					<div class="wpail-page-picker" id="wpail-import-picker" style="margin-bottom:12px;">
+						<div class="wpail-page-picker__search-wrap">
+							<input type="text"
+							       class="wpail-page-picker__search regular-text"
+							       placeholder="<?php esc_attr_e( 'Search for a page…', 'ai-layer' ); ?>"
+							       style="width:100%;"
+							       autocomplete="off" />
+							<div class="wpail-page-picker__dropdown"></div>
+						</div>
+					</div>
+					<div id="wpail-selected-pages" style="display:flex;flex-wrap:wrap;gap:6px;min-height:0;"></div>
+					<p id="wpail-pages-hint" class="description" style="margin:10px 0 0;font-size:12px;">
+						<?php esc_html_e( 'Type at least 2 characters to search. Click a result to add it to the list.', 'ai-layer' ); ?>
+					</p>
 				</div>
 
-				<?php if ( empty( $pages ) ) : ?>
-					<p><?php esc_html_e( 'No published pages found.', 'ai-layer' ); ?></p>
-				<?php else : ?>
-					<div id="wpail-page-list" style="columns:2;max-width:680px;margin-bottom:16px;">
-						<?php foreach ( $pages as $page ) : ?>
-							<label style="display:block;margin-bottom:6px;">
-								<input type="checkbox"
-								       class="wpail-ai-page-cb"
-								       value="<?php echo esc_attr( (string) $page->ID ); ?>" />
-								<?php echo esc_html( $page->post_title ); ?>
-							</label>
-						<?php endforeach; ?>
-					</div>
-
-					<p style="margin:16px 0 8px;"><strong><?php esc_html_e( 'What to extract', 'ai-layer' ); ?></strong></p>
-					<div style="display:flex;flex-wrap:wrap;gap:12px 24px;margin-bottom:16px;">
+				<?php // ── Entity type selector ──────────────────────────── ?>
+				<div style="margin-bottom:20px;">
+					<strong style="display:block;font-size:13px;margin-bottom:10px;"><?php esc_html_e( 'What to extract', 'ai-layer' ); ?></strong>
+					<div style="display:flex;flex-wrap:wrap;gap:10px 24px;">
 						<?php
 						$entity_labels = [
 							'services'  => __( 'Services', 'ai-layer' ),
@@ -286,7 +292,7 @@ class AiImportPage {
 						];
 						foreach ( $entity_labels as $type => $label ) :
 						?>
-							<label>
+							<label style="font-size:13px;">
 								<input type="checkbox"
 								       class="wpail-ai-type-cb"
 								       value="<?php echo esc_attr( $type ); ?>"
@@ -295,29 +301,31 @@ class AiImportPage {
 							</label>
 						<?php endforeach; ?>
 					</div>
+				</div>
 
-					<p>
-						<button id="wpail-ai-start-btn"
-						        class="button button-primary"
-						        <?php disabled( ! $has_key ); ?>>
-							<?php esc_html_e( 'Start AI Extraction', 'ai-layer' ); ?>
-						</button>
-						<a href="#" id="wpail-ai-select-all" style="margin-left:12px;"><?php esc_html_e( 'Select all pages', 'ai-layer' ); ?></a>
-					</p>
-				<?php endif; ?>
+				<p style="margin:0 0 4px;">
+					<button id="wpail-ai-start-btn"
+					        class="button button-primary"
+					        <?php disabled( ! $has_key ); ?>>
+						<?php esc_html_e( 'Start AI Extraction', 'ai-layer' ); ?>
+					</button>
+				</p>
+				<p class="description" style="margin:8px 0 0;">
+					<?php esc_html_e( 'All extracted items are saved as drafts. AI can make mistakes — review titles, content, and relationships before publishing.', 'ai-layer' ); ?>
+				</p>
 
 				<?php // ── Progress ──────────────────────────────────────── ?>
-				<div id="wpail-ai-progress" style="display:none;margin-top:20px;">
-					<h3 style="margin-top:0;"><?php esc_html_e( 'Extracting…', 'ai-layer' ); ?></h3>
-					<div style="background:#e0e0e0;border-radius:4px;height:12px;overflow:hidden;max-width:500px;">
-						<div id="wpail-ai-bar" style="background:#2271b1;height:12px;width:0;transition:width .4s;"></div>
+				<div id="wpail-ai-progress" style="display:none;margin-top:24px;padding-top:20px;border-top:1px solid #dcdcde;">
+					<p style="margin:0 0 8px;font-weight:600;"><?php esc_html_e( 'Extracting…', 'ai-layer' ); ?></p>
+					<div style="background:#dcdcde;border-radius:4px;height:10px;overflow:hidden;max-width:500px;">
+						<div id="wpail-ai-bar" style="background:#2271b1;height:10px;width:0;transition:width .4s;"></div>
 					</div>
-					<p id="wpail-ai-status-text" style="margin:8px 0 0;color:#646970;"></p>
+					<p id="wpail-ai-status-text" style="margin:8px 0 0;color:#646970;font-size:13px;"></p>
 				</div>
 
 				<?php // ── Results ───────────────────────────────────────── ?>
-				<div id="wpail-ai-results" style="display:none;margin-top:20px;">
-					<h3 style="margin-top:0;color:#00a32a;">&#10003; <?php esc_html_e( 'Extraction complete', 'ai-layer' ); ?></h3>
+				<div id="wpail-ai-results" style="display:none;margin-top:24px;padding-top:20px;border-top:1px solid #dcdcde;">
+					<p style="margin:0 0 12px;font-weight:600;color:#00a32a;">&#10003; <?php esc_html_e( 'Extraction complete', 'ai-layer' ); ?></p>
 					<table class="widefat striped" style="max-width:460px;">
 						<thead>
 							<tr>
@@ -328,96 +336,100 @@ class AiImportPage {
 						</thead>
 						<tbody id="wpail-ai-results-body"></tbody>
 					</table>
-					<p style="margin-top:12px;">
+					<p class="description" style="margin-top:12px;">
 						<?php esc_html_e( 'All items were saved as drafts. Review and publish the ones you want to keep.', 'ai-layer' ); ?>
 					</p>
 				</div>
 
 				<?php // ── Error ─────────────────────────────────────────── ?>
-				<div id="wpail-ai-error" style="display:none;margin-top:16px;" class="notice notice-error inline">
+				<div id="wpail-ai-error" style="display:none;margin-top:20px;" class="notice notice-error inline">
 					<p id="wpail-ai-error-text"></p>
 				</div>
 			</div>
 
-			<?php // ── Relationships ─────────────────────────────────── ?>
-			<div class="wpail-card" style="margin-top:20px;">
+			<?php // ── Relationships ─────────────────────────────────────── ?>
+			<div class="wpail-card" style="margin-top:24px;">
 				<h2 style="margin-top:0;"><?php esc_html_e( 'Relationships', 'ai-layer' ); ?></h2>
+				<p class="description" style="margin:0 0 20px;max-width:680px;">
+					<?php esc_html_e( 'Manage how entities are linked to one another. All relationship operations affect published and draft posts.', 'ai-layer' ); ?>
+				</p>
 
-				<table class="widefat striped" style="max-width:680px;margin-bottom:20px;font-size:13px;">
+				<?php // ── Reference table ───────────────────────────────── ?>
+				<table style="border-collapse:collapse;max-width:680px;width:100%;margin-bottom:28px;font-size:13px;">
 					<thead>
-						<tr>
-							<th style="width:160px;"><?php esc_html_e( 'Relationship', 'ai-layer' ); ?></th>
-							<th><?php esc_html_e( 'Set when…', 'ai-layer' ); ?></th>
+						<tr style="border-bottom:2px solid #dcdcde;">
+							<th style="text-align:left;padding:0 16px 8px 0;color:#3c434a;font-weight:600;width:160px;"><?php esc_html_e( 'Relationship', 'ai-layer' ); ?></th>
+							<th style="text-align:left;padding:0 0 8px;color:#3c434a;font-weight:600;"><?php esc_html_e( 'Set when…', 'ai-layer' ); ?></th>
 						</tr>
 					</thead>
 					<tbody>
-						<tr>
-							<td><strong><?php esc_html_e( 'FAQ → Service', 'ai-layer' ); ?></strong></td>
-							<td><?php esc_html_e( 'The FAQ is clearly about that service.', 'ai-layer' ); ?></td>
-						</tr>
-						<tr>
-							<td><strong><?php esc_html_e( 'Proof → Service', 'ai-layer' ); ?></strong></td>
-							<td><?php esc_html_e( 'The testimonial, stat, or award is clearly about a specific service (not set for general company-wide proof).', 'ai-layer' ); ?></td>
-						</tr>
-						<tr>
-							<td><strong><?php esc_html_e( 'Proof → Location', 'ai-layer' ); ?></strong></td>
-							<td><?php esc_html_e( 'A specific city or area is explicitly named in the proof text. Never inferred — left empty if no place name appears.', 'ai-layer' ); ?></td>
-						</tr>
-						<tr>
-							<td><strong><?php esc_html_e( 'Action → Service', 'ai-layer' ); ?></strong></td>
-							<td><?php esc_html_e( 'The action is the primary way to enquire about or book that service.', 'ai-layer' ); ?></td>
-						</tr>
-						<tr>
-							<td><strong><?php esc_html_e( 'Location → Service', 'ai-layer' ); ?></strong></td>
-							<td><?php esc_html_e( 'The service is offered at or from that location.', 'ai-layer' ); ?></td>
-						</tr>
+						<?php
+						$rel_rows = [
+							[ __( 'FAQ → Service', 'ai-layer' ),      __( 'The FAQ is clearly about that specific service.', 'ai-layer' ) ],
+							[ __( 'Proof → Service', 'ai-layer' ),    __( 'The testimonial, stat, or award is about a specific service — not general company-wide proof.', 'ai-layer' ) ],
+							[ __( 'Proof → Location', 'ai-layer' ),   __( 'A specific city or area is explicitly named in the proof text. Never inferred — left empty if no place name appears.', 'ai-layer' ) ],
+							[ __( 'Action → Service', 'ai-layer' ),   __( 'The action is the primary way to enquire about or book that service.', 'ai-layer' ) ],
+							[ __( 'Location → Service', 'ai-layer' ), __( 'The service is offered at or from that location.', 'ai-layer' ) ],
+						];
+						foreach ( $rel_rows as $row ) :
+						?>
+							<tr style="border-bottom:1px solid #f0f0f1;">
+								<td style="padding:10px 16px 10px 0;font-weight:600;color:#1d2327;white-space:nowrap;"><?php echo esc_html( $row[0] ); ?></td>
+								<td style="padding:10px 0;color:#646970;"><?php echo esc_html( $row[1] ); ?></td>
+							</tr>
+						<?php endforeach; ?>
 					</tbody>
 				</table>
 
-				<div style="display:flex;gap:32px;flex-wrap:wrap;align-items:flex-start;">
+				<?php // ── Three action cards ────────────────────────────── ?>
+				<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
 
-					<div style="flex:1;min-width:260px;max-width:340px;">
-						<h3 style="margin-top:0;font-size:14px;"><?php esc_html_e( 'Resync All Relationships', 'ai-layer' ); ?></h3>
-						<p class="description" style="margin:0 0 12px;">
-							<?php esc_html_e( 'Repairs any missing inverse links using the relationship data that is already saved. Safe to run at any time — additive only, never removes existing relationships. No API key required.', 'ai-layer' ); ?>
+					<?php // Card 1 — Resync (safe / green) ?>
+					<div style="border:1px solid #dcdcde;border-top:3px solid #00a32a;border-radius:4px;padding:20px;display:flex;flex-direction:column;">
+						<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+							<strong style="font-size:13px;"><?php esc_html_e( 'Resync All Relationships', 'ai-layer' ); ?></strong>
+							<span style="font-size:11px;font-weight:600;background:#e7f6ea;color:#00a32a;padding:2px 7px;border-radius:3px;white-space:nowrap;"><?php esc_html_e( 'Safe', 'ai-layer' ); ?></span>
+						</div>
+						<p class="description" style="margin:0 0 12px;flex:1;font-size:13px;">
+							<?php esc_html_e( 'Repairs missing inverse links using relationship data already saved on your entities. Additive only — never removes existing links.', 'ai-layer' ); ?>
 						</p>
-						<button id="wpail-resync-btn" class="button button-secondary">
+						<p style="margin:0 0 14px;font-size:12px;color:#646970;"><?php esc_html_e( 'No API key required.', 'ai-layer' ); ?></p>
+						<button id="wpail-resync-btn" class="button button-secondary" style="width:100%;">
 							<?php esc_html_e( 'Resync All Relationships', 'ai-layer' ); ?>
 						</button>
-						<p id="wpail-resync-status" style="margin:8px 0 0;color:#646970;min-height:20px;"></p>
+						<p id="wpail-resync-status" style="margin:8px 0 0;font-size:13px;color:#646970;min-height:20px;"></p>
 					</div>
 
-					<div style="flex:1;min-width:260px;max-width:340px;">
-						<h3 style="margin-top:0;font-size:14px;"><?php esc_html_e( 'Find New Relationships', 'ai-layer' ); ?></h3>
-						<p class="description" style="margin:0 0 12px;">
-							<?php esc_html_e( 'Uses AI to discover relationships that are not yet set. Adds new links — does not remove existing ones. Requires an API key.', 'ai-layer' ); ?>
-						</p>
-						<div class="notice notice-warning inline" style="margin:0 0 12px;padding:6px 12px;">
-							<p style="margin:0;font-size:12px;">
-								<?php esc_html_e( 'AI can make mistakes. Review all relationships manually after running this.', 'ai-layer' ); ?>
-							</p>
+					<?php // Card 2 — Find New (AI / amber) ?>
+					<div style="border:1px solid #dcdcde;border-top:3px solid #dba617;border-radius:4px;padding:20px;display:flex;flex-direction:column;">
+						<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+							<strong style="font-size:13px;"><?php esc_html_e( 'Find New Relationships', 'ai-layer' ); ?></strong>
+							<span style="font-size:11px;font-weight:600;background:#fef8ee;color:#996800;padding:2px 7px;border-radius:3px;white-space:nowrap;"><?php esc_html_e( 'AI', 'ai-layer' ); ?></span>
 						</div>
-						<button id="wpail-find-rel-btn" class="button button-secondary">
+						<p class="description" style="margin:0 0 12px;flex:1;font-size:13px;">
+							<?php esc_html_e( 'Uses AI to discover relationships not yet set and adds them. Does not remove existing links.', 'ai-layer' ); ?>
+						</p>
+						<p style="margin:0 0 14px;font-size:12px;color:#646970;"><?php esc_html_e( 'Requires an API key. Review results manually — AI can make mistakes.', 'ai-layer' ); ?></p>
+						<button id="wpail-find-rel-btn" class="button button-secondary" style="width:100%;">
 							<?php esc_html_e( 'Find New Relationships', 'ai-layer' ); ?>
 						</button>
-						<p id="wpail-find-rel-status" style="margin:8px 0 0;color:#646970;min-height:20px;"></p>
+						<p id="wpail-find-rel-status" style="margin:8px 0 0;font-size:13px;color:#646970;min-height:20px;"></p>
 					</div>
 
-					<div style="flex:1;min-width:260px;max-width:340px;">
-						<h3 style="margin-top:0;font-size:14px;"><?php esc_html_e( 'Rebuild All Relationships', 'ai-layer' ); ?></h3>
-						<p class="description" style="margin:0 0 12px;">
-							<?php esc_html_e( 'Uses AI to set the complete, authoritative set of relationships for every entity. Existing relationship data is replaced — any links not confirmed by the AI will be removed. Requires an API key.', 'ai-layer' ); ?>
-						</p>
-						<div class="notice notice-error inline" style="margin:0 0 12px;padding:6px 12px;">
-							<p style="margin:0;font-size:12px;">
-								<strong><?php esc_html_e( 'Destructive:', 'ai-layer' ); ?></strong>
-								<?php esc_html_e( 'This will overwrite all existing relationship data. Review manually afterwards — AI can remove valid links.', 'ai-layer' ); ?>
-							</p>
+					<?php // Card 3 — Rebuild (destructive / red) ?>
+					<div style="border:1px solid #dcdcde;border-top:3px solid #d63638;border-radius:4px;padding:20px;display:flex;flex-direction:column;">
+						<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+							<strong style="font-size:13px;"><?php esc_html_e( 'Rebuild All Relationships', 'ai-layer' ); ?></strong>
+							<span style="font-size:11px;font-weight:600;background:#fef0f0;color:#d63638;padding:2px 7px;border-radius:3px;white-space:nowrap;"><?php esc_html_e( 'Destructive', 'ai-layer' ); ?></span>
 						</div>
-						<button id="wpail-rebuild-rel-btn" class="button" style="background:#d63638;border-color:#d63638;color:#fff;">
+						<p class="description" style="margin:0 0 12px;flex:1;font-size:13px;">
+							<?php esc_html_e( 'AI sets the complete, authoritative set of relationships for every entity. Existing relationship data is replaced — links not confirmed by the AI are removed.', 'ai-layer' ); ?>
+						</p>
+						<p style="margin:0 0 14px;font-size:12px;color:#d63638;"><?php esc_html_e( 'Requires an API key. Overwrites all existing relationship data. Review manually afterwards.', 'ai-layer' ); ?></p>
+						<button id="wpail-rebuild-rel-btn" class="button" style="background:#d63638;border-color:#b32d2e;color:#fff;width:100%;">
 							<?php esc_html_e( 'Rebuild All Relationships', 'ai-layer' ); ?>
 						</button>
-						<p id="wpail-rebuild-rel-status" style="margin:8px 0 0;color:#646970;min-height:20px;"></p>
+						<p id="wpail-rebuild-rel-status" style="margin:8px 0 0;font-size:13px;color:#646970;min-height:20px;"></p>
 					</div>
 
 				</div>
@@ -427,8 +439,10 @@ class AiImportPage {
 
 		<script>
 		(function () {
-			const ajaxUrl = <?php echo wp_json_encode( admin_url( 'admin-ajax.php' ) ); ?>;
-			const nonce   = <?php echo wp_json_encode( wp_create_nonce( 'wpail_ai_import' ) ); ?>;
+			const ajaxUrl  = <?php echo wp_json_encode( admin_url( 'admin-ajax.php' ) ); ?>;
+			const nonce    = <?php echo wp_json_encode( wp_create_nonce( 'wpail_ai_import' ) ); ?>;
+			const restUrl  = <?php echo wp_json_encode( rest_url() ); ?>;
+			const restNonce = <?php echo wp_json_encode( wp_create_nonce( 'wp_rest' ) ); ?>;
 			const labels  = {
 				services:  <?php echo wp_json_encode( __( 'Services', 'ai-layer' ) ); ?>,
 				faqs:      <?php echo wp_json_encode( __( 'FAQs', 'ai-layer' ) ); ?>,
@@ -445,26 +459,128 @@ class AiImportPage {
 				actions:   <?php echo wp_json_encode( admin_url( 'edit.php?post_type=wpail_action&post_status=draft' ) ); ?>,
 			};
 
-			const btn       = document.getElementById('wpail-ai-start-btn');
-			const progress  = document.getElementById('wpail-ai-progress');
-			const bar       = document.getElementById('wpail-ai-bar');
-			const statusTxt = document.getElementById('wpail-ai-status-text');
-			const results   = document.getElementById('wpail-ai-results');
-			const resultsBody = document.getElementById('wpail-ai-results-body');
-			const errorBox  = document.getElementById('wpail-ai-error');
-			const errorTxt  = document.getElementById('wpail-ai-error-text');
+			// ── Multi-page picker ─────────────────────────────────────────
+			let selectedPages = []; // [{ id, title }, ...]
+			const picker        = document.getElementById('wpail-import-picker');
+			const searchInput   = picker?.querySelector('.wpail-page-picker__search');
+			const dropdown      = picker?.querySelector('.wpail-page-picker__dropdown');
+			const selectedWrap  = document.getElementById('wpail-selected-pages');
+			const clearAllLink  = document.getElementById('wpail-clear-pages');
+			const hintEl        = document.getElementById('wpail-pages-hint');
+			let searchCache     = {};
+			let debounce;
 
-			document.getElementById('wpail-ai-select-all')?.addEventListener('click', function (e) {
+			function searchPages(term, callback) {
+				if (searchCache[term]) { callback(searchCache[term]); return; }
+				const url = restUrl + 'wp/v2/search?search=' + encodeURIComponent(term) +
+					'&subtype=page&type=post&_fields=id,title&per_page=10';
+				fetch(url, { headers: { 'X-WP-Nonce': restNonce } })
+					.then(r => r.json())
+					.then(data => {
+						const results = Array.isArray(data)
+							? data.map(item => ({ id: item.id, title: item.title }))
+							: [];
+						searchCache[term] = results;
+						callback(results);
+					})
+					.catch(() => callback([]));
+			}
+
+			function renderDropdown(results) {
+				dropdown.innerHTML = '';
+				if (!results.length) {
+					const empty = document.createElement('div');
+					empty.className   = 'wpail-page-picker__option wpail-page-picker__option--empty';
+					empty.textContent = <?php echo wp_json_encode( __( 'No pages found.', 'ai-layer' ) ); ?>;
+					dropdown.appendChild(empty);
+					dropdown.style.display = 'block';
+					return;
+				}
+				results.forEach(page => {
+					const opt = document.createElement('div');
+					opt.className   = 'wpail-page-picker__option';
+					opt.textContent = page.title;
+					if (selectedPages.some(p => p.id === page.id)) {
+						opt.style.opacity = '0.45';
+						opt.style.cursor  = 'default';
+					}
+					opt.addEventListener('mousedown', function (e) {
+						e.preventDefault();
+						if (selectedPages.some(p => p.id === page.id)) return;
+						selectedPages.push({ id: page.id, title: page.title });
+						renderChips();
+						searchInput.value      = '';
+						dropdown.style.display = 'none';
+					});
+					dropdown.appendChild(opt);
+				});
+				dropdown.style.display = 'block';
+			}
+
+			function renderChips() {
+				selectedWrap.innerHTML = '';
+				selectedPages.forEach(page => {
+					const chip = document.createElement('span');
+					chip.style.cssText = 'display:inline-flex;align-items:center;gap:5px;background:#fff;' +
+						'border:1px solid #c3c4c7;border-radius:3px;padding:4px 8px;font-size:12px;line-height:1.4;';
+					chip.textContent = page.title;
+					const rm = document.createElement('button');
+					rm.type            = 'button';
+					rm.textContent     = '×';
+					rm.title           = <?php echo wp_json_encode( __( 'Remove', 'ai-layer' ) ); ?>;
+					rm.style.cssText   = 'background:none;border:none;cursor:pointer;padding:0 0 0 2px;' +
+						'font-size:14px;line-height:1;color:#646970;';
+					rm.addEventListener('click', () => {
+						selectedPages = selectedPages.filter(p => p.id !== page.id);
+						renderChips();
+					});
+					chip.appendChild(rm);
+					selectedWrap.appendChild(chip);
+				});
+				const hasPages = selectedPages.length > 0;
+				clearAllLink.style.display = hasPages ? '' : 'none';
+				hintEl.style.display       = hasPages ? 'none' : '';
+			}
+
+			if (searchInput && dropdown) {
+				searchInput.addEventListener('input', function () {
+					clearTimeout(debounce);
+					const term = searchInput.value.trim();
+					if (term.length < 2) { dropdown.innerHTML = ''; dropdown.style.display = 'none'; return; }
+					debounce = setTimeout(() => searchPages(term, renderDropdown), 300);
+				});
+
+				searchInput.addEventListener('focus', function () {
+					const term = searchInput.value.trim();
+					if (term.length >= 2) searchPages(term, renderDropdown);
+				});
+
+				document.addEventListener('click', function (e) {
+					if (!picker.contains(e.target)) dropdown.style.display = 'none';
+				});
+			}
+
+			clearAllLink?.addEventListener('click', function (e) {
 				e.preventDefault();
-				document.querySelectorAll('.wpail-ai-page-cb').forEach(cb => cb.checked = true);
+				selectedPages = [];
+				renderChips();
 			});
 
+			// ── Extraction ────────────────────────────────────────────────
+			const btn         = document.getElementById('wpail-ai-start-btn');
+			const progress    = document.getElementById('wpail-ai-progress');
+			const bar         = document.getElementById('wpail-ai-bar');
+			const statusTxt   = document.getElementById('wpail-ai-status-text');
+			const results     = document.getElementById('wpail-ai-results');
+			const resultsBody = document.getElementById('wpail-ai-results-body');
+			const errorBox    = document.getElementById('wpail-ai-error');
+			const errorTxt    = document.getElementById('wpail-ai-error-text');
+
 			btn?.addEventListener('click', async function () {
-				const checked      = [...document.querySelectorAll('.wpail-ai-page-cb:checked')].map(cb => cb.value);
 				const checkedTypes = [...document.querySelectorAll('.wpail-ai-type-cb:checked')].map(cb => cb.value);
 
-				if (!checked.length) {
-					alert(<?php echo wp_json_encode( __( 'Select at least one page.', 'ai-layer' ) ); ?>);
+				if (!selectedPages.length) {
+					alert(<?php echo wp_json_encode( __( 'Search for and select at least one page.', 'ai-layer' ) ); ?>);
 					return;
 				}
 				if (!checkedTypes.length) {
@@ -480,16 +596,15 @@ class AiImportPage {
 				bar.style.width        = '0';
 				statusTxt.textContent  = <?php echo wp_json_encode( __( 'Preparing…', 'ai-layer' ) ); ?>;
 
-				// Start job.
 				const startData = new FormData();
 				startData.append('action', 'wpail_ai_start');
 				startData.append('nonce', nonce);
-				checked.forEach(id => startData.append('post_ids[]', id));
+				selectedPages.forEach(p => startData.append('post_ids[]', p.id));
 				checkedTypes.forEach(t => startData.append('types[]', t));
 
 				let jobId, activeTypes;
 				try {
-					const startRes = await fetch(ajaxUrl, { method: 'POST', body: startData });
+					const startRes  = await fetch(ajaxUrl, { method: 'POST', body: startData });
 					const startJson = await startRes.json();
 					if (!startJson.success) throw new Error(startJson.data?.message || 'Failed to start job.');
 					jobId       = startJson.data.job_id;
@@ -499,10 +614,8 @@ class AiImportPage {
 					return;
 				}
 
-				// Step through all types (content types + automatic 'link' step).
 				for (let i = 0; i < activeTypes.length; i++) {
-					const pct = Math.round((i / activeTypes.length) * 100);
-					bar.style.width = pct + '%';
+					bar.style.width       = Math.round((i / activeTypes.length) * 100) + '%';
 					statusTxt.textContent = activeTypes[i] === 'link'
 						? <?php echo wp_json_encode( __( 'Linking relationships…', 'ai-layer' ) ); ?>
 						: <?php echo wp_json_encode( __( 'Extracting', 'ai-layer' ) ); ?> + ' ' + (labels[activeTypes[i]] || activeTypes[i]) + '…';
@@ -521,9 +634,7 @@ class AiImportPage {
 						if (d.step_name) {
 							const tr = document.createElement('tr');
 							if (d.step_name === 'link') {
-								tr.innerHTML = `<td>${labels.link}</td>` +
-									`<td><strong>${d.created}</strong></td>` +
-									`<td>—</td>`;
+								tr.innerHTML = `<td>${labels.link}</td><td><strong>${d.created}</strong></td><td>—</td>`;
 							} else {
 								tr.innerHTML = `<td>${labels[d.step_name] || d.step_name}</td>` +
 									`<td><strong>${d.created}</strong></td>` +

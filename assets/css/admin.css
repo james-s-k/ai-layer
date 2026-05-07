@@ -1210,37 +1210,46 @@
 .wpail-page-picker__dropdown {
     display: none;
     position: absolute;
-    top: 100%;
+    top: calc(100% + 3px);
     left: 0;
     right: 0;
     z-index: 9999;
     background: #fff;
     border: 1px solid #8c8f94;
-    border-top: none;
-    border-radius: 0 0 3px 3px;
-    box-shadow: 0 3px 8px rgba(0,0,0,.12);
-    max-height: 200px;
+    border-radius: 3px;
+    box-shadow: 0 4px 12px rgba(0,0,0,.15);
+    max-height: 240px;
     overflow-y: auto;
 }
 
 .wpail-page-picker__option {
-    padding: 7px 12px;
+    padding: 10px 14px;
     font-size: 13px;
     cursor: pointer;
     color: #1d2327;
+    border-bottom: 1px solid #f0f0f1;
+    line-height: 1.4;
+    transition: background .1s;
+}
+
+.wpail-page-picker__option:last-child {
+    border-bottom: none;
 }
 
 .wpail-page-picker__option:hover {
-    background: #f0f0f1;
+    background: #f0f6ff;
+    color: #2271b1;
 }
 
 .wpail-page-picker__option--empty {
     color: #8c8f94;
     cursor: default;
+    font-style: italic;
 }
 
 .wpail-page-picker__option--empty:hover {
     background: none;
+    color: #8c8f94;
 }
 
 .wpail-page-picker__clear {
