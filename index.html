@@ -398,6 +398,59 @@
   .hl { color: #fff; font-weight: 600; }
 
   /* ── Responsive ── */
+  /* ── AI Import ── */
+  .import-layout {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: start;
+    margin-top: 56px;
+  }
+  .import-layout > * { min-width: 0; }
+  .import-steps {
+    list-style: none; counter-reset: isteps;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .import-step {
+    display: flex; align-items: flex-start; gap: 16px;
+    counter-increment: isteps;
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 18px 20px;
+  }
+  .import-step::before {
+    content: counter(isteps);
+    min-width: 28px; height: 28px; border-radius: 6px;
+    background: var(--grad); color: #fff;
+    font-size: 13px; font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .import-step strong { display: block; font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 3px; }
+  .import-step span { font-size: 14px; color: var(--muted); line-height: 1.6; }
+  .rel-table {
+    width: 100%; border-collapse: collapse; font-size: 14px;
+    margin-top: 24px;
+  }
+  .rel-table th {
+    text-align: left; font-size: 12px; font-weight: 700;
+    letter-spacing: .06em; text-transform: uppercase;
+    color: var(--muted); padding: 0 12px 10px 0; border-bottom: 1px solid var(--border);
+  }
+  .rel-table td {
+    padding: 12px 12px 12px 0; color: var(--muted); font-size: 14px; line-height: 1.55;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .rel-table tr:last-child td { border-bottom: none; }
+  .rel-table td:first-child { color: #fff; font-weight: 600; white-space: nowrap; }
+  .provider-chips {
+    display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px;
+  }
+  .provider-chip {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 10px 16px;
+    font-size: 13px; font-weight: 500; color: var(--text);
+  }
+  .provider-chip-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+
   @media (max-width: 768px) {
     .nav-links { display: none; }
     .problem-grid { grid-template-columns: 1fr; }
@@ -409,6 +462,7 @@
     .discovery-grid { grid-template-columns: 1fr; }
     .stats { grid-template-columns: 1fr; }
     .engine-layout { grid-template-columns: 1fr; gap: 32px; }
+    .import-layout { grid-template-columns: 1fr; gap: 32px; }
   }
 
   @media (max-width: 480px) {
@@ -440,6 +494,7 @@
     <ul class="nav-links">
       <li><a href="#problem">The Problem</a></li>
       <li><a href="#features">Features</a></li>
+      <li><a href="#import">AI Import</a></li>
       <li><a href="#engine">Answer Engine</a></li>
       <li><a href="#who">Who It's For</a></li>
       <li><a href="#faq">FAQ</a></li>
@@ -672,6 +727,100 @@
         </div>
       </div>
 
+    </div>
+  </div>
+</section>
+
+<!-- ── AI Import ── -->
+<section id="import">
+  <div class="container">
+    <div class="section-eyebrow">AI Import</div>
+    <h2 class="section-title">Already have a website?<br><span style="background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Let AI do the data entry.</span></h2>
+    <p class="section-sub">Point AI Import at your existing pages — your services page, about page, areas covered page — and it extracts structured entities automatically. Everything lands as a draft for you to review. Nothing goes live until you say so.</p>
+
+    <div class="import-layout">
+      <div>
+        <p style="font-size:15px;font-weight:700;color:#fff;margin-bottom:20px;">How it works</p>
+        <ol class="import-steps">
+          <li class="import-step">
+            <div>
+              <strong>Select your pages</strong>
+              <span>Tick one or more published pages — your services page, about page, or any page that describes your business.</span>
+            </div>
+          </li>
+          <li class="import-step">
+            <div>
+              <strong>Choose entity types</strong>
+              <span>Tick what to extract: Services, FAQs, Locations, Proof &amp; Trust, Actions. You can untick types you've already entered manually.</span>
+            </div>
+          </li>
+          <li class="import-step">
+            <div>
+              <strong>AI extracts and creates drafts</strong>
+              <span>Each entity type is processed in a separate step. A live progress bar shows you exactly where it is. All items are saved as draft posts.</span>
+            </div>
+          </li>
+          <li class="import-step">
+            <div>
+              <strong>Automatic relationship pass</strong>
+              <span>After all entities are extracted, a final AI step links relationships: FAQs to services, proof to locations, actions to services, and more.</span>
+            </div>
+          </li>
+          <li class="import-step">
+            <div>
+              <strong>Review and publish</strong>
+              <span>Check titles, content, and relationships. Publish the ones you want to keep. Trash the rest. Nothing affects your live site until you publish.</span>
+            </div>
+          </li>
+        </ol>
+
+        <div style="margin-top:28px;">
+          <p style="font-size:13px;font-weight:700;color:#fff;margin-bottom:10px;">Supported providers</p>
+          <div class="provider-chips">
+            <div class="provider-chip"><span class="provider-chip-dot"></span> OpenAI GPT-4o Mini <span style="font-size:11px;color:var(--green);margin-left:4px;">recommended</span></div>
+            <div class="provider-chip"><span class="provider-chip-dot"></span> OpenAI GPT-4o</div>
+            <div class="provider-chip"><span class="provider-chip-dot"></span> Anthropic Claude Haiku</div>
+            <div class="provider-chip"><span class="provider-chip-dot"></span> Anthropic Claude Sonnet</div>
+            <div class="provider-chip"><span class="provider-chip-dot"></span> Google Gemini 1.5 Flash</div>
+            <div class="provider-chip"><span class="provider-chip-dot"></span> Google Gemini 1.5 Pro</div>
+          </div>
+          <p style="font-size:13px;color:var(--muted);margin-top:12px;">Bring your own API key. A typical import costs a few cents at provider rates.</p>
+        </div>
+      </div>
+
+      <div>
+        <p style="font-size:15px;font-weight:700;color:#fff;margin-bottom:20px;">Relationship Management</p>
+        <p style="font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.65;">After importing, three dedicated tools let you build and maintain the relationship graph between your entities.</p>
+
+        <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:28px;">
+          <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:18px 20px;">
+            <p style="font-size:14px;font-weight:700;color:#fff;margin-bottom:6px;">Resync All Relationships</p>
+            <p style="font-size:13px;color:var(--muted);line-height:1.6;">Repairs any missing inverse links using data already saved. Non-AI, additive only, safe to run at any time. No API key required.</p>
+          </div>
+          <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:18px 20px;">
+            <p style="font-size:14px;font-weight:700;color:#fff;margin-bottom:6px;">Find New Relationships</p>
+            <p style="font-size:13px;color:var(--muted);line-height:1.6;">Uses AI to discover relationships not yet set and adds them. Additive only — does not remove existing links. Requires an API key.</p>
+          </div>
+          <div style="background:var(--bg3);border:1px solid rgba(248,113,113,.25);border-radius:var(--radius-sm);padding:18px 20px;">
+            <p style="font-size:14px;font-weight:700;color:#fff;margin-bottom:6px;">Rebuild All Relationships <span style="font-size:11px;font-weight:600;background:rgba(248,113,113,.12);color:var(--red);padding:2px 7px;border-radius:4px;margin-left:6px;">Destructive</span></p>
+            <p style="font-size:13px;color:var(--muted);line-height:1.6;">AI sets the complete, authoritative set of relationships for every entity. Replaces all existing relationship data. Review manually afterwards.</p>
+          </div>
+        </div>
+
+        <p style="font-size:13px;font-weight:700;color:#fff;margin-bottom:12px;">Relationship rules</p>
+        <table class="rel-table">
+          <thead>
+            <tr><th>Link</th><th>Applied when…</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>FAQ → Service</td><td>The FAQ is clearly about that service</td></tr>
+            <tr><td>Proof → Service</td><td>Clearly about a specific service, not general company-wide proof</td></tr>
+            <tr><td>Proof → Location</td><td>A place name is explicitly stated in the proof text — never inferred</td></tr>
+            <tr><td>Action → Service</td><td>The action is the primary way to enquire about or book that service</td></tr>
+            <tr><td>Location → Service</td><td>The service is offered at that location</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </section>

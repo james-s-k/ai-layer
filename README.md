@@ -236,6 +236,100 @@ A revisitable, step-by-step wizard that pre-populates your AI Layer data from ex
 
 ---
 
+### AI Import
+
+**AI Layer → AI Import**
+
+Point the AI Import tool at your existing published pages and let AI populate your entity types automatically. Select one or more pages (e.g. Services, About, Areas Covered), tick the entity types you want to extract, and click **Start AI Extraction**. The AI reads the page text and creates draft posts for each entity it finds. A final automatic step links relationships between all extracted entities. Nothing is published until you review and approve each draft.
+
+#### Provider & Model Settings
+
+Configure your AI provider and API key at the top of the AI Import page. Three providers are supported:
+
+| Provider | Models |
+|----------|--------|
+| OpenAI | GPT-4o, GPT-4o Mini (recommended default) |
+| Anthropic | Claude Haiku, Claude Sonnet |
+| Google | Gemini 1.5 Flash, Gemini 1.5 Pro |
+
+Each provider has a separate API key field. Keys are stored encrypted in `wp_options`. Leave a key field blank to keep the existing key. A saved-key indicator is shown when a key is already stored.
+
+**Settings stored under `wpail_ai_*` option keys.**
+
+#### Extraction Process
+
+1. Select one or more published pages from the checkbox list
+2. Tick the entity types to extract: Services, FAQs, Locations, Proof & Trust, Actions
+3. Click **Start AI Extraction**
+4. A progress bar and step label show the current extraction step in real time
+5. After all entity types are processed, an automatic **Relationships** step runs — the AI links FAQs to services, proof to services and locations, actions to services, and locations to services
+6. A results table shows how many drafts were created per entity type, with a direct link to review each set of drafts
+
+Each entity type is a separate AJAX step so the page does not time out on large sites. All extracted items are saved as `draft` posts — nothing goes live until you publish them.
+
+> **Important:** AI can make mistakes. Review all extracted titles, content, and relationships manually before publishing. The AI caveat notice at the top of the Import card is a persistent reminder.
+
+#### Selective re-runs
+
+You can run the import multiple times. Untick entity types you have already handled to avoid creating duplicate drafts. For example, if you already have Services entered, untick Services and run again with only FAQs or Proof & Trust ticked.
+
+#### Duplicate prevention
+
+The import tool does not check for existing entries before creating drafts. If you run it twice for the same pages and the same entity types, you will get duplicate drafts. Review and trash unwanted drafts from the standard CPT list screens before publishing.
+
+---
+
+### Relationship Management
+
+**AI Layer → AI Import → Relationships section**
+
+Three tools for building and maintaining the relationship graph between your entities. All three require confirmation before proceeding.
+
+#### Relationship types
+
+| Relationship | Set when… |
+|-------------|-----------|
+| FAQ → Service | The FAQ is clearly about that specific service |
+| Proof → Service | The testimonial, stat, or award is clearly about a specific service — not general company-wide proof |
+| Proof → Location | A specific city, town, or area is **explicitly named** in the proof text — never inferred from context |
+| Action → Service | The action is the primary way to enquire about or book that service |
+| Location → Service | The service is offered at or from that location |
+
+All relationships are bidirectional — saving a relationship on one entity automatically writes the inverse on the related entity. No manual double-entry required.
+
+#### Resync All Relationships
+
+Non-AI. Walks every entity in the database and repairs any missing inverse links based on the relationship data already stored. For example, if a Service has a FAQ in its `related_faq_ids` list but that FAQ does not have the Service in its `related_service_ids`, Resync adds it.
+
+- **Safe:** additive only — never removes existing links
+- **No API key required**
+- Recommended after bulk imports, manual edits, or any operation that may have left relationships in an inconsistent state
+
+#### Find New Relationships
+
+AI-powered. Asks the AI to review all current entities and add any relationships it can identify that are not yet set. Passes titles and summaries of all Services, Locations, FAQs, Proof items, and Actions to the model in a single prompt.
+
+- **Additive only:** does not remove existing links, only adds new ones
+- **Requires an API key** for the configured provider
+- Useful after adding new content that was not included in the original import
+
+#### Rebuild All Relationships
+
+AI-powered and **destructive**. Asks the AI to return the complete, authoritative set of relationships for every entity. Existing relationship data is replaced with whatever the AI returns. Entities not mentioned in the AI response have their relationship fields cleared.
+
+- **Destructive:** overwrites all existing relationship data
+- Requires an API key
+- A `confirm()` dialog with a clear destructive-action warning is shown before proceeding
+- Review all relationships manually after running — the AI can remove valid links
+
+#### Implementation notes
+
+All three operations fire a single AJAX request and block the button while running. A status message below the button reports success (with a count of entities updated or posts processed) or displays the error message on failure.
+
+Relationship state is stored as arrays of post IDs in the `_wpail_data` JSON meta blob on each post. The `RelationshipSync` class handles bidirectional write-back; `RelationshipHelper` handles serialisation.
+
+---
+
 ### Settings
 
 **AI Layer → Settings**

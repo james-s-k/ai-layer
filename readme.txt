@@ -91,6 +91,30 @@ When you link a Service to a Location, the relationship is automatically written
 
 A revisitable wizard at AI Layer → Setup Wizard auto-populates your Business Profile from WordPress settings, Yoast SEO, Rank Math, and WooCommerce. Every suggestion requires your explicit approval before anything is saved.
 
+**AI Import**
+
+Point the AI Import tool at your existing published pages and let AI do the initial data entry for you. Select one or more pages (for example your Services, About, and Areas pages), tick the entity types you want to extract (Services, FAQs, Locations, Proof & Trust, Actions), and click Start AI Extraction. The AI reads the page content and creates draft items for each entity it identifies. A final pass automatically links relationships between all extracted entities. You review and publish the drafts you want to keep — nothing goes live until you say so.
+
+Supports OpenAI (GPT-4o Mini recommended), Anthropic (Claude Haiku / Sonnet), and Google (Gemini 1.5 Flash / Pro). Bring your own API key from any supported provider. Running an import on a typical business site costs a few cents.
+
+All extracted items are saved as drafts. AI can make mistakes — review titles, content, and relationships manually before publishing.
+
+**Relationship Management**
+
+Three tools for building and maintaining the relationship graph between your entities, available at AI Layer → AI Import → Relationships:
+
+* **Resync All Relationships** — repairs any missing inverse links using the relationship data already saved on your entities. Safe, additive only, and requires no API key. Run this any time you suspect a link is missing.
+* **Find New Relationships** — uses AI to discover relationships not yet set. Adds new links without removing existing ones. Useful after publishing new content or enabling new entity types.
+* **Rebuild All Relationships** — uses AI to set the complete, authoritative set of relationships for every entity. Replaces all existing relationship data. Any links not confirmed by the AI are removed. Use with care and review the results manually.
+
+**Relationship rules applied by the AI:**
+
+* FAQ → Service: the FAQ is clearly about that specific service
+* Proof → Service: the testimonial, stat, or award is clearly about a specific service (not general company-wide proof)
+* Proof → Location: a specific city or area is explicitly named in the proof text — never inferred
+* Action → Service: the action is the primary way to enquire about or book that service
+* Location → Service: the service is offered at or from that location
+
 **Test Answer Engine**
 
 A built-in test console at AI Layer → Test Answer Engine. Enter any natural language question and see exactly what the engine returns — confidence level, matched source, detected service and location, matched FAQ, suggested actions, supporting proof, and the raw JSON response. Useful for verifying keyword matching, FAQ linking, and manual Answer priority without making external API calls.
@@ -134,6 +158,22 @@ Optional Organization, LocalBusiness, and FAQPage structured data output in `<he
 8. Visit `/.well-known/ai-layer` to verify your discovery document is live
 
 == Frequently Asked Questions ==
+
+= What does AI Import actually do? =
+
+It reads the text content of selected published pages using an AI model and extracts structured entities: Services, FAQs, Locations, Proof & Trust items, and Actions. Each entity is saved as a draft post. After all entity types are extracted a final automatic step links relationships between them. You then review and publish the ones you want to keep.
+
+= Will AI Import duplicate items I already have? =
+
+It can. The tool does not check for existing entries before creating drafts — it creates what the AI finds on the page. Run the import selectively (tick only the entity types you need), and review the drafts before publishing. If you already have Services entered manually, untick Services from the extraction list.
+
+= Which AI providers and models are supported? =
+
+OpenAI (GPT-4o, GPT-4o Mini), Anthropic (Claude Haiku, Claude Sonnet), and Google (Gemini 1.5 Flash, Gemini 1.5 Pro). GPT-4o Mini is the recommended default — fast, accurate, and low cost for most imports.
+
+= What is the difference between the three relationship tools? =
+
+**Resync All Relationships** — non-AI, repairs missing inverse links from data already saved. Safe and additive. **Find New Relationships** — AI-powered, discovers and adds relationships not yet set without removing existing ones. **Rebuild All Relationships** — AI-powered and destructive; replaces all relationship data with what the AI decides is correct. Review the results manually after any AI relationship operation.
 
 = Does this replace Yoast SEO or Rank Math? =
 
@@ -191,6 +231,14 @@ Single-site only in the current version. Multisite support is not explicitly blo
 8. Settings page — AI Discovery section
 
 == Changelog ==
+
+= 1.6.0 =
+* **AI Import** — new admin page at AI Layer → AI Import; point the tool at any published page and AI extracts Services, FAQs, Locations, Proof & Trust, and Actions as drafts; step-by-step extraction with a live progress bar; final automatic relationship-linking pass after all entity types are processed
+* **Multi-provider AI support** — OpenAI (GPT-4o, GPT-4o Mini), Anthropic (Claude Haiku, Claude Sonnet), and Google (Gemini 1.5 Flash, Gemini 1.5 Pro); configure API keys per provider in AI Import settings; GPT-4o Mini is the recommended default
+* **Selective entity extraction** — choose which entity types to extract per import run; run again with only the types you want to top up
+* **Relationship management tools** — three dedicated tools in the Relationships section: Resync All Relationships (non-AI, repairs missing inverse links, additive), Find New Relationships (AI-powered, additive), Rebuild All Relationships (AI-powered, authoritative — replaces all relationship data)
+* **Relationship rules** — AI is instructed to link FAQs to services, proof to services and explicitly-named locations only, actions to services, and locations to services; strict prompt constraints prevent the AI from inventing location links when no place name appears in the proof text
+* **Confirmation dialogs** — all three relationship management buttons require confirmation before proceeding; the Rebuild button includes a destructive-action warning
 
 = 1.5.0 =
 * **Manifest endpoint** — `GET /wp-json/ai-layer/v1/manifest` returns a semantic manifest: site info, all active entity endpoint URLs, discovery channel URLs, relationship capabilities, query capabilities, and authentication details

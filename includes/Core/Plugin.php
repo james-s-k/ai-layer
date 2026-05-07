@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace WPAIL\Core;
 
 use WPAIL\Admin\AdminMenu;
+use WPAIL\Admin\AiImportPage;
 use WPAIL\Admin\Assets;
 use WPAIL\Admin\BusinessProfilePage;
 use WPAIL\Admin\LLMsTxtPage;
@@ -168,6 +169,7 @@ final class Plugin {
 			( new AnswerMetaBox() )->register();
 		}
 
+		( new AiImportPage() )->register();
 		( new LLMsTxtPage() )->register();
 		( new AiTxtPage() )->register();
 	}
