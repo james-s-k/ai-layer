@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Layer: The WordPress Plugin for the AI Era</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0a0d14;
+    --bg2:       #0f1320;
+    --bg3:       #141828;
+    --border:    rgba(255,255,255,0.07);
+    --border2:   rgba(255,255,255,0.12);
+    --text:      #e2e8f0;
+    --muted:     #7c8fa6;
+    --accent:    #4f8ef7;
+    --accent2:   #7c5af7;
+    --green:     #34d399;
+    --orange:    #fb923c;
+    --red:       #f87171;
+    --grad:      linear-gradient(135deg, #4f8ef7, #7c5af7);
+    --radius:    12px;
+    --radius-sm: 6px;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Layout ── */
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+  .container--narrow { max-width: 740px; margin: 0 auto; padding: 0 24px; }
+
+  /* ── Nav ── */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(10,13,20,0.85);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 0;
+  }
+  .nav-inner {
+    display: flex; align-items: center; justify-content: space-between;
+    max-width: 1100px; margin: 0 auto; padding: 0 24px;
+  }
+  .nav-logo {
+    display: flex; align-items: center; gap: 10px;
+    font-weight: 700; font-size: 17px; color: #fff; text-decoration: none;
+  }
+  .nav-logo-icon {
+    width: 32px; height: 32px; background: var(--grad); border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .nav-logo-icon svg { display: block; }
+  .nav-links { display: flex; align-items: center; gap: 28px; list-style: none; }
+  .nav-links a { color: var(--muted); text-decoration: none; font-size: 14px; transition: color .2s; }
+  .nav-links a:hover { color: #fff; }
+  .nav-cta {
+    background: var(--grad); color: #fff; text-decoration: none;
+    padding: 8px 18px; border-radius: 6px; font-size: 14px; font-weight: 600;
+    transition: opacity .2s;
+  }
+  .nav-cta:hover { opacity: .85; }
+
+  /* ── Hero ── */
+  .hero {
+    padding: 100px 0 80px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(79,142,247,.18), transparent);
+    pointer-events: none;
+  }
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(79,142,247,.12); border: 1px solid rgba(79,142,247,.25);
+    color: var(--accent); border-radius: 100px;
+    padding: 6px 14px; font-size: 13px; font-weight: 600;
+    letter-spacing: .03em; text-transform: uppercase;
+    margin-bottom: 28px;
+  }
+  .hero h1 {
+    font-size: clamp(38px, 6vw, 68px);
+    font-weight: 800; line-height: 1.08; letter-spacing: -.03em;
+    color: #fff; margin-bottom: 24px;
+  }
+  .hero h1 span {
+    background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero-sub {
+    font-size: clamp(17px, 2.5vw, 21px); color: var(--muted);
+    max-width: 620px; margin: 0 auto 40px; line-height: 1.6;
+  }
+  .hero-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 14px 28px; border-radius: 8px;
+    font-size: 15px; font-weight: 600; text-decoration: none;
+    transition: all .2s; cursor: pointer;
+  }
+  .btn-primary { background: var(--grad); color: #fff; }
+  .btn-primary:hover { opacity: .88; transform: translateY(-1px); }
+  .btn-secondary {
+    background: transparent; color: var(--text);
+    border: 1px solid var(--border2);
+  }
+  .btn-secondary:hover { border-color: rgba(255,255,255,.28); color: #fff; transform: translateY(-1px); }
+
+  /* ── Section chrome ── */
+  section { padding: 90px 0; }
+  .section-eyebrow {
+    font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 12px;
+  }
+  .section-title {
+    font-size: clamp(26px, 4vw, 40px); font-weight: 800;
+    letter-spacing: -.025em; color: #fff; line-height: 1.15; margin-bottom: 16px;
+  }
+  .section-sub {
+    font-size: 17px; color: var(--muted); max-width: 600px; line-height: 1.65;
+    margin-bottom: 56px;
+  }
+  .section-sub.centered { margin-left: auto; margin-right: auto; text-align: center; }
+  .text-center { text-align: center; }
+
+  /* ── Problem section ── */
+  .problem { background: var(--bg2); }
+  .problem-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 2px;
+    border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border);
+  }
+  .problem-side {
+    padding: 40px 36px;
+  }
+  .problem-side--bad { background: rgba(248,113,113,.04); }
+  .problem-side--good { background: rgba(52,211,153,.04); }
+  .problem-side-label {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    margin-bottom: 20px; padding: 4px 10px; border-radius: 4px;
+  }
+  .problem-side--bad .problem-side-label { background: rgba(248,113,113,.12); color: var(--red); }
+  .problem-side--good .problem-side-label { background: rgba(52,211,153,.12); color: var(--green); }
+  .problem-side h3 { font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 16px; }
+  .problem-side p { color: var(--muted); font-size: 15px; line-height: 1.7; margin-bottom: 14px; }
+  .problem-side p:last-child { margin-bottom: 0; }
+
+  /* ── Stat strip ── */
+  .stats {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 1px; background: var(--border);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    overflow: hidden; margin-top: 64px;
+  }
+  .stat { background: var(--bg2); padding: 36px; text-align: center; }
+  .stat-number { font-size: 42px; font-weight: 800; letter-spacing: -.03em; color: #fff; }
+  .stat-number span { background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .stat-label { font-size: 14px; color: var(--muted); margin-top: 6px; }
+
+  /* ── How it works ── */
+  .how-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
+    margin-top: 56px;
+  }
+  .how-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 32px 28px;
+    position: relative; transition: border-color .2s;
+  }
+  .how-card:hover { border-color: var(--border2); }
+  .how-num {
+    width: 36px; height: 36px; border-radius: 8px; background: var(--grad);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 800; color: #fff; margin-bottom: 18px;
+  }
+  .how-card h3 { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 10px; }
+  .how-card p { font-size: 15px; color: var(--muted); line-height: 1.65; }
+
+  /* ── Features ── */
+  .features { background: var(--bg2); }
+  .features-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px;
+  }
+  .feature-card {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 32px 28px;
+    transition: border-color .2s;
+  }
+  .feature-card:hover { border-color: var(--border2); }
+  .feature-icon {
+    width: 44px; height: 44px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; margin-bottom: 18px;
+  }
+  .feature-card h3 { font-size: 17px; font-weight: 700; color: #fff; margin-bottom: 10px; }
+  .feature-card p { font-size: 15px; color: var(--muted); line-height: 1.65; }
+  .feature-card--wide { grid-column: span 2; display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: center; }
+  .feature-card--wide .feature-icon { margin-bottom: 0; }
+
+  /* ── Answer engine ── */
+  .engine-steps {
+    list-style: none; counter-reset: steps;
+    display: flex; flex-direction: column; gap: 16px;
+    margin-top: 32px;
+  }
+  .engine-step {
+    display: flex; align-items: flex-start; gap: 16px;
+    counter-increment: steps;
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 18px 20px;
+  }
+  .engine-step::before {
+    content: counter(steps);
+    min-width: 28px; height: 28px; border-radius: 6px;
+    background: var(--grad); color: #fff;
+    font-size: 13px; font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .engine-step-content strong { display: block; font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 3px; }
+  .engine-step-content span { font-size: 14px; color: var(--muted); line-height: 1.6; }
+
+  .engine-layout {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: start;
+  }
+  .engine-layout > * { min-width: 0; }
+
+  /* ── Code block ── */
+  .code-wrap {
+    background: #0d1117; border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden; margin-top: 48px;
+  }
+  .code-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px; border-bottom: 1px solid var(--border);
+    background: rgba(255,255,255,.02);
+  }
+  .code-dots { display: flex; gap: 7px; }
+  .code-dot { width: 12px; height: 12px; border-radius: 50%; }
+  .code-label { font-size: 12px; color: var(--muted); font-family: monospace; }
+  .code-tag { font-size: 11px; color: var(--accent); background: rgba(79,142,247,.1); padding: 2px 8px; border-radius: 4px; font-weight: 600; }
+  p code, li code { font-size: inherit; }
+
+  pre {
+    padding: 24px; overflow-x: auto; overflow-y: auto; font-size: 13px; line-height: 1.7;
+    font-family: 'Fira Code', 'Cascadia Code', Consolas, monospace;
+    max-width: 100%; max-height: 630px;
+  }
+  .t-k { color: #79c0ff; }   /* key */
+  .t-s { color: #a5d6ff; }   /* string */
+  .t-n { color: #d2a8ff; }   /* number */
+  .t-p { color: #7c8fa6; }   /* punctuation */
+  .t-l { color: #3fb950; }   /* label */
+  .t-c { color: #8b949e; }   /* comment */
+  .t-r { color: var(--accent); } /* request */
+
+  /* ── Entities ── */
+  .entities-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+    margin-top: 56px;
+  }
+  .entity-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 24px 22px;
+    transition: border-color .2s, transform .2s;
+  }
+  .entity-card:hover { border-color: var(--border2); transform: translateY(-2px); }
+  .entity-icon { font-size: 24px; margin-bottom: 12px; }
+  .entity-card h3 { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+  .entity-card p { font-size: 14px; color: var(--muted); line-height: 1.6; }
+
+  /* ── Audience ── */
+  .audience-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px;
+    margin-top: 56px;
+  }
+  .audience-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 32px 28px;
+  }
+  .audience-card h3 {
+    font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 14px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .audience-tag {
+    font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+    padding: 3px 8px; border-radius: 4px; background: rgba(79,142,247,.1); color: var(--accent);
+  }
+  .audience-card ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .audience-card li {
+    font-size: 15px; color: var(--muted); padding-left: 20px; position: relative; line-height: 1.5;
+  }
+  .audience-card li::before { content: '→'; position: absolute; left: 0; color: var(--accent); }
+
+  /* ── Integrations ── */
+  .integrations { background: var(--bg2); padding-top: 0;}
+  .integration-chips {
+    display: flex; flex-wrap: wrap; gap: 12px; margin-top: 48px; justify-content: center;
+  }
+  .chip {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 100px; padding: 10px 18px;
+    font-size: 14px; font-weight: 500; color: var(--text);
+    transition: border-color .2s;
+  }
+  .chip:hover { border-color: var(--border2); }
+  .chip-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
+
+  /* ── Discovery ── */
+  .discovery-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
+    margin-top: 56px;
+  }
+  .discovery-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 28px 24px; text-align: center;
+    transition: border-color .2s;
+  }
+  .discovery-card:hover { border-color: var(--border2); }
+  .discovery-card .d-icon {
+    font-size: 28px; margin-bottom: 14px;
+  }
+  .discovery-card h3 { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+  .discovery-card p { font-size: 14px; color: var(--muted); line-height: 1.6; }
+  .discovery-card code {
+    display: inline-block; margin-top: 10px;
+    background: rgba(79,142,247,.08); color: var(--accent);
+    border-radius: 4px; padding: 3px 8px; font-size: 12px; font-family: monospace;
+  }
+
+  /* ── Objections ── */
+  .objections-grid { display: flex; flex-direction: column; gap: 2px; margin-top: 56px; }
+  .objection {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); overflow: hidden;
+  }
+  .objection summary {
+    padding: 20px 24px; cursor: pointer; font-size: 15px;
+    font-weight: 600; color: #fff; list-style: none;
+    display: flex; align-items: center; justify-content: space-between;
+    transition: background .2s;
+  }
+  .objection summary:hover { background: rgba(255,255,255,.02); }
+  .objection summary::after { content: '+'; color: var(--muted); font-size: 20px; font-weight: 400; }
+  .objection[open] summary::after { content: '−'; }
+  .objection-body { padding: 0 24px 20px; font-size: 15px; color: var(--muted); line-height: 1.7; }
+  .objection-body p + p { margin-top: 10px; }
+
+  /* ── CTA ── */
+  .cta-section {
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    text-align: center; padding: 100px 0;
+    position: relative; overflow: hidden;
+  }
+  .cta-section::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 60% 80% at 50% 50%, rgba(79,142,247,.1), transparent);
+    pointer-events: none;
+  }
+  .cta-section h2 { font-size: clamp(28px, 4vw, 44px); font-weight: 800; letter-spacing: -.02em; color: #fff; margin-bottom: 16px; }
+  .cta-section p { font-size: 17px; color: var(--muted); margin-bottom: 40px; }
+
+  /* ── Footer ── */
+  footer {
+    padding: 40px 0; border-top: 1px solid var(--border);
+    text-align: center; font-size: 13px; color: var(--muted);
+  }
+
+  /* ── Badges ── */
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 4px;
+  }
+  .badge-green { background: rgba(52,211,153,.1); color: var(--green); }
+  .badge-blue  { background: rgba(79,142,247,.1); color: var(--accent); }
+  .badge-purple { background: rgba(124,90,247,.1); color: var(--accent2); }
+  .badge-orange { background: rgba(251,146,60,.1); color: var(--orange); }
+
+  /* ── Inline highlight ── */
+  .hl { color: #fff; font-weight: 600; }
+
+  /* ── Responsive ── */
+  /* ── AI Import ── */
+  .import-layout {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: start;
+    margin-top: 56px;
+  }
+  .import-layout > * { min-width: 0; }
+  .import-steps {
+    list-style: none; counter-reset: isteps;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .import-step {
+    display: flex; align-items: flex-start; gap: 16px;
+    counter-increment: isteps;
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 18px 20px;
+  }
+  .import-step::before {
+    content: counter(isteps);
+    min-width: 28px; height: 28px; border-radius: 6px;
+    background: var(--grad); color: #fff;
+    font-size: 13px; font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .import-step strong { display: block; font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 3px; }
+  .import-step span { font-size: 14px; color: var(--muted); line-height: 1.6; }
+  .rel-table {
+    width: 100%; border-collapse: collapse; font-size: 14px;
+    margin-top: 24px;
+  }
+  .rel-table th {
+    text-align: left; font-size: 12px; font-weight: 700;
+    letter-spacing: .06em; text-transform: uppercase;
+    color: var(--muted); padding: 0 12px 10px 0; border-bottom: 1px solid var(--border);
+  }
+  .rel-table td {
+    padding: 12px 12px 12px 0; color: var(--muted); font-size: 14px; line-height: 1.55;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .rel-table tr:last-child td { border-bottom: none; }
+  .rel-table td:first-child { color: #fff; font-weight: 600; white-space: nowrap; }
+  .provider-chips {
+    display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px;
+  }
+  .provider-chip {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 10px 16px;
+    font-size: 13px; font-weight: 500; color: var(--text);
+  }
+  .provider-chip-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+
+  @media (max-width: 768px) {
+    .nav-links { display: none; }
+    .problem-grid { grid-template-columns: 1fr; }
+    .how-grid { grid-template-columns: 1fr; }
+    .features-grid { grid-template-columns: 1fr; }
+    .feature-card--wide { grid-column: span 1; grid-template-columns: 1fr; }
+    .entities-grid { grid-template-columns: repeat(2, 1fr); }
+    .audience-grid { grid-template-columns: 1fr; }
+    .discovery-grid { grid-template-columns: 1fr; }
+    .stats { grid-template-columns: 1fr; }
+    .engine-layout { grid-template-columns: 1fr; gap: 32px; }
+    .import-layout { grid-template-columns: 1fr; gap: 32px; }
+  }
+
+  @media (max-width: 480px) {
+    .entities-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── Nav ── -->
+<nav>
+  <div class="nav-inner">
+    <a href="#" class="nav-logo">
+      <div class="nav-logo-icon">
+        <svg width="20" height="15" viewBox="0 0 20 15" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <defs>
+            <filter id="nav-ls" x="-40%" y="-40%" width="180%" height="180%">
+              <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="rgba(0,0,0,0.4)"/>
+            </filter>
+          </defs>
+          <!-- Bottom layer (lavender) -->
+          <path d="M8.21,6.89 Q10,6 11.79,6.89 L16.21,9.11 Q18,10 16.21,10.89 L11.79,13.11 Q10,14 8.21,13.11 L3.79,10.89 Q2,10 3.79,9.11 Z" fill="rgba(255,255,255,0.45)"/>
+          <!-- Top layer (white) with shadow for separation -->
+          <path d="M8.21,1.89 Q10,1 11.79,1.89 L16.21,4.11 Q18,5 16.21,5.89 L11.79,8.11 Q10,9 8.21,8.11 L3.79,5.89 Q2,5 3.79,4.11 Z" fill="white" filter="url(#nav-ls)"/>
+        </svg>
+      </div>
+      AI Layer
+    </a>
+    <ul class="nav-links">
+      <li><a href="#problem">The Problem</a></li>
+      <li><a href="#features">Features</a></li>
+      <li><a href="#import">AI Import</a></li>
+      <li><a href="#engine">Answer Engine</a></li>
+      <li><a href="#who">Who It's For</a></li>
+      <li><a href="#faq">FAQ</a></li>
+    </ul>
+    <a href="https://github.com/james-s-k/ai-layer" class="nav-cta" target="_blank">Download Beta</a>
+  </div>
+</nav>
+
+<!-- ── Hero ── -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-eyebrow">
+      <svg width="14" height="11" viewBox="0 0 20 15" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="display:inline-block;vertical-align:middle;margin-right:6px;margin-top:-2px">
+        <path d="M8.21,6.89 Q10,6 11.79,6.89 L16.21,9.11 Q18,10 16.21,10.89 L11.79,13.11 Q10,14 8.21,13.11 L3.79,10.89 Q2,10 3.79,9.11 Z" fill="currentColor" fill-opacity="0.5"/>
+        <path d="M8.21,1.89 Q10,1 11.79,1.89 L16.21,4.11 Q18,5 16.21,5.89 L11.79,8.11 Q10,9 8.21,8.11 L3.79,5.89 Q2,5 3.79,4.11 Z" fill="currentColor"/>
+      </svg>WordPress Plugin for the AI Era</div>
+    <h1>The AI Layer,<br/><span>for WordPress.</span></h1>
+    <p class="hero-sub">AI Layer gives your WordPress site a structured data layer: clean, typed, connected, and queryable. Stop AI systems guessing from your pages. Give them authoritative answers, directly.</p>
+    <div class="hero-actions">
+      <a href="https://github.com/james-s-k/ai-layer" class="btn btn-primary" target="_blank">View on GitHub →</a>
+      <a href="#engine" class="btn btn-secondary">See How It Works</a>
+    </div>
+  </div>
+</section>
+
+<!-- ── Problem ── -->
+<section class="problem" id="problem">
+  <div class="container">
+    <div class="section-eyebrow">The Problem</div>
+    <h2 class="section-title">Websites are built for humans.<br>AI has to sift through messy HTML.</h2>
+    <p class="section-sub">Every business website contains the same core information: services, prices, locations, FAQs, contact details. But it's buried in page copy, scattered across templates, and formatted for a human eye. AI has to guess.</p>
+
+    <div class="problem-grid">
+      <div class="problem-side problem-side--bad">
+        <div class="problem-side-label">✕ Without AI Layer</div>
+        <h3>AI scrapes your site and guesses</h3>
+        <p>An AI reading your site has to crawl multiple pages, interpret unstructured HTML, infer relationships between your services and locations, and piece together an answer across your about page, services page, and contact page.</p>
+        <p>The result: slow, token-heavy crawls, outdated or incorrect answers, hallucinated pricing, and no structured way to attach trust signals or next actions.</p>
+        <p>Every page visit costs tokens. Every ambiguous sentence risks a wrong answer. There's no source of truth, just an AI doing its best with a website built for humans.</p>
+      </div>
+      <div class="problem-side problem-side--good">
+        <div class="problem-side-label">✓ With AI Layer</div>
+        <h3>AI queries your site and gets facts</h3>
+        <p>One request to the <code style="background:rgba(52,211,153,.08);color:var(--green);padding:2px 6px;border-radius:4px;font-size:13px;">/answers</code> endpoint. The engine detects which service and location the question relates to, finds the best matching FAQ, and returns a structured response: answer, confidence level, proof, and next actions.</p>
+        <p>No scraping. No inference. No hallucination from ambiguous page copy. Just clean, typed data that you control, updated in one place, served to any consumer.</p>
+        <p>One API call. Fewer tokens consumed. Higher accuracy. A response you can trust.</p>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-number"><span>1</span> request</div>
+        <div class="stat-label">replaces crawling multiple pages</div>
+      </div>
+      <div class="stat">
+        <div class="stat-number"><span>0</span> guessing</div>
+        <div class="stat-label">structured data with explicit relationships</div>
+      </div>
+      <div class="stat">
+        <div class="stat-number"><span>100%</span></div>
+        <div class="stat-label">server-side - no external AI service required</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── How it works ── -->
+<section id="how">
+  <div class="container">
+    <div class="section-eyebrow">How It Works</div>
+    <h2 class="section-title">One source of truth.<br>Queryable from anywhere.</h2>
+    <p class="section-sub">AI Layer sits alongside your existing theme and content as a pure data and API layer. It doesn't touch your front-end (unless you want it to). It just makes your business data structured, connected, and machine-readable.</p>
+
+    <div class="how-grid">
+      <div class="how-card">
+        <div class="how-num">1</div>
+        <h3>Enter your business data once</h3>
+        <p>Add your services, locations, FAQs, trust signals, and calls-to-action through the WordPress admin. Relationships are wired automatically: a service knows its related FAQs, locations, proof, and next actions.</p>
+      </div>
+      <div class="how-card">
+        <div class="how-num">2</div>
+        <h3>Data is served via clean REST endpoints</h3>
+        <p>Every entity type gets its own endpoint: <code style="color:var(--accent);font-size:12px;">/profile</code>, <code style="color:var(--accent);font-size:12px;">/services</code>, <code style="color:var(--accent);font-size:12px;">/locations</code>, <code style="color:var(--accent);font-size:12px;">/faqs</code>, <code style="color:var(--accent);font-size:12px;">/proof</code>, <code style="color:var(--accent);font-size:12px;">/actions</code>. All public, typed, and consistent. AI systems, agents, and integrations query directly.</p>
+      </div>
+      <div class="how-card">
+        <div class="how-num">3</div>
+        <h3>The answer engine handles natural language</h3>
+        <p>Ask a plain English question. The engine detects the service and location, finds the best FAQ match, assembles a structured response, and attaches actions and proof. No external AI call. Runs on your server.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Features ── -->
+<section class="features" id="features">
+  <div class="container">
+    <div class="section-eyebrow text-center">Features</div>
+    <h2 class="section-title text-center">Everything AI systems<br>need to understand your business</h2>
+    <p class="section-sub centered">A complete intelligence layer from raw data endpoints to natural language answers, discovery signals, and AI agent tooling.</p>
+
+    <div class="features-grid">
+
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(79,142,247,.1);">🏗️</div>
+        <h3>Structured Business Data</h3>
+        <p>Six typed entity types: Services, Locations, FAQs, Proof &amp; Trust, Actions, and Answers. Each has proper fields, relationships, and metadata. Not pages. Not posts. Actual business objects with meaning.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(52,211,153,.1);">⚡</div>
+        <h3>Purpose-Built REST API</h3>
+        <p>Clean endpoints at <code style="color:var(--accent);font-size:12px;">/wp-json/ai-layer/v1/</code>. Every route returns exactly what an AI consumer needs typed summaries, full detail with relationships, and natural language answers with confidence scoring.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(124,90,247,.1);">🤖</div>
+        <h3>MCP Integration</h3>
+        <p>33 WordPress Abilities registered under <code style="color:var(--accent);font-size:12px;">ai-layer/</code>. The WordPress MCP Adapter exposes them automatically. Claude, Cursor, and other MCP clients can read and manage all your AI Layer content without touching the admin UI.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(52,211,153,.1);">🛒</div>
+        <h3>WooCommerce Products</h3>
+        <p>Enable the <code style="color:var(--accent);font-size:12px;">/products</code> endpoint for a live, read-only proxy over your WooCommerce catalogue. Pagination, category filtering, and full product detail including pricing, availability, and images. No data duplication — always in sync.</p>
+      </div>
+
+      <div class="feature-card feature-card--wide">
+        <div>
+          <div class="feature-icon" style="background:rgba(251,146,60,.1);margin-bottom:18px;">📡</div>
+          <h3>10-Channel Agent Discovery</h3>
+          <p>AI Layer broadcasts your structured data endpoints across ten independent discovery signals — so any AI system, agent, or crawler can find your API from any entry point. All enabled by default. All independently toggleable.</p>
+          <p style="margin-top:12px;font-size:14px;color:var(--muted);">Manifest, OpenAPI spec, robots.txt, HTTP headers, &lt;head&gt; link tags, DataCatalog JSON-LD, /ai-layer page, /ai-layer.md, XML sitemap, and /.well-known/ai-layer.</p>
+        </div>
+        <div>
+          <ul style="list-style:none;display:flex;flex-direction:column;gap:14px;">
+            <li style="display:flex;gap:14px;align-items:flex-start;">
+              <span style="min-width:36px;height:36px;border-radius:8px;background:rgba(79,142,247,.12);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">🗂️</span>
+              <div>
+                <p style="font-size:14px;font-weight:700;color:#fff;margin-bottom:2px;">Semantic manifest <code style="font-size:11px;color:var(--accent);">GET /wp-json/ai-layer/v1/manifest</code></p>
+                <p style="font-size:13px;color:var(--muted);line-height:1.55;">One document listing every active endpoint URL, query capabilities, discovery pointers, and auth requirements. The recommended first request for any integrating agent.</p>
+              </div>
+            </li>
+            <li style="display:flex;gap:14px;align-items:flex-start;">
+              <span style="min-width:36px;height:36px;border-radius:8px;background:rgba(124,90,247,.12);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">📋</span>
+              <div>
+                <p style="font-size:14px;font-weight:700;color:#fff;margin-bottom:2px;">OpenAPI 3.1.0 spec <code style="font-size:11px;color:var(--accent);">GET /wp-json/ai-layer/v1/openapi</code></p>
+                <p style="font-size:13px;color:var(--muted);line-height:1.55;">Full specification generated dynamically from live plugin state. Import into Postman, Insomnia, or any AI coding assistant. Covers all routes, schemas, and the BasicAuth security scheme.</p>
+              </div>
+            </li>
+            <li style="display:flex;gap:14px;align-items:flex-start;">
+              <span style="min-width:36px;height:36px;border-radius:8px;background:rgba(52,211,153,.1);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">🌐</span>
+              <div>
+                <p style="font-size:14px;font-weight:700;color:#fff;margin-bottom:2px;">robots.txt, HTTP headers &amp; &lt;head&gt; link tags</p>
+                <p style="font-size:13px;color:var(--muted);line-height:1.55;"><code style="font-size:11px;color:var(--accent);">AI-Layer:</code> directives in robots.txt. <code style="font-size:11px;color:var(--accent);">Link: rel="service"</code> and <code style="font-size:11px;color:var(--accent);">X-AI-Layer</code> HTTP headers on every response. Four <code style="font-size:11px;color:var(--accent);">&lt;link&gt;</code> tags plus a DataCatalog JSON-LD block in every page <code style="font-size:11px;color:var(--accent);">&lt;head&gt;</code>.</p>
+              </div>
+            </li>
+            <li style="display:flex;gap:14px;align-items:flex-start;">
+              <span style="min-width:36px;height:36px;border-radius:8px;background:rgba(251,146,60,.12);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">📄</span>
+              <div>
+                <p style="font-size:14px;font-weight:700;color:#fff;margin-bottom:2px;">Discovery pages, sitemap &amp; llms.txt</p>
+                <p style="font-size:13px;color:var(--muted);line-height:1.55;">Human-readable HTML at <code style="font-size:11px;color:var(--accent);">/ai-layer</code>, Markdown at <code style="font-size:11px;color:var(--accent);">/ai-layer.md</code>, XML sitemap at <code style="font-size:11px;color:var(--accent);">/ai-layer-sitemap.xml</code> (auto-injected into Yoast's index), <code style="font-size:11px;color:var(--accent);">/llms.txt</code>, and <code style="font-size:11px;color:var(--accent);">/.well-known/ai-layer</code>.</p>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(79,142,247,.1);">🛡️</div>
+        <h3>Schema.org JSON-LD</h3>
+        <p>Optional Organization, LocalBusiness, and FAQPage structured data output in <code style="color:var(--accent);font-size:12px;">&lt;head&gt;</code>. Works alongside Yoast SEO and Rank Math with conflict detection built in.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(52,211,153,.1);">⚙️</div>
+        <h3>Setup Wizard</h3>
+        <p>Auto-populate your Business Profile from existing data in WordPress, Yoast SEO, Rank Math, and WooCommerce. Every suggestion requires explicit approval. Nothing is written without confirmation. Run it again any time.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(124,90,247,.1);">🤝</div>
+        <h3>AI.txt (Beta)</h3>
+        <p>Publish a dynamic <code style="color:var(--accent);font-size:12px;">/ai.txt</code> file that declares your crawling, training, and attribution preferences to AI systems. Set global rules and agent-specific overrides for named crawlers. Conflict detection flags any existing physical file or plain-permalink clash.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(251,146,60,.1);">💬</div>
+        <h3>Answer Console Shortcode</h3>
+        <p>Embed the full answer engine query console on any page or post with <code style="color:var(--accent);font-size:12px;">[wpail_answer_console]</code>. Visitors type a natural language question and see the structured response — confidence, source, matched FAQ, actions, and proof — without accessing the admin.</p>
+      </div>
+
+      <div class="feature-card feature-card--wide">
+        <div>
+          <div class="feature-icon" style="background:rgba(251,146,60,.1);margin-bottom:18px;">📊</div>
+          <h3>Analytics Dashboard</h3>
+          <p>Built-in analytics track every request to your AI Layer endpoints automatically — no configuration needed. The moment AI systems start querying your data, you start seeing exactly what they're asking and where your answers are falling short.</p>
+          <p style="margin-top:12px;font-size:14px;color:var(--muted);">Configurable data retention (default 365 days) with automatic daily cleanup. No IP addresses or personal data stored.</p>
+        </div>
+        <div>
+          <ul style="list-style:none;display:flex;flex-direction:column;gap:14px;">
+            <li style="display:flex;gap:14px;align-items:flex-start;">
+              <span style="min-width:36px;height:36px;border-radius:8px;background:rgba(251,146,60,.12);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">❓</span>
+              <div>
+                <p style="font-size:14px;font-weight:700;color:#fff;margin-bottom:2px;">Top questions AI is asking</p>
+                <p style="font-size:13px;color:var(--muted);line-height:1.55;">Ranked table of the most frequent queries sent to the answer engine, with ask count and per-question answer rate.</p>
+              </div>
+            </li>
+            <li style="display:flex;gap:14px;align-items:flex-start;">
+              <span style="min-width:36px;height:36px;border-radius:8px;background:rgba(248,113,113,.1);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">⚠️</span>
+              <div>
+                <p style="font-size:14px;font-weight:700;color:#fff;margin-bottom:2px;">Missing intents — unanswered queries</p>
+                <p style="font-size:13px;color:var(--muted);line-height:1.55;">Questions the engine couldn't answer, ranked by frequency. Direct links to add a FAQ or Authored Answer for each gap.</p>
+              </div>
+            </li>
+            <li style="display:flex;gap:14px;align-items:flex-start;">
+              <span style="min-width:36px;height:36px;border-radius:8px;background:rgba(79,142,247,.1);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">📈</span>
+              <div>
+                <p style="font-size:14px;font-weight:700;color:#fff;margin-bottom:2px;">Endpoint hit breakdown</p>
+                <p style="font-size:13px;color:var(--muted);line-height:1.55;">Per-endpoint hit counts with an inline bar chart showing relative share across all active endpoints.</p>
+              </div>
+            </li>
+            <li style="display:flex;gap:14px;align-items:flex-start;">
+              <span style="min-width:36px;height:36px;border-radius:8px;background:rgba(52,211,153,.1);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">🗓️</span>
+              <div>
+                <p style="font-size:14px;font-weight:700;color:#fff;margin-bottom:2px;">Period filtering</p>
+                <p style="font-size:13px;color:var(--muted);line-height:1.55;">Switch between Last 7 days, 30 days, 90 days, and All time. Stats and all tables update instantly.</p>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── AI Import ── -->
+<section id="import">
+  <div class="container">
+    <div class="section-eyebrow">AI Import</div>
+    <h2 class="section-title">Already have a website?<br><span style="background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Let AI do the data entry.</span></h2>
+    <p class="section-sub">Point AI Import at your existing pages — your services page, about page, areas covered page — and it extracts structured entities automatically. Everything lands as a draft for you to review. Nothing goes live until you say so.</p>
+
+    <div class="import-layout">
+      <div>
+        <p style="font-size:15px;font-weight:700;color:#fff;margin-bottom:20px;">How it works</p>
+        <ol class="import-steps">
+          <li class="import-step">
+            <div>
+              <strong>Select your pages</strong>
+              <span>Tick one or more published pages — your services page, about page, or any page that describes your business.</span>
+            </div>
+          </li>
+          <li class="import-step">
+            <div>
+              <strong>Choose entity types</strong>
+              <span>Tick what to extract: Services, FAQs, Locations, Proof &amp; Trust, Actions. You can untick types you've already entered manually.</span>
+            </div>
+          </li>
+          <li class="import-step">
+            <div>
+              <strong>AI extracts and creates drafts</strong>
+              <span>Each entity type is processed in a separate step. A live progress bar shows you exactly where it is. All items are saved as draft posts.</span>
+            </div>
+          </li>
+          <li class="import-step">
+            <div>
+              <strong>Automatic relationship pass</strong>
+              <span>After all entities are extracted, a final AI step links relationships: FAQs to services, proof to locations, actions to services, and more.</span>
+            </div>
+          </li>
+          <li class="import-step">
+            <div>
+              <strong>Review and publish</strong>
+              <span>Check titles, content, and relationships. Publish the ones you want to keep. Trash the rest. Nothing affects your live site until you publish.</span>
+            </div>
+          </li>
+        </ol>
+
+        <div style="margin-top:28px;">
+          <p style="font-size:13px;font-weight:700;color:#fff;margin-bottom:10px;">Supported providers</p>
+          <div class="provider-chips">
+            <div class="provider-chip"><span class="provider-chip-dot"></span> GPT-4o Mini <span style="font-size:11px;color:var(--green);margin-left:4px;">recommended</span></div>
+            <div class="provider-chip"><span class="provider-chip-dot"></span> GPT-4.1 Mini</div>
+            <div class="provider-chip"><span class="provider-chip-dot"></span> GPT-4o</div>
+            <div class="provider-chip"><span class="provider-chip-dot"></span> GPT-4.1</div>
+            <div class="provider-chip"><span class="provider-chip-dot"></span> Claude Haiku 4.5</div>
+            <div class="provider-chip"><span class="provider-chip-dot"></span> Claude Sonnet 4.6</div>
+            <div class="provider-chip"><span class="provider-chip-dot"></span> Claude Opus 4.7</div>
+            <div class="provider-chip"><span class="provider-chip-dot"></span> Gemini 2.5 Flash</div>
+            <div class="provider-chip"><span class="provider-chip-dot"></span> Gemini 2.5 Pro</div>
+          </div>
+          <p style="font-size:13px;color:var(--muted);margin-top:12px;">Bring your own API key. A typical import costs a few cents at provider rates.</p>
+          <p style="font-size:13px;color:var(--muted);margin-top:8px;">For the relationship-linking step, a stronger model — GPT-4.1, Claude Sonnet 4.6, or Gemini 2.5 Pro — will give more accurate results.</p>
+        </div>
+      </div>
+
+      <div>
+        <p style="font-size:15px;font-weight:700;color:#fff;margin-bottom:20px;">Relationship Management</p>
+        <p style="font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.65;">After importing, three dedicated tools let you build and maintain the relationship graph between your entities.</p>
+
+        <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:28px;">
+          <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:18px 20px;">
+            <p style="font-size:14px;font-weight:700;color:#fff;margin-bottom:6px;">Resync All Relationships</p>
+            <p style="font-size:13px;color:var(--muted);line-height:1.6;">Repairs any missing inverse links using data already saved. Non-AI, additive only, safe to run at any time. No API key required.</p>
+          </div>
+          <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:18px 20px;">
+            <p style="font-size:14px;font-weight:700;color:#fff;margin-bottom:6px;">Find New Relationships</p>
+            <p style="font-size:13px;color:var(--muted);line-height:1.6;">Uses AI to discover relationships not yet set and adds them. Additive only — does not remove existing links. Requires an API key.</p>
+          </div>
+          <div style="background:var(--bg3);border:1px solid rgba(248,113,113,.25);border-radius:var(--radius-sm);padding:18px 20px;">
+            <p style="font-size:14px;font-weight:700;color:#fff;margin-bottom:6px;">Rebuild All Relationships <span style="font-size:11px;font-weight:600;background:rgba(248,113,113,.12);color:var(--red);padding:2px 7px;border-radius:4px;margin-left:6px;">Destructive</span></p>
+            <p style="font-size:13px;color:var(--muted);line-height:1.6;">AI sets the complete, authoritative set of relationships for every entity. Replaces all existing relationship data. Review manually afterwards.</p>
+          </div>
+        </div>
+
+        <p style="font-size:13px;font-weight:700;color:#fff;margin-bottom:12px;">Relationship rules</p>
+        <table class="rel-table">
+          <thead>
+            <tr><th>Link</th><th>Applied when…</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>FAQ → Service</td><td>The FAQ is clearly about that service</td></tr>
+            <tr><td>Proof → Service</td><td>Clearly about a specific service, not general company-wide proof</td></tr>
+            <tr><td>Proof → Location</td><td>A place name is explicitly stated in the proof text — never inferred</td></tr>
+            <tr><td>Action → Service</td><td>The action is the primary way to enquire about or book that service</td></tr>
+            <tr><td>Location → Service</td><td>The service is offered at that location</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Answer Engine ── -->
+<section id="engine">
+  <div class="container">
+    <div class="section-eyebrow">The Answer Engine</div>
+    <h2 class="section-title">Natural language questions.<br>Structured, grounded answers.</h2>
+    <p class="section-sub">Send a plain English question like "Do you offer SEO in London?" or "How much does web design cost?" and the engine assembles a complete, sourced response. No external AI. No API keys. Runs entirely on your server.</p>
+
+    <div class="engine-layout">
+      <div>
+        <p style="font-size:15px;color:var(--muted);margin-bottom:4px;font-weight:600;color:#fff;">The pipeline</p>
+        <p style="font-size:15px;color:var(--muted);margin-bottom:24px;">Each step scores available data and builds the best possible response:</p>
+        <ol class="engine-steps">
+          <li class="engine-step">
+            <div class="engine-step-content">
+              <strong>Manual answer check</strong>
+              <span>Authored answers match first, providing guaranteed responses for high-value queries. Always wins.</span>
+            </div>
+          </li>
+          <li class="engine-step">
+            <div class="engine-step-content">
+              <strong>Service detection</strong>
+              <span>Services scored by keyword and synonym overlap with the query. Best match selected.</span>
+            </div>
+          </li>
+          <li class="engine-step">
+            <div class="engine-step-content">
+              <strong>Location detection</strong>
+              <span>Query terms matched against location names, regions, and postcode prefixes.</span>
+            </div>
+          </li>
+          <li class="engine-step">
+            <div class="engine-step-content">
+              <strong>FAQ scoring</strong>
+              <span>FAQs scored by match quality, then filtered to those linked to the detected service.</span>
+            </div>
+          </li>
+          <li class="engine-step">
+            <div class="engine-step-content">
+              <strong>Response assembly</strong>
+              <span>Best FAQ assembled with up to 3 Actions and 3 Proof items. Confidence level attached.</span>
+            </div>
+          </li>
+        </ol>
+      </div>
+      <div>
+        <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+          <span class="badge badge-green">✓ No external API</span>
+          <span class="badge badge-blue">✓ Confidence scoring</span>
+          <span class="badge badge-purple">✓ Source attribution</span>
+        </div>
+        <div class="code-wrap">
+          <div class="code-header">
+            <div class="code-dots">
+              <div class="code-dot" style="background:#ff5f57"></div>
+              <div class="code-dot" style="background:#febc2e"></div>
+              <div class="code-dot" style="background:#28c840"></div>
+            </div>
+            <span class="code-label">GET /wp-json/ai-layer/v1/answers?query=...</span>
+            <span class="code-tag">response</span>
+          </div>
+          <pre><span class="t-p">{</span>
+  <span class="t-k">"answer_short"</span><span class="t-p">:</span>   <span class="t-s">"Yes, we offer SEO audits in London."</span><span class="t-p">,</span>
+  <span class="t-k">"answer_long"</span><span class="t-p">:</span>    <span class="t-s">"Our London SEO audit covers..."</span><span class="t-p">,</span>
+  <span class="t-k">"modified_at"</span><span class="t-p">:</span>    <span class="t-s">"2026-04-28T10:15:00Z"</span><span class="t-p">,</span>
+  <span class="t-k">"confidence"</span><span class="t-p">:</span>     <span class="t-s">"high"</span><span class="t-p">,</span>
+  <span class="t-k">"source"</span><span class="t-p">:</span>         <span class="t-s">"faq"</span><span class="t-p">,</span>
+  <span class="t-k">"services"</span><span class="t-p">:</span>       <span class="t-p">[{</span>
+    <span class="t-k">"id"</span><span class="t-p">:</span>          <span class="t-n">12</span><span class="t-p">,</span>
+    <span class="t-k">"slug"</span><span class="t-p">:</span>       <span class="t-s">"seo-audit"</span><span class="t-p">,</span>
+    <span class="t-k">"name"</span><span class="t-p">:</span>       <span class="t-s">"SEO Audit"</span><span class="t-p">,</span>
+    <span class="t-k">"modified_at"</span><span class="t-p">:</span> <span class="t-s">"2026-04-26T14:29:29Z"</span>
+  <span class="t-p">}],</span>
+  <span class="t-k">"locations"</span><span class="t-p">:</span>      <span class="t-p">[{</span>
+    <span class="t-k">"id"</span><span class="t-p">:</span>          <span class="t-n">5</span><span class="t-p">,</span>
+    <span class="t-k">"slug"</span><span class="t-p">:</span>       <span class="t-s">"london"</span><span class="t-p">,</span>
+    <span class="t-k">"name"</span><span class="t-p">:</span>       <span class="t-s">"London"</span><span class="t-p">,</span>
+    <span class="t-k">"modified_at"</span><span class="t-p">:</span> <span class="t-s">"2026-03-12T09:00:00Z"</span>
+  <span class="t-p">}],</span>
+  <span class="t-k">"actions"</span><span class="t-p">:</span> <span class="t-p">[</span>
+    <span class="t-p">{</span>
+      <span class="t-k">"id"</span><span class="t-p">:</span>     <span class="t-n">3</span><span class="t-p">,</span>
+      <span class="t-k">"type"</span><span class="t-p">:</span>   <span class="t-s">"book"</span><span class="t-p">,</span>
+      <span class="t-k">"label"</span><span class="t-p">:</span>  <span class="t-s">"Book a Free Consultation"</span><span class="t-p">,</span>
+      <span class="t-k">"url"</span><span class="t-p">:</span>    <span class="t-s">"https://example.com/book"</span><span class="t-p">,</span>
+      <span class="t-k">"phone"</span><span class="t-p">:</span>  <span class="t-l">null</span><span class="t-p">,</span>
+      <span class="t-k">"method"</span><span class="t-p">:</span> <span class="t-s">"get"</span>
+    <span class="t-p">},</span>
+    <span class="t-p">{</span>
+      <span class="t-k">"id"</span><span class="t-p">:</span>     <span class="t-n">7</span><span class="t-p">,</span>
+      <span class="t-k">"type"</span><span class="t-p">:</span>   <span class="t-s">"call"</span><span class="t-p">,</span>
+      <span class="t-k">"label"</span><span class="t-p">:</span>  <span class="t-s">"Call Us Now"</span><span class="t-p">,</span>
+      <span class="t-k">"url"</span><span class="t-p">:</span>    <span class="t-l">null</span><span class="t-p">,</span>
+      <span class="t-k">"phone"</span><span class="t-p">:</span>  <span class="t-s">"+44 161 123 4567"</span><span class="t-p">,</span>
+      <span class="t-k">"method"</span><span class="t-p">:</span> <span class="t-s">"get"</span>
+    <span class="t-p">}</span>
+  <span class="t-p">],</span>
+  <span class="t-k">"source_faqs"</span><span class="t-p">:</span> <span class="t-p">[{</span>
+    <span class="t-k">"id"</span><span class="t-p">:</span>           <span class="t-n">42</span><span class="t-p">,</span>
+    <span class="t-k">"question"</span><span class="t-p">:</span>     <span class="t-s">"Do you offer SEO audits in London?"</span><span class="t-p">,</span>
+    <span class="t-k">"short_answer"</span><span class="t-p">:</span> <span class="t-s">"Yes, we offer SEO audits in London."</span><span class="t-p">,</span>
+    <span class="t-k">"modified_at"</span><span class="t-p">:</span>  <span class="t-s">"2026-04-01T11:30:00Z"</span>
+  <span class="t-p">}],</span>
+  <span class="t-k">"supporting_data"</span><span class="t-p">:</span> <span class="t-p">[</span>
+    <span class="t-p">{</span>
+      <span class="t-k">"id"</span><span class="t-p">:</span>          <span class="t-n">8</span><span class="t-p">,</span>
+      <span class="t-k">"type"</span><span class="t-p">:</span>       <span class="t-s">"statistic"</span><span class="t-p">,</span>
+      <span class="t-k">"headline"</span><span class="t-p">:</span>   <span class="t-s">"214% avg organic traffic increase"</span><span class="t-p">,</span>
+      <span class="t-k">"modified_at"</span><span class="t-p">:</span> <span class="t-s">"2026-02-15T08:00:00Z"</span>
+    <span class="t-p">},</span>
+    <span class="t-p">{</span>
+      <span class="t-k">"id"</span><span class="t-p">:</span>          <span class="t-n">11</span><span class="t-p">,</span>
+      <span class="t-k">"type"</span><span class="t-p">:</span>       <span class="t-s">"accreditation"</span><span class="t-p">,</span>
+      <span class="t-k">"headline"</span><span class="t-p">:</span>   <span class="t-s">"Certified Google Partner since 2019"</span><span class="t-p">,</span>
+      <span class="t-k">"modified_at"</span><span class="t-p">:</span> <span class="t-s">"2026-01-10T12:00:00Z"</span>
+    <span class="t-p">}</span>
+  <span class="t-p">]</span>
+<span class="t-p">}</span></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Entities ── -->
+<section style="background:var(--bg2);">
+  <div class="container">
+    <div class="section-eyebrow text-center">Data Model</div>
+    <h2 class="section-title text-center">Six typed entities.<br>All connected.</h2>
+    <p class="section-sub centered">Every entity type has proper fields, relationships, and metadata. A service knows its FAQs. A FAQ knows its service. Proof attaches to both. Everything connects.</p>
+
+    <div class="entities-grid">
+      <div class="entity-card">
+        <div class="entity-icon">🏢</div>
+        <h3>Business Profile</h3>
+        <p>Canonical name, contact, address, hours, social links, and brand tone. The authoritative identity of your business served at <code style="color:var(--accent);font-size:11px;">/profile</code>.</p>
+      </div>
+      <div class="entity-card">
+        <div class="entity-icon">📋</div>
+        <h3>Services</h3>
+        <p>What you offer, with keywords, synonyms, pricing signals, benefits, and customer types. Powers intent matching in the answer engine.</p>
+      </div>
+      <div class="entity-card">
+        <div class="entity-icon">📍</div>
+        <h3>Locations</h3>
+        <p>Physical or virtual locations with postcodes, regions, and service radius. Linked to services for geographic intent detection.</p>
+      </div>
+      <div class="entity-card">
+        <div class="entity-icon">💬</div>
+        <h3>FAQs</h3>
+        <p>Questions and answers linked to specific services. The primary source for the answer engine's dynamic responses. Short and long answer variants.</p>
+      </div>
+      <div class="entity-card">
+        <div class="entity-icon">🏆</div>
+        <h3>Proof &amp; Trust</h3>
+        <p>Testimonials, statistics, accreditations, case studies, and awards. Attached to answers as supporting evidence not just social proof copy.</p>
+      </div>
+      <div class="entity-card">
+        <div class="entity-icon">⚡</div>
+        <h3>Actions</h3>
+        <p>Calls-to-action returned with every answer book, call, email, quote, download. Linked to services so the right action surfaces for the right query.</p>
+      </div>
+    </div>
+
+    <div style="margin-top:24px;background:rgba(124,90,247,.06);border:1px solid rgba(124,90,247,.2);border-radius:var(--radius);padding:24px 28px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+      <span style="font-size:28px;">🛒</span>
+      <div>
+        <p style="font-size:15px;font-weight:700;color:#fff;margin-bottom:4px;">Using WooCommerce?</p>
+        <p style="font-size:15px;color:var(--muted);line-height:1.6;">Enable the optional <code style="color:var(--accent);font-size:12px;">/products</code> endpoint to expose your live product catalogue as structured, queryable data. AI systems can retrieve product details, pricing, categories, and descriptions in a single request. Your WooCommerce products are not duplicated or re-entered — AI Layer reads directly from your existing catalogue. <a href="https://github.com/james-s-k/ai-layer" target="_blank" style="color:var(--accent);font-weight:600;white-space:nowrap;">Learn more →</a></p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── AI Discovery ── -->
+<section>
+  <div class="container">
+    <div class="section-eyebrow text-center">AI Discovery</div>
+    <h2 class="section-title text-center">AI systems can find<br>your data from any entry point</h2>
+    <p class="section-sub centered">Three complementary discovery signals ensure AI crawlers, agents, and search tools know exactly where to find your structured data whatever their preferred protocol.</p>
+
+    <div class="discovery-grid">
+      <div class="discovery-card">
+        <div class="d-icon">🗺️</div>
+        <h3>/.well-known/ai-layer</h3>
+        <p>A machine-readable JSON discovery document listing all active endpoints. The authoritative source of truth for agents and tools that query programmatically.</p>
+        <code>/.well-known/ai-layer</code>
+      </div>
+      <div class="discovery-card">
+        <div class="d-icon">📝</div>
+        <h3>llms.txt</h3>
+        <p>A human-readable text file following the emerging llms.txt standard. In recommended mode, it links to the well-known document as a signpost for AI systems reading your site.</p>
+        <code>/llms.txt</code>
+      </div>
+      <div class="discovery-card">
+        <div class="d-icon">🔗</div>
+        <h3>Discovery Link Tags</h3>
+        <p><code style="font-size:11px;color:var(--accent);">rel="ai-layer"</code> and <code style="font-size:11px;color:var(--accent);">rel="llms-txt"</code> injected into every page head. AI crawlers can discover your structured data layer from any page on your site.</p>
+        <code>&lt;link rel="ai-layer"&gt;</code>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Who it's for ── -->
+<section style="background:var(--bg2);" id="who">
+  <div class="container">
+    <div class="section-eyebrow text-center">Who It's For</div>
+    <h2 class="section-title text-center">Built for anyone who needs<br>AI to understand their business</h2>
+    <p class="section-sub centered">From solo site owners to development agencies: if you want AI systems to give accurate answers about your business, AI Layer is the missing piece.</p>
+
+    <div class="audience-grid">
+      <div class="audience-card">
+        <h3><span>🧑‍💻</span> Developers &amp; Agencies <span class="audience-tag">Technical</span></h3>
+        <ul>
+          <li>Clean REST API with typed, consistent responses. No reverse-engineering page templates</li>
+          <li>33 MCP tools for full CRUD via Claude, Cursor, or any MCP client</li>
+          <li>WordPress Abilities API integration structured for WordPress 6.9+ and beyond</li>
+          <li>WooCommerce product catalogue proxy via <code style="color:var(--accent);font-size:12px;">/products</code></li>
+          <li>Build AI chat, voice, or agent integrations on a stable, predictable foundation</li>
+        </ul>
+      </div>
+      <div class="audience-card">
+        <h3><span>📈</span> SEO Professionals <span class="audience-tag">SEO</span></h3>
+        <ul>
+          <li>Give AI search and AI Overviews an authoritative source not a scraped guess</li>
+          <li>llms.txt, ai.txt, and schema.org JSON-LD in one plugin, with conflict detection for Yoast &amp; Rank Math</li>
+          <li>Reduce hallucinated answers about your client's services, pricing, and locations</li>
+          <li>Control exactly what AI systems say about your business FAQ answers, proof, CTAs included</li>
+          <li>Discovery signals on every page head so AI crawlers can't miss your data</li>
+        </ul>
+      </div>
+      <div class="audience-card">
+        <h3><span>🏪</span> Business Owners <span class="audience-tag">Non-Technical</span></h3>
+        <ul>
+          <li>Setup Wizard auto-populates from your existing WordPress, Yoast, and WooCommerce data</li>
+          <li>Enter your services, FAQs, and contact details once AI gets them right every time</li>
+          <li>Author guaranteed answers to predictable questions ("Do you cover London?", "What are your prices?")</li>
+          <li>No coding required. No external accounts. No ongoing cost for the core plugin.</li>
+          <li>Works alongside your existing theme. No front-end changes</li>
+        </ul>
+      </div>
+      <div class="audience-card">
+        <h3><span>🔌</span> Integration Builders <span class="audience-tag">API</span></h3>
+        <ul>
+          <li>Single endpoint answers natural language questions power any chatbot or voice assistant</li>
+          <li>Every response includes confidence level, source attribution, and structured actions</li>
+          <li>MCP adapter support means AI agents can manage content, not just read it</li>
+          <li>/.well-known/ai-layer discovery document for programmatic endpoint detection</li>
+          <li>Consistent JSON shapes no parsing HTML, no layout dependency</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Integrations ── -->
+<section class="integrations">
+  <div class="container text-center">
+    <div class="section-eyebrow">Integrations</div>
+    <h2 class="section-title">Works with what you already have</h2>
+    <p class="section-sub centered">AI Layer reads from your existing plugins during setup and operates alongside them without conflict. No rip-and-replace required.</p>
+
+    <div class="integration-chips">
+      <div class="chip"><span class="chip-dot"></span> WordPress Core</div>
+      <div class="chip"><span class="chip-dot"></span> Yoast SEO</div>
+      <div class="chip"><span class="chip-dot"></span> Rank Math SEO</div>
+      <div class="chip"><span class="chip-dot"></span> WooCommerce</div>
+      <div class="chip"><span class="chip-dot"></span> Claude Desktop</div>
+      <div class="chip"><span class="chip-dot"></span> Cursor</div>
+      <div class="chip"><span class="chip-dot"></span> WordPress MCP Adapter</div>
+      <div class="chip"><span class="chip-dot"></span> Any REST client</div>
+      <div class="chip"><span class="chip-dot"></span> Any MCP client</div>
+      <div class="chip"><span class="chip-dot"></span> AI Chatbots</div>
+      <div class="chip"><span class="chip-dot"></span> Voice Assistants</div>
+      <div class="chip"><span class="chip-dot"></span> AI Search Tools</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Objections ── -->
+<section id="faq">
+  <div class="container">
+    <div class="section-eyebrow text-center">Common Questions</div>
+    <h2 class="section-title text-center">You might be thinking…</h2>
+    <p class="section-sub centered">AI Layer sits alongside REST, schema markup, and MCP. It doesn't replace them. Here's how it fits with what you already know.</p>
+
+    <div class="objections-grid">
+      <details class="objection">
+        <summary>"Isn't this just the WordPress REST API?"</summary>
+        <div class="objection-body">
+          <p>WordPress REST gives you general-purpose data access: posts, users, blocks. AI Layer adds <strong style="color:#fff;">purpose-built surfaces</strong>: a single business profile, typed entities with explicit relationships, and a natural-language answer engine built on top of that model.</p>
+          <p>Generic REST answers "what records exist?" AI Layer answers "what should an agent <em>do</em> with this business when someone asks a question" in one structured step, with confidence scoring and next actions attached.</p>
+        </div>
+      </details>
+      <details class="objection">
+        <summary>"Can't AI agents just crawl my site?"</summary>
+        <div class="objection-body">
+          <p>They can until layout changes, JavaScript gets in the way, or the answer depends on information scattered across three pages. Crawling is slow, token-heavy, and error-prone. Every page visit costs tokens. Every ambiguous sentence risks a wrong answer.</p>
+          <p>AI Layer offers <strong style="color:#fff;">stable, explicit inputs</strong> instead of best-effort scraping. That's the same reason you prefer a database over parsing HTML when reliability counts.</p>
+        </div>
+      </details>
+      <details class="objection">
+        <summary>"Schema.org markup already does this"</summary>
+        <div class="objection-body">
+          <p>Schema markup is page-level metadata for search engines, great for rich results, but not a full operational model of your business. It doesn't replace a connected graph of services, locations, FAQs, and actions. It doesn't drive query-shaped responses.</p>
+          <p>When you enable JSON-LD output in AI Layer, it generates schema from your structured data. The two work together: AI Layer is the model, schema is one output format from it.</p>
+        </div>
+      </details>
+      <details class="objection">
+        <summary>"MCP already solves this"</summary>
+        <div class="objection-body">
+          <p>MCP describes <strong style="color:#fff;">how</strong> an agent talks to tools. It doesn't define <strong style="color:#fff;">what</strong> your business objects are or how they relate. AI Layer is the data and behaviour model behind the tools; MCP is how clients reach it. They fit together, not against each other.</p>
+          <p>With the WordPress MCP Adapter, all 33 AI Layer abilities are exposed as MCP tools automatically. AI Layer provides the domain model; MCP provides the transport.</p>
+        </div>
+      </details>
+      <details class="objection">
+        <summary>"This seems like a lot to maintain"</summary>
+        <div class="objection-body">
+          <p>The data AI Layer asks you to maintain your services, locations, FAQs, proof, and contact details is data you'd manage for a serious site anyway. AI Layer just structures it properly and wires the relationships for you.</p>
+          <p>The Setup Wizard auto-populates from your existing WordPress, Yoast SEO, Rank Math, and WooCommerce data. And once it's in, every AI integration benefits from it: not just one chatbot, but any consumer that queries your endpoints.</p>
+        </div>
+      </details>
+      <details class="objection">
+        <summary>"Does it work with my existing theme and plugins?"</summary>
+        <div class="objection-body">
+          <p>Yes. AI Layer operates as a pure data and API layer. It doesn't modify your front-end, doesn't touch your theme, and doesn't conflict with page builders. It works alongside Yoast SEO and Rank Math with built-in conflict detection for schema and llms.txt.</p>
+          <p>WooCommerce users get an optional <code style="color:var(--accent);">/products</code> endpoint that proxies your live product catalogue. Requires WordPress 6.0+ and PHP 8.1+.</p>
+        </div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA ── -->
+<section class="cta-section">
+  <div class="container">
+    <h2>Your site is already full of the right information.<br>Make it readable by AI.</h2>
+    <p>Free to install. No external accounts. No API keys. Works with your existing setup.</p>
+    <div class="hero-actions">
+      <a href="https://github.com/james-s-k/ai-layer" class="btn btn-primary" target="_blank">Download Beta on GitHub →</a>
+      <a href="https://github.com/james-s-k/ai-layer" class="btn btn-secondary" target="_blank">View on GitHub</a>
+    </div>
+    <p style="margin-top:24px;font-size:13px;color:var(--muted);">WordPress 6.0+ &nbsp;·&nbsp; PHP 8.1+ &nbsp;·&nbsp; No external services required</p>
+  </div>
+</section>
+
+<!-- ── Footer ── -->
+<footer>
+  <div class="container">
+    <p>AI Layer WordPress Plugin &nbsp;·&nbsp; Free &amp; open source &nbsp;·&nbsp; Built for the AI era</p>
+  </div>
+</footer>
+
+</body>
+</html>
