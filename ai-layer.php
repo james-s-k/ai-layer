@@ -2,16 +2,17 @@
 /**
  * Plugin Name:       AI Layer
  * Plugin URI:        https://strivewp.com/ai-layer
- * Description:       Structured business knowledge layer for WordPress. Exposes canonical business data via versioned REST endpoints for AI systems, agents, and search tools.
+ * Description:       Structured business knowledge for WordPress: REST API, answer engine, AI discovery, MCP tools, and AI Import for agents and integrations.
  * Version:           1.6.0
  * Requires at least: 6.0
  * Requires PHP:      8.1
- * Author:            AI Layer
+ * Author:            James Koussertari
  * Author URI:        https://strivewp.com
  * License:           GPL v2 or later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       ai-layer
  * Domain Path:       /languages
+ * Network:           false
  *
  * @package WPAIL
  */

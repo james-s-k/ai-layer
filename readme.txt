@@ -8,7 +8,7 @@ Stable tag:        1.6.0
 License:           GPLv2 or later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 
-Structured business knowledge layer for WordPress. Give AI systems, agents, and search tools direct, accurate access to your business data.
+Structured business knowledge for WordPress: REST API, answer engine, AI discovery, MCP tools, and AI Import for agents and integrations.
 
 == Description ==
 
@@ -28,7 +28,7 @@ AI Layer does not modify your front-end. It operates as a pure data and API laye
 
 **REST API endpoints (base: /wp-json/ai-layer/v1/)**
 
-Read endpoints are public. Write endpoints (POST, PATCH, DELETE) require authentication via WordPress Application Passwords.
+Read endpoints are public for published content. Write endpoints (POST, PATCH, DELETE) require WordPress Application Passwords and the `wpail_manage_content` capability (Administrators have it by default).
 
 * `/profile` — Canonical business profile: name, contact, address, opening hours, social links
 * `/services` — All services; `/services/{slug}` for full detail with relationships
@@ -139,12 +139,49 @@ Optional Organization, LocalBusiness, and FAQPage structured data output in `<he
 * Not a generic schema plugin
 * Not an external AI service — the answer engine runs entirely on your server
 
+**Admin interface**
+
+All features are managed under **AI Layer** in the WordPress admin:
+
+* **Overview** — entity counts, REST endpoint table, setup progress, and discovery health checks
+* **Business Profile** — canonical business name, contact, address, hours, and social links
+* **Setup Wizard** — revisitable onboarding; imports suggestions from WordPress, Yoast SEO, Rank Math, and WooCommerce
+* **AI Import** — extract entities from existing pages; configure AI provider keys and models; relationship management tools
+* **Services, Locations, FAQs, Proof & Trust, Actions, Answers** — custom post types with structured meta boxes
+* **Settings** — schema.org output, endpoint cache TTL, AI discovery mode, post-type front-end visibility, WooCommerce products endpoint, analytics retention, uninstall behaviour
+* **llms.txt** — page picker, custom intro, live preview, SEO plugin conflict detection
+* **ai.txt (Beta)** — crawling, training, and attribution preferences with agent-specific rules
+* **Test Answer Engine** — internal query console for debugging the answer engine
+* **Analytics** — endpoint hits, top questions, missing intents, and write audit log
+* **Help & Docs** — answer engine pipeline, MCP connection guide, and REST reference
+
+**Security & privacy**
+
+* Public REST and MCP read tools return **published content only** — draft and private entity posts are excluded
+* Internal fields (marked in field definitions) are never included in API responses
+* Anonymous REST traffic is rate-limited (120 reads/minute; 30 answer queries/minute); authenticated users with `wpail_manage_content` are exempt
+* AI Import provider API keys are encrypted before storage in the WordPress database
+* Analytics logs query strings and endpoint paths only — no IP addresses or personal data
+* Answer engine query patterns on authored Answers are omitted from public REST responses
+
 **Built for**
 
 * Local service businesses
 * Agencies and consultancies
 * Brochure and lead-generation websites
 * Any business with services, locations, FAQs, and clear next steps
+
+== External services ==
+
+This plugin can connect to third-party AI providers **only when you explicitly use AI Import or the AI relationship tools**, and only if you enter your own API key.
+
+* **OpenAI** — https://openai.com/ — page content is sent for entity extraction and relationship linking when you run AI Import
+* **Anthropic** — https://anthropic.com/ — same as above, when Anthropic is your selected provider
+* **Google (Gemini)** — https://ai.google/ — same as above, when Google is your selected provider
+
+No data is sent to these services unless you configure a key and start an import or relationship operation. The rules-based answer engine, REST API, discovery files, and analytics do **not** call external AI services.
+
+Terms and privacy policies for each provider apply to data you send through AI Import.
 
 == Installation ==
 
@@ -156,8 +193,25 @@ Optional Organization, LocalBusiness, and FAQPage structured data output in `<he
 6. Optionally enable llms.txt at **AI Layer → llms.txt**
 7. If WooCommerce is active, optionally enable the `/products` endpoint at **AI Layer → Settings**
 8. Visit `/.well-known/ai-layer` to verify your discovery document is live
+9. For MCP agent access, install the [WordPress MCP Adapter](https://github.com/wordpress/mcp-adapter) plugin (requires WordPress 6.9+)
 
 == Frequently Asked Questions ==
+
+= How do I authenticate REST write requests? =
+
+Create an Application Password under **Users → Profile → Application Passwords**, then send HTTP Basic Auth with a user account that has the `wpail_manage_content` capability. Administrators receive this capability automatically on activation. Grant it to other roles with a role editor plugin if needed.
+
+= Does AI Import send my content to OpenAI or other providers? =
+
+Only when you run AI Import or an AI-powered relationship tool, and only to the provider whose API key you configured. Page text from your selected published pages is included in the API request. Nothing is sent automatically on plugin activation or during normal REST/answer engine operation.
+
+= Are public REST endpoints rate-limited? =
+
+Yes. Unauthenticated GET requests to `/wp-json/ai-layer/v1/` are limited to 120 requests per minute per IP, and answer engine queries (`/answers?query=...`) to 30 per minute. Logged-in users with `wpail_manage_content` are not throttled.
+
+= What do I need for MCP integration? =
+
+WordPress 6.9 or later (for the core Abilities API), the [WordPress MCP Adapter](https://github.com/wordpress/mcp-adapter) plugin installed and active, and a user with `wpail_manage_content` for write/delete tools. AI Layer registers 33 abilities automatically — no extra configuration required.
 
 = What does AI Import actually do? =
 
@@ -189,7 +243,7 @@ Yes. Empty endpoints return empty arrays. The plugin is fully functional with pa
 
 = Is the data public? =
 
-All REST endpoints are public and read-only. Private fields (marked as internal in the field definitions) are automatically excluded from API responses.
+All REST read endpoints are public for **published** entity posts. Draft and private items return 404 on public GET requests. Fields marked as internal in the field definitions are always excluded from API responses. Write operations always require authentication.
 
 = What is the difference between /.well-known/ai-layer and llms.txt? =
 
@@ -221,24 +275,28 @@ Single-site only in the current version. Multisite support is not explicitly blo
 
 == Screenshots ==
 
-1. Overview dashboard showing entity counts, REST endpoint table, and getting-started checklist
+1. Overview dashboard with entity counts, REST endpoints, setup progress, and discovery health
 2. Business Profile admin page
 3. Setup Wizard — Detect step showing available data sources
-4. Setup Wizard — Discovery step for endpoint mode, llms.txt, and AI.txt
+4. AI Import — page picker, entity type selection, and extraction progress
 5. llms.txt settings page with live preview and conflict detection
 6. AI.txt settings page with global rules, agent-specific repeater, and live preview
-7. Service CPT edit screen with meta box showing all field groups
-8. Settings page — AI Discovery section
+7. Service edit screen with structured meta box field groups
+8. Analytics dashboard — top questions, missing intents, and endpoint breakdown
 
 == Changelog ==
 
 = 1.6.0 =
-* **AI Import** — new admin page at AI Layer → AI Import; point the tool at any published page and AI extracts Services, FAQs, Locations, Proof & Trust, and Actions as drafts; step-by-step extraction with a live progress bar; final automatic relationship-linking pass after all entity types are processed
-* **Multi-provider AI support** — OpenAI (GPT-4o Mini, GPT-4.1 Mini, GPT-4o, GPT-4.1), Anthropic (Claude Haiku 4.5, Claude Sonnet 4.6, Claude Opus 4.7), and Google (Gemini 2.5 Flash, Gemini 2.5 Pro); configure API keys per provider in AI Import settings; GPT-4o Mini is the recommended default
-* **Selective entity extraction** — choose which entity types to extract per import run; run again with only the types you want to top up
+* **AI Import** — new admin page at AI Layer → AI Import; point the tool at any published page and AI extracts Services, FAQs, Locations, Proof & Trust, and Actions as drafts; step-by-step extraction with a live progress bar; persistent import jobs (24-hour retention); duplicate detection with skip counts in the UI; final automatic relationship-linking pass after all entity types are processed
+* **Multi-provider AI support** — OpenAI (GPT-4o Mini, GPT-4.1 Mini, GPT-4o, GPT-4.1), Anthropic (Claude Haiku 4.5, Claude Sonnet 4.6, Claude Opus 4.7), and Google (Gemini 2.5 Flash, Gemini 2.5 Pro); configure API keys per provider in AI Import settings; GPT-4o Mini is the recommended default; API keys encrypted at rest in the database
+* **Selective entity extraction** — choose which entity types to extract per import run; run again with only the types you want to top up; 20,000-character content limit per page for extraction requests
 * **Relationship management tools** — three dedicated tools in the Relationships section: Resync All Relationships (non-AI, repairs missing inverse links, additive), Find New Relationships (AI-powered, additive), Rebuild All Relationships (AI-powered, authoritative — replaces all relationship data)
 * **Relationship rules** — AI is instructed to link FAQs to services, proof to services and explicitly-named locations only, actions to services, and locations to services; strict prompt constraints prevent the AI from inventing location links when no place name appears in the proof text
 * **Confirmation dialogs** — all three relationship management buttons require confirmation before proceeding; the Rebuild button includes a destructive-action warning
+* **Onboarding** — activation redirect to Setup Wizard for first-time installs; improved admin menu order; discovery health panel on Overview
+* **Security** — public REST and MCP reads exclude draft/private entities; REST rate limiting for anonymous traffic; authored Answer query patterns omitted from public REST responses; MCP write tools unified under `wpail_manage_content`
+* **Settings** — endpoint cache TTL wired to discovery and REST response caching
+* **Help & Docs** — in-plugin documentation for the answer engine pipeline and MCP tool names
 
 = 1.5.0 =
 * **Manifest endpoint** — `GET /wp-json/ai-layer/v1/manifest` returns a semantic manifest: site info, all active entity endpoint URLs, discovery channel URLs, relationship capabilities, query capabilities, and authentication details
@@ -268,7 +326,7 @@ Single-site only in the current version. Multisite support is not explicitly blo
 * **Configurable data retention** — default 365 days; configurable in Settings → Data Management → Analytics retention; leave blank for unlimited; old records pruned automatically by WP-Cron each day; no IP addresses or personal data stored
 
 = 1.3.0 =
-* **Answer Console shortcode** — `[wpail_answer_console]` embeds the full answer engine query console on any page or post; visitors can ask natural language questions and see the full structured response (confidence, source, matched FAQ, actions, proof, raw JSON); no login required when Pro is active
+* **Answer Console shortcode** — `[wpail_answer_console]` embeds the full answer engine query console on any page or post; visitors can ask natural language questions and see the full structured response (confidence, source, matched FAQ, actions, proof, raw JSON); no login required
 * **Shared rendering layer** — admin test page and frontend shortcode share a single rendering class, eliminating duplicated markup and JS
 
 = 1.2.0 =
@@ -277,7 +335,7 @@ Single-site only in the current version. Multisite support is not explicitly blo
 * **Answers CRUD** — `POST /answers`, `GET /answers/{id}`, `PATCH /answers/{id}`, `DELETE /answers/{id}` added; `GET /answers` (no `?query`) now lists all authored Answers for management; five new MCP tools (`ai-layer-list-answers`, `ai-layer-get-answer`, `ai-layer-create-answer`, `ai-layer-update-answer`, `ai-layer-delete-answer`)
 * **Write endpoints** — POST, PATCH, and DELETE added for all six entity CPTs via the REST API; authenticated with WordPress Application Passwords
 * **Single-item GET** — `GET /faqs/{id}`, `GET /proof/{id}`, `GET /actions/{id}`, and `GET /answers/{id}` added
-* **Authentication** — write endpoints use WordPress Application Passwords (HTTP Basic Auth); `edit_posts` required; 401 for missing credentials, 403 for insufficient permissions
+* **Authentication** — write endpoints use WordPress Application Passwords (HTTP Basic Auth); `wpail_manage_content` required; 401 for missing credentials, 403 for insufficient permissions
 * **Relationship sync on write** — POST and PATCH maintain bidirectional relationships; DELETE cleans up all inverse references before removing the post
 * **Partial updates** — PATCH and MCP update tools only change fields present in the request; omitted fields are untouched
 * **Answer engine extracted** — `AnswerEngine` class shared by the REST endpoint and MCP ability
