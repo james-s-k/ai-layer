@@ -14,6 +14,7 @@ use WPAIL\Admin\AiImportPage;
 use WPAIL\Admin\Assets;
 use WPAIL\Admin\BusinessProfilePage;
 use WPAIL\Admin\LLMsTxtPage;
+use WPAIL\Admin\PageSearchAjax;
 use WPAIL\Admin\AiTxtPage;
 use WPAIL\Admin\SetupWizardPage;
 use WPAIL\Admin\SettingsPage;
@@ -156,6 +157,7 @@ final class Plugin {
 		( new SetupWizardPage() )->register();
 		( new SettingsPage() )->register();
 		( new Assets() )->register();
+		( new PageSearchAjax() )->register();
 
 		( new ServiceMetaBox() )->register();
 		( new LocationMetaBox() )->register();

@@ -48,12 +48,137 @@ class AiSettings {
 	}
 
 	public static function get_api_key( string $provider ): string {
+		$connector_key = ConnectorBridge::get_api_key( $provider );
+		if ( '' !== $connector_key ) {
+			return $connector_key;
+		}
+
 		return (string) self::get( 'api_key_' . $provider, '' );
 	}
 
+	public static function get_local_api_key( string $provider ): string {
+		return (string) self::get( 'api_key_' . $provider, '' );
+	}
+
+	public static function is_provider_configured( string $provider ): bool {
+		return '' !== self::get_api_key( $provider );
+	}
+
+	public static function is_selected_provider_configured(): bool {
+		$model    = self::get_selected_model();
+		$info     = self::get_model_info( $model );
+		$provider = $info['provider'] ?? 'openai';
+
+		return self::is_provider_configured( $provider );
+	}
+
+	/** @return list<string> Provider slugs with a configured API key. */
+	public static function get_configured_providers(): array {
+		$configured = [];
+		foreach ( array_keys( self::PROVIDER_LABELS ) as $provider ) {
+			if ( self::is_provider_configured( $provider ) ) {
+				$configured[] = $provider;
+			}
+		}
+		return $configured;
+	}
+
+	/**
+	 * Models the user can select — limited to providers with API keys when any are set.
+	 *
+	 * @return array<string, array<string, string>>
+	 */
+	public static function get_available_models(): array {
+		$configured = self::get_configured_providers();
+
+		if ( empty( $configured ) ) {
+			return self::MODELS;
+		}
+
+		return array_filter(
+			self::MODELS,
+			static fn( array $info ): bool => in_array( $info['provider'], $configured, true )
+		);
+	}
+
+	/**
+	 * Echo <option>/<optgroup> markup for the model selector.
+	 */
+	public static function render_model_options( string $selected ): void {
+		$available        = self::get_available_models();
+		$current_provider = '';
+
+		foreach ( $available as $model_id => $info ) {
+			if ( $info['provider'] !== $current_provider ) {
+				if ( '' !== $current_provider ) {
+					echo '</optgroup>';
+				}
+				$current_provider = $info['provider'];
+				$group_label      = self::PROVIDER_LABELS[ $current_provider ] ?? $current_provider;
+				echo '<optgroup label="' . esc_attr( $group_label ) . '">';
+			}
+			printf(
+				'<option value="%s" %s>%s (%s)</option>',
+				esc_attr( $model_id ),
+				selected( $selected, $model_id, false ),
+				esc_html( $info['name'] ),
+				esc_html( $info['speed'] )
+			);
+		}
+
+		if ( '' !== $current_provider ) {
+			echo '</optgroup>';
+		}
+	}
+
+	/**
+	 * Persist model and optional plugin-local API keys (used when Connectors API is unavailable).
+	 *
+	 * @param array<string, mixed> $raw_post Unslashed POST data.
+	 */
+	public static function save_from_request( array $raw_post ): void {
+		$current = get_option( self::OPTION_KEY, [] );
+		if ( ! is_array( $current ) ) {
+			$current = [];
+		}
+
+		$model     = sanitize_text_field( $raw_post['wpail_ai_model'] ?? '' );
+		$available = self::get_available_models();
+
+		if ( isset( $available[ $model ] ) ) {
+			$current['model'] = $model;
+		} elseif ( ! empty( $available ) ) {
+			$current['model'] = (string) array_key_first( $available );
+		} else {
+			$current['model'] = isset( self::MODELS[ $model ] ) ? $model : self::DEFAULT_MODEL;
+		}
+
+		foreach ( array_keys( self::PROVIDER_LABELS ) as $provider ) {
+			$raw_key = sanitize_text_field( $raw_post[ 'wpail_ai_key_' . $provider ] ?? '' );
+			if ( '' !== $raw_key ) {
+				$current[ 'api_key_' . $provider ] = $raw_key;
+			}
+		}
+
+		update_option( self::OPTION_KEY, $current );
+	}
+
 	public static function get_selected_model(): string {
-		$model = (string) self::get( 'model', self::DEFAULT_MODEL );
-		return isset( self::MODELS[ $model ] ) ? $model : self::DEFAULT_MODEL;
+		$saved = (string) self::get( 'model', self::DEFAULT_MODEL );
+		if ( ! isset( self::MODELS[ $saved ] ) ) {
+			$saved = self::DEFAULT_MODEL;
+		}
+
+		$available = self::get_available_models();
+		if ( isset( $available[ $saved ] ) ) {
+			return $saved;
+		}
+
+		if ( ! empty( $available ) ) {
+			return (string) array_key_first( $available );
+		}
+
+		return $saved;
 	}
 
 	public static function get_model_provider( string $model_id ): string {
@@ -82,18 +207,7 @@ class AiSettings {
 			wp_die( esc_html__( 'Permission denied.', 'ai-layer' ) );
 		}
 
-		$current  = get_option( self::OPTION_KEY, [] );
-		$model    = sanitize_text_field( wp_unslash( $_POST['wpail_ai_model'] ?? '' ) );
-		$current['model'] = isset( self::MODELS[ $model ] ) ? $model : self::DEFAULT_MODEL;
-
-		foreach ( array_keys( self::PROVIDER_LABELS ) as $provider ) {
-			$raw_key = sanitize_text_field( wp_unslash( $_POST[ 'wpail_ai_key_' . $provider ] ?? '' ) );
-			if ( '' !== $raw_key ) {
-				$current[ 'api_key_' . $provider ] = $raw_key;
-			}
-		}
-
-		update_option( self::OPTION_KEY, $current );
+		self::save_from_request( (array) wp_unslash( $_POST ) );
 
 		add_action( 'admin_notices', static function () {
 			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'AI settings saved.', 'ai-layer' ) . '</p></div>';

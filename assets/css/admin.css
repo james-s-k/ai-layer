@@ -706,7 +706,7 @@
 }
 
 /* Done step */
-.wpail-wizard__done {
+.wpail-wizard__milestone {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -716,24 +716,30 @@
     margin-bottom: 24px;
 }
 
-.wpail-wizard__done h2 {
+.wpail-wizard__milestone h2 {
     margin: 8px 0 6px;
     border: none;
     padding: 0;
     font-size: 18px;
 }
 
-.wpail-wizard__done p {
-    margin: 0;
+.wpail-wizard__milestone p {
+    margin: 0 0 8px;
     color: #50575e;
-    max-width: 480px;
+    max-width: 520px;
 }
 
-.wpail-wizard__done-icon {
+.wpail-wizard__milestone-stat {
+    font-size: 13px;
+    font-weight: 600;
+    color: #2271b1;
+}
+
+.wpail-wizard__milestone-icon {
     font-size: 40px;
     width: 40px;
     height: 40px;
-    color: #00a32a;
+    color: #2271b1;
 }
 
 .wpail-wizard__next-steps {
@@ -773,6 +779,480 @@
     font-size: 13px;
     color: #50575e;
     line-height: 1.5;
+}
+
+.wpail-wizard__choices {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 8px;
+}
+
+@media ( max-width: 782px ) {
+    .wpail-wizard__choices {
+        grid-template-columns: 1fr;
+    }
+}
+
+.wpail-wizard__choice {
+    display: flex;
+    flex-direction: column;
+    padding: 20px 22px;
+    border: 1px solid #dcdcde;
+    border-radius: 6px;
+    background: #fafafa;
+}
+
+.wpail-wizard__choice.is-recommended {
+    border-color: #2271b1;
+    background: #f0f6ff;
+    box-shadow: 0 0 0 1px #2271b1;
+}
+
+.wpail-wizard__choice-icon {
+    font-size: 28px;
+    width: 28px;
+    height: 28px;
+    color: #2271b1;
+    margin-bottom: 10px;
+}
+
+.wpail-wizard__choice h3 {
+    margin: 0 0 8px;
+    font-size: 15px;
+}
+
+.wpail-wizard__choice p {
+    margin: 0 0 16px;
+    font-size: 13px;
+    color: #50575e;
+    line-height: 1.55;
+    flex: 1;
+}
+
+.wpail-wizard__choice-note {
+    font-size: 12px;
+    color: #996800;
+    margin: -8px 0 12px !important;
+}
+
+.wpail-wizard__file-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+@media ( max-width: 782px ) {
+    .wpail-wizard__file-cards {
+        grid-template-columns: 1fr;
+    }
+}
+
+.wpail-wizard__file-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 18px 20px;
+    border: 1px solid #dcdcde;
+    border-radius: 6px;
+    background: #fafafa;
+}
+
+.wpail-wizard__file-card--featured {
+    border-color: #2271b1;
+    background: #f0f6ff;
+    box-shadow: 0 0 0 1px #2271b1;
+}
+
+.wpail-wizard__file-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.wpail-wizard__file-card .description {
+    margin: 0;
+    flex: 1;
+}
+
+.wpail-wizard__file-url {
+    margin: 0;
+    font-size: 12px;
+}
+
+.wpail-wizard__file-url code {
+    word-break: break-all;
+}
+
+.wpail-wizard__file-status {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 8px;
+    padding: 14px 16px;
+    border: 1px solid #dcdcde;
+    border-radius: 6px;
+    background: #fafafa;
+}
+
+.wpail-wizard__file-status-item {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: 13px;
+}
+
+.wpail-wizard__file-status-badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 3px;
+}
+
+.wpail-wizard__file-status-badge.is-on {
+    background: #e7f6ea;
+    color: #00a32a;
+}
+
+.wpail-wizard__file-status-badge.is-off {
+    background: #f0f0f1;
+    color: #646970;
+}
+
+/* Setup progress widget (wizard + overview) */
+.wpail-setup-progress {
+    margin: 20px 0 24px;
+    padding: 16px 18px;
+    border: 1px solid #dcdcde;
+    border-radius: 6px;
+    background: #fff;
+}
+
+.wpail-wizard .wpail-setup-progress {
+    margin-top: 0;
+}
+
+.wpail-setup-progress__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+
+.wpail-setup-progress__title {
+    font-size: 13px;
+}
+
+.wpail-setup-progress__stat {
+    font-size: 12px;
+    color: #646970;
+}
+
+.wpail-setup-progress__breakdown {
+    margin: 0 0 10px;
+    font-size: 11px;
+    color: #646970;
+}
+
+.wpail-setup-progress__alert {
+    margin-top: 14px;
+    padding: 12px 14px;
+    border: 1px solid #dba617;
+    border-radius: 4px;
+    background: #fcf9e8;
+}
+
+.wpail-setup-progress__alert strong {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 12px;
+    color: #8a6d1a;
+}
+
+.wpail-setup-progress__alert .wpail-setup-progress__list {
+    margin-top: 0;
+}
+
+.wpail-llmstxt-endpoint-list {
+    margin: 6px 0 8px 18px;
+    font-size: 12px;
+    color: #646970;
+    list-style: disc;
+}
+
+.wpail-llmstxt-endpoint-list li {
+    margin-bottom: 2px;
+}
+
+.wpail-setup-progress__details--recommended summary {
+    color: #2271b1;
+    font-weight: 500;
+}
+
+.wpail-setup-progress__bar {
+    height: 10px;
+    background: #dcdcde;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.wpail-setup-progress__fill {
+    height: 100%;
+    background: linear-gradient(90deg, #2271b1, #3582c4);
+    border-radius: 5px;
+    transition: width 0.35s ease;
+    min-width: 0;
+}
+
+.wpail-setup-progress__done {
+    margin: 12px 0 0;
+    font-size: 12px;
+    color: #00a32a;
+}
+
+.wpail-setup-progress__details {
+    margin-top: 12px;
+    font-size: 13px;
+}
+
+.wpail-setup-progress__details summary {
+    cursor: pointer;
+    color: #2271b1;
+    font-weight: 500;
+    user-select: none;
+}
+
+.wpail-setup-progress__details--optional summary {
+    color: #646970;
+    font-weight: 400;
+}
+
+.wpail-setup-progress__list {
+    margin: 10px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.wpail-setup-progress__list li {
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f1;
+    font-size: 13px;
+}
+
+.wpail-setup-progress__list li:last-child {
+    border-bottom: none;
+}
+
+.wpail-setup-progress__list a {
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.wpail-setup-progress__desc {
+    display: block;
+    margin-top: 2px;
+    font-size: 12px;
+    color: #646970;
+}
+
+/* AI Import — quick page selection */
+.wpail-import-pages {
+    background: #f6f7f7;
+    border: 1px solid #dcdcde;
+    border-radius: 6px;
+    padding: 18px 20px;
+    margin-bottom: 20px;
+    max-width: 720px;
+    overflow: visible;
+}
+
+.wpail-import-pages__heading {
+    margin: 0 0 6px;
+    font-size: 14px;
+}
+
+.wpail-import-pages__intro {
+    margin: 0 0 14px !important;
+}
+
+.wpail-import-pages__presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 18px;
+}
+
+.wpail-import-pages__suggestions {
+    margin-bottom: 18px;
+}
+
+.wpail-import-pages__suggestions-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+    font-size: 13px;
+}
+
+.wpail-import-pages__suggest-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border: 1px solid #dcdcde;
+    border-radius: 4px;
+    background: #fff;
+    max-height: 220px;
+    overflow-y: auto;
+}
+
+.wpail-import-pages__suggest-list li {
+    margin: 0;
+    border-bottom: 1px solid #f0f0f1;
+}
+
+.wpail-import-pages__suggest-list li:last-child {
+    border-bottom: none;
+}
+
+.wpail-import-pages__suggest-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    margin: 0;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.wpail-import-pages__suggest-item input {
+    margin: 0;
+    flex-shrink: 0;
+}
+
+.wpail-import-pages__suggest-title {
+    flex: 1;
+    color: #1d2327;
+    font-weight: 500;
+}
+
+.wpail-import-pages__suggest-reason {
+    font-size: 11px;
+    color: #646970;
+    white-space: nowrap;
+}
+
+.wpail-import-pages__selected-wrap {
+    margin-bottom: 12px;
+}
+
+.wpail-import-pages__selected-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 13px;
+}
+
+.wpail-import-pages__count {
+    font-weight: 400;
+    color: #646970;
+}
+
+.wpail-import-pages__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-height: 0;
+}
+
+.wpail-import-pages__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-radius: 3px;
+    padding: 4px 8px;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.wpail-import-pages__chip-remove {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0 0 0 2px;
+    font-size: 14px;
+    line-height: 1;
+    color: #646970;
+}
+
+.wpail-import-pages__empty {
+    margin: 0 !important;
+    font-size: 12px;
+}
+
+.wpail-import-pages__warn {
+    margin: 8px 0 0;
+    font-size: 12px;
+    color: #996800;
+}
+
+.wpail-import-pages__advanced {
+    margin-top: 8px;
+    font-size: 13px;
+}
+
+.wpail-import-pages__advanced summary {
+    cursor: pointer;
+    color: #2271b1;
+    font-weight: 500;
+    user-select: none;
+}
+
+.wpail-import-pages__advanced-body {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid #dcdcde;
+    overflow: visible;
+}
+
+.wpail-import-pages__advanced-body .wpail-page-picker {
+    max-width: 100%;
+}
+
+.wpail-import-pages__advanced-body .wpail-page-picker__search-wrap {
+    position: relative;
+    z-index: 20;
+}
+
+.wpail-import-pages__advanced-label {
+    display: block;
+    font-weight: 600;
+    font-size: 13px;
+    margin-bottom: 6px;
+}
+
+.wpail-import-pages__section {
+    margin-top: 18px;
+}
+
+.wpail-import-pages__section-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.wpail-import-pages__section-row select {
+    min-width: 260px;
+    max-width: 100%;
 }
 
 /* ==========================================================================
@@ -1310,6 +1790,12 @@
 /* ==========================================================================
    AI.txt page
    ========================================================================== */
+
+.wpail-badge--new {
+    background: #edfaef;
+    color: #00a32a;
+    border: 1px solid #b8e6bf;
+}
 
 .wpail-badge--beta {
     background: #fcf9e8;

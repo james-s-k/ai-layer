@@ -13,7 +13,9 @@ declare(strict_types=1);
 namespace WPAIL\Admin;
 
 use WPAIL\AI\AiSettings;
+use WPAIL\AI\ConnectorBridge;
 use WPAIL\AI\ExtractionJob;
+use WPAIL\AI\ImportPageSuggestions;
 use WPAIL\AI\ProviderFactory;
 
 class AiImportPage {
@@ -25,6 +27,37 @@ class AiImportPage {
 		add_action( 'wp_ajax_wpail_ai_resync',               [ $this, 'ajax_resync' ] );
 		add_action( 'wp_ajax_wpail_ai_find_relationships',  [ $this, 'ajax_find_relationships' ] );
 		add_action( 'wp_ajax_wpail_ai_rebuild_relationships', [ $this, 'ajax_rebuild_relationships' ] );
+		add_action( 'wp_ajax_wpail_ai_pages_under_parent', [ $this, 'ajax_pages_under_parent' ] );
+		add_action( 'wp_ajax_wpail_ai_search_pages', [ $this, 'ajax_search_pages' ] );
+	}
+
+	public function ajax_search_pages(): void {
+		check_ajax_referer( 'wpail_ai_import', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( [ 'message' => 'Permission denied.' ], 403 );
+		}
+
+		$term = sanitize_text_field( wp_unslash( $_POST['term'] ?? '' ) );
+		$pages = ImportPageSuggestions::search_pages( $term );
+
+		wp_send_json_success( [ 'pages' => $pages ] );
+	}
+
+	public function ajax_pages_under_parent(): void {
+		check_ajax_referer( 'wpail_ai_import', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( [ 'message' => 'Permission denied.' ], 403 );
+		}
+
+		$parent_id = absint( $_POST['parent_id'] ?? 0 );
+		if ( $parent_id <= 0 ) {
+			wp_send_json_error( [ 'message' => 'Invalid parent page.' ] );
+		}
+
+		$pages = ImportPageSuggestions::get_pages_under_parent( $parent_id );
+		wp_send_json_success( [ 'pages' => $pages, 'count' => count( $pages ) ] );
 	}
 
 	// ------------------------------------------------------------------
@@ -144,13 +177,29 @@ class AiImportPage {
 			return;
 		}
 
-		$model      = AiSettings::get_selected_model();
-		$model_info = AiSettings::get_model_info( $model );
-		$provider   = $model_info['provider'] ?? 'openai';
-		$has_key    = '' !== AiSettings::get_api_key( $provider );
-
+		$model           = AiSettings::get_selected_model();
+		$model_info      = AiSettings::get_model_info( $model );
+		$provider        = $model_info['provider'] ?? 'openai';
+		$has_key         = AiSettings::is_selected_provider_configured();
+		$from_wizard     = isset( $_GET['from'] ) && 'wizard' === sanitize_key( wp_unslash( $_GET['from'] ) );
+		$use_connectors  = ConnectorBridge::is_available();
+		$connectors_url  = ConnectorBridge::get_admin_url();
+		$suggestions     = ImportPageSuggestions::get_suggested_pages();
+		$section_parents = ImportPageSuggestions::get_section_parents();
+		$presets         = [
+			ImportPageSuggestions::PRESET_ESSENTIAL => ImportPageSuggestions::get_preset_pages( ImportPageSuggestions::PRESET_ESSENTIAL ),
+			ImportPageSuggestions::PRESET_TOP_LEVEL => ImportPageSuggestions::get_preset_pages( ImportPageSuggestions::PRESET_TOP_LEVEL ),
+		];
 		?>
 		<div class="wrap wpail-admin">
+
+			<?php if ( $from_wizard ) : ?>
+				<div class="notice notice-info" style="margin-top:16px;">
+					<p>
+						<?php esc_html_e( 'Welcome from the Setup Wizard. Select your pages, choose what to extract, and click Start AI Extraction. All items are saved as drafts for your review.', 'ai-layer' ); ?>
+					</p>
+				</div>
+			<?php endif; ?>
 
 			<div class="wpail-admin__header">
 				<div>
@@ -172,6 +221,18 @@ class AiImportPage {
 			<div class="wpail-card" style="margin-top:24px;">
 				<h2 style="margin-top:0;"><?php esc_html_e( 'Provider & Model', 'ai-layer' ); ?></h2>
 
+				<?php if ( $use_connectors && '' !== $connectors_url ) : ?>
+					<p class="description" style="max-width:680px;margin-bottom:16px;">
+						<?php
+						printf(
+							/* translators: %s: Settings → Connectors link */
+							esc_html__( 'API keys are managed on %s when available. Choose your model below; update provider keys on the Connectors screen.', 'ai-layer' ),
+							'<a href="' . esc_url( $connectors_url ) . '"><strong>' . esc_html__( 'Settings → Connectors', 'ai-layer' ) . '</strong></a>'
+						);
+						?>
+					</p>
+				<?php endif; ?>
+
 				<form method="post" action="">
 					<?php wp_nonce_field( AiSettings::NONCE_ACTION, AiSettings::NONCE_NAME ); ?>
 
@@ -180,55 +241,38 @@ class AiImportPage {
 							<th scope="row"><label for="wpail_ai_model"><?php esc_html_e( 'Model', 'ai-layer' ); ?></label></th>
 							<td>
 								<select name="wpail_ai_model" id="wpail_ai_model" style="min-width:280px;">
-									<?php
-									$current_provider = '';
-									foreach ( AiSettings::MODELS as $model_id => $info ) :
-										if ( $info['provider'] !== $current_provider ) :
-											if ( '' !== $current_provider ) echo '</optgroup>';
-											$current_provider = $info['provider'];
-											$group_label = AiSettings::PROVIDER_LABELS[ $current_provider ] ?? $current_provider;
-											echo '<optgroup label="' . esc_attr( $group_label ) . '">';
-										endif;
-										$selected = selected( $model, $model_id, false );
-										printf(
-											'<option value="%s" %s>%s (%s)</option>',
-											esc_attr( $model_id ),
-											$selected,
-											esc_html( $info['name'] ),
-											esc_html( $info['speed'] )
-										);
-									endforeach;
-									if ( '' !== $current_provider ) echo '</optgroup>';
-									?>
+									<?php AiSettings::render_model_options( $model ); ?>
 								</select>
 								<p class="description"><?php esc_html_e( 'GPT-4o Mini is the recommended default — fast, cheap, and accurate for most sites. For the relationship step, a stronger model such as GPT-4.1 or Claude Sonnet 4.6 gives more accurate results.', 'ai-layer' ); ?></p>
 							</td>
 						</tr>
 
-						<?php foreach ( AiSettings::PROVIDER_LABELS as $prov => $label ) : ?>
-							<tr>
-								<th scope="row">
-									<label for="wpail_ai_key_<?php echo esc_attr( $prov ); ?>">
-										<?php
-										/* translators: %s: provider name (e.g. OpenAI) */
-										printf( esc_html__( '%s API Key', 'ai-layer' ), esc_html( $label ) );
-										?>
-									</label>
-								</th>
-								<td>
-									<?php $stored_key = AiSettings::get_api_key( $prov ); ?>
-									<input type="password"
-									       id="wpail_ai_key_<?php echo esc_attr( $prov ); ?>"
-									       name="wpail_ai_key_<?php echo esc_attr( $prov ); ?>"
-									       value=""
-									       placeholder="<?php echo $stored_key ? esc_attr__( '(saved — leave blank to keep)', 'ai-layer' ) : esc_attr__( 'Paste your API key', 'ai-layer' ); ?>"
-									       style="width:340px;font-family:monospace;" />
-									<?php if ( $stored_key ) : ?>
-										<span style="color:#00a32a;margin-left:8px;">&#10003; <?php esc_html_e( 'Key saved', 'ai-layer' ); ?></span>
-									<?php endif; ?>
-								</td>
-							</tr>
-						<?php endforeach; ?>
+						<?php if ( ! $use_connectors ) : ?>
+							<?php foreach ( AiSettings::PROVIDER_LABELS as $prov => $label ) : ?>
+								<tr>
+									<th scope="row">
+										<label for="wpail_ai_key_<?php echo esc_attr( $prov ); ?>">
+											<?php
+											/* translators: %s: provider name (e.g. OpenAI) */
+											printf( esc_html__( '%s API Key', 'ai-layer' ), esc_html( $label ) );
+											?>
+										</label>
+									</th>
+									<td>
+										<?php $stored_key = AiSettings::get_local_api_key( $prov ); ?>
+										<input type="password"
+										       id="wpail_ai_key_<?php echo esc_attr( $prov ); ?>"
+										       name="wpail_ai_key_<?php echo esc_attr( $prov ); ?>"
+										       value=""
+										       placeholder="<?php echo $stored_key ? esc_attr__( '(saved — leave blank to keep)', 'ai-layer' ) : esc_attr__( 'Paste your API key', 'ai-layer' ); ?>"
+										       style="width:340px;font-family:monospace;" />
+										<?php if ( AiSettings::is_provider_configured( $prov ) ) : ?>
+											<span style="color:#00a32a;margin-left:8px;">&#10003; <?php esc_html_e( 'Key saved', 'ai-layer' ); ?></span>
+										<?php endif; ?>
+									</td>
+								</tr>
+							<?php endforeach; ?>
+						<?php endif; ?>
 					</table>
 
 					<p style="margin-top:16px;"><button type="submit" class="button button-secondary"><?php esc_html_e( 'Save Settings', 'ai-layer' ); ?></button></p>
@@ -246,36 +290,147 @@ class AiImportPage {
 					<div class="notice notice-warning inline" style="margin:0 0 20px;">
 						<p>
 							<?php
-							printf(
-								/* translators: %s: provider name */
-								esc_html__( 'Add an API key for %s above and save before running an import.', 'ai-layer' ),
-								esc_html( AiSettings::PROVIDER_LABELS[ $provider ] ?? $provider )
-							);
+							if ( $use_connectors && '' !== $connectors_url ) {
+								printf(
+									/* translators: 1: provider name, 2: Settings → Connectors link */
+									esc_html__( 'Add an API key for %1$s on %2$s before running an import.', 'ai-layer' ),
+									esc_html( AiSettings::PROVIDER_LABELS[ $provider ] ?? $provider ),
+									'<a href="' . esc_url( $connectors_url ) . '">' . esc_html__( 'Settings → Connectors', 'ai-layer' ) . '</a>'
+								);
+							} else {
+								printf(
+									/* translators: %s: provider name */
+									esc_html__( 'Add an API key for %s above and save before running an import.', 'ai-layer' ),
+									esc_html( AiSettings::PROVIDER_LABELS[ $provider ] ?? $provider )
+								);
+							}
 							?>
 						</p>
 					</div>
 				<?php endif; ?>
 
-				<?php // ── Page search picker ────────────────────────────── ?>
-				<div style="background:#f6f7f7;border:1px solid #dcdcde;border-radius:4px;padding:16px 20px;margin-bottom:20px;max-width:680px;">
-					<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-						<strong style="font-size:13px;"><?php esc_html_e( 'Pages to scan', 'ai-layer' ); ?></strong>
-						<a href="#" id="wpail-clear-pages" style="font-size:13px;display:none;"><?php esc_html_e( 'Deselect all', 'ai-layer' ); ?></a>
-					</div>
-					<div class="wpail-page-picker" id="wpail-import-picker" style="margin-bottom:12px;">
-						<div class="wpail-page-picker__search-wrap">
-							<input type="text"
-							       class="wpail-page-picker__search regular-text"
-							       placeholder="<?php esc_attr_e( 'Search for a page…', 'ai-layer' ); ?>"
-							       style="width:100%;"
-							       autocomplete="off" />
-							<div class="wpail-page-picker__dropdown"></div>
-						</div>
-					</div>
-					<div id="wpail-selected-pages" style="display:flex;flex-wrap:wrap;gap:6px;min-height:0;"></div>
-					<p id="wpail-pages-hint" class="description" style="margin:10px 0 0;font-size:12px;">
-						<?php esc_html_e( 'Type at least 2 characters to search. Click a result to add it to the list.', 'ai-layer' ); ?>
+				<?php // ── Quick page selection ────────────────────────────── ?>
+				<div class="wpail-import-pages" id="wpail-import-pages">
+
+					<h3 class="wpail-import-pages__heading"><?php esc_html_e( 'Quick start', 'ai-layer' ); ?></h3>
+					<p class="description wpail-import-pages__intro">
+						<?php esc_html_e( 'Use a preset or tick suggested pages below. You can fine-tune the selection before extracting.', 'ai-layer' ); ?>
 					</p>
+
+					<div class="wpail-import-pages__presets">
+						<button type="button"
+						        class="button button-secondary wpail-import-preset-btn"
+						        data-preset="<?php echo esc_attr( ImportPageSuggestions::PRESET_ESSENTIAL ); ?>">
+							<?php esc_html_e( 'Essential business pages', 'ai-layer' ); ?>
+						</button>
+						<button type="button"
+						        class="button button-secondary wpail-import-preset-btn"
+						        data-preset="<?php echo esc_attr( ImportPageSuggestions::PRESET_TOP_LEVEL ); ?>">
+							<?php esc_html_e( 'All top-level pages', 'ai-layer' ); ?>
+						</button>
+					</div>
+
+					<?php if ( ! empty( $suggestions ) ) : ?>
+						<div class="wpail-import-pages__suggestions">
+							<div class="wpail-import-pages__suggestions-head">
+								<strong><?php esc_html_e( 'Suggested pages', 'ai-layer' ); ?></strong>
+								<button type="button" class="button-link" id="wpail-suggest-select-all">
+									<?php esc_html_e( 'Select all', 'ai-layer' ); ?>
+								</button>
+								<button type="button" class="button-link" id="wpail-suggest-select-none">
+									<?php esc_html_e( 'Select none', 'ai-layer' ); ?>
+								</button>
+							</div>
+							<ul class="wpail-import-pages__suggest-list">
+								<?php foreach ( $suggestions as $item ) : ?>
+									<li>
+										<label class="wpail-import-pages__suggest-item">
+											<input type="checkbox"
+											       class="wpail-suggest-cb"
+											       value="<?php echo esc_attr( (string) $item['id'] ); ?>"
+											       data-title="<?php echo esc_attr( $item['title'] ); ?>"
+											       <?php checked( $item['default_checked'] ); ?> />
+											<span class="wpail-import-pages__suggest-title"><?php echo esc_html( $item['title'] ); ?></span>
+											<span class="wpail-import-pages__suggest-reason"><?php echo esc_html( $item['reason'] ); ?></span>
+										</label>
+									</li>
+								<?php endforeach; ?>
+							</ul>
+						</div>
+					<?php else : ?>
+						<p class="description"><?php esc_html_e( 'No published pages were found. Create pages in WordPress first, or use the advanced search below.', 'ai-layer' ); ?></p>
+					<?php endif; ?>
+
+					<div class="wpail-import-pages__selected-wrap">
+						<div class="wpail-import-pages__selected-head">
+							<strong>
+								<?php esc_html_e( 'Selected for import', 'ai-layer' ); ?>
+								<span id="wpail-selected-count" class="wpail-import-pages__count">(0)</span>
+							</strong>
+							<a href="#" id="wpail-clear-pages" style="display:none;">
+								<?php esc_html_e( 'Clear all', 'ai-layer' ); ?>
+							</a>
+						</div>
+						<div id="wpail-selected-pages" class="wpail-import-pages__chips"></div>
+						<p id="wpail-selected-empty" class="description wpail-import-pages__empty">
+							<?php esc_html_e( 'No pages selected yet. Use a preset or tick suggestions above.', 'ai-layer' ); ?>
+						</p>
+						<p id="wpail-selected-warn" class="wpail-import-pages__warn" style="display:none;"></p>
+					</div>
+
+					<details class="wpail-import-pages__advanced">
+						<summary><?php esc_html_e( 'Add more pages…', 'ai-layer' ); ?></summary>
+						<div class="wpail-import-pages__advanced-body">
+
+							<label class="wpail-import-pages__advanced-label" for="wpail-import-search">
+								<?php esc_html_e( 'Search by title', 'ai-layer' ); ?>
+							</label>
+							<div class="wpail-page-picker" id="wpail-import-picker">
+								<div class="wpail-page-picker__search-wrap">
+									<input type="text"
+									       id="wpail-import-search"
+									       class="wpail-page-picker__search regular-text"
+									       placeholder="<?php esc_attr_e( 'Search for a page…', 'ai-layer' ); ?>"
+									       autocomplete="off" />
+									<div class="wpail-page-picker__dropdown"></div>
+								</div>
+							</div>
+							<p class="description"><?php esc_html_e( 'Type at least 2 characters. Click a result to add it.', 'ai-layer' ); ?></p>
+
+							<?php if ( ! empty( $section_parents ) ) : ?>
+								<div class="wpail-import-pages__section">
+									<label class="wpail-import-pages__advanced-label" for="wpail-section-parent">
+										<?php esc_html_e( 'Add all pages under a section', 'ai-layer' ); ?>
+									</label>
+									<div class="wpail-import-pages__section-row">
+										<select id="wpail-section-parent" class="regular-text">
+											<option value=""><?php esc_html_e( '— Choose a top-level page —', 'ai-layer' ); ?></option>
+											<?php foreach ( $section_parents as $parent ) : ?>
+												<option value="<?php echo esc_attr( (string) $parent['id'] ); ?>"
+												        data-child-count="<?php echo esc_attr( (string) $parent['child_count'] ); ?>">
+													<?php
+													echo esc_html( $parent['title'] );
+													if ( $parent['child_count'] > 0 ) {
+														printf(
+															/* translators: %d: number of child pages */
+															esc_html__( ' (%d sub-pages)', 'ai-layer' ),
+															(int) $parent['child_count']
+														);
+													}
+													?>
+												</option>
+											<?php endforeach; ?>
+										</select>
+										<button type="button" class="button button-secondary" id="wpail-section-add-btn" disabled>
+											<?php esc_html_e( 'Add section', 'ai-layer' ); ?>
+										</button>
+									</div>
+									<p id="wpail-section-hint" class="description"></p>
+								</div>
+							<?php endif; ?>
+
+						</div>
+					</details>
 				</div>
 
 				<?php // ── Entity type selector ──────────────────────────── ?>
@@ -441,8 +596,6 @@ class AiImportPage {
 		(function () {
 			const ajaxUrl  = <?php echo wp_json_encode( admin_url( 'admin-ajax.php' ) ); ?>;
 			const nonce    = <?php echo wp_json_encode( wp_create_nonce( 'wpail_ai_import' ) ); ?>;
-			const restUrl  = <?php echo wp_json_encode( rest_url() ); ?>;
-			const restNonce = <?php echo wp_json_encode( wp_create_nonce( 'wp_rest' ) ); ?>;
 			const labels  = {
 				services:  <?php echo wp_json_encode( __( 'Services', 'ai-layer' ) ); ?>,
 				faqs:      <?php echo wp_json_encode( __( 'FAQs', 'ai-layer' ) ); ?>,
@@ -458,27 +611,223 @@ class AiImportPage {
 				proof:     <?php echo wp_json_encode( admin_url( 'edit.php?post_type=wpail_proof&post_status=draft' ) ); ?>,
 				actions:   <?php echo wp_json_encode( admin_url( 'edit.php?post_type=wpail_action&post_status=draft' ) ); ?>,
 			};
+			const importPresets = <?php echo wp_json_encode( $presets ); ?>;
+			const recommendedMax = <?php echo (int) ImportPageSuggestions::RECOMMENDED_MAX; ?>;
 
-			// ── Multi-page picker ─────────────────────────────────────────
-			let selectedPages = []; // [{ id, title }, ...]
-			const picker        = document.getElementById('wpail-import-picker');
-			const searchInput   = picker?.querySelector('.wpail-page-picker__search');
-			const dropdown      = picker?.querySelector('.wpail-page-picker__dropdown');
-			const selectedWrap  = document.getElementById('wpail-selected-pages');
-			const clearAllLink  = document.getElementById('wpail-clear-pages');
-			const hintEl        = document.getElementById('wpail-pages-hint');
-			let searchCache     = {};
+			// ── Page selection (presets, suggestions, search, sections) ───
+			let selectedPages = [];
+			const picker           = document.getElementById('wpail-import-picker');
+			const searchInput      = picker?.querySelector('.wpail-page-picker__search');
+			const dropdown         = picker?.querySelector('.wpail-page-picker__dropdown');
+			const selectedWrap     = document.getElementById('wpail-selected-pages');
+			const clearAllLink     = document.getElementById('wpail-clear-pages');
+			const selectedCountEl  = document.getElementById('wpail-selected-count');
+			const selectedEmptyEl  = document.getElementById('wpail-selected-empty');
+			const selectedWarnEl   = document.getElementById('wpail-selected-warn');
+			const suggestCheckboxes = document.querySelectorAll('.wpail-suggest-cb');
+			const sectionSelect    = document.getElementById('wpail-section-parent');
+			const sectionAddBtn    = document.getElementById('wpail-section-add-btn');
+			const sectionHint      = document.getElementById('wpail-section-hint');
+			let searchCache = {};
 			let debounce;
+
+			function isSelected(id) {
+				return selectedPages.some(p => p.id === id);
+			}
+
+			function addPages(pages) {
+				pages.forEach(page => {
+					const id = parseInt(page.id, 10);
+					if (!id || isSelected(id)) return;
+					selectedPages.push({ id, title: page.title || '' });
+				});
+				syncUi();
+			}
+
+			function removePage(id) {
+				selectedPages = selectedPages.filter(p => p.id !== id);
+				syncUi();
+			}
+
+			function syncSuggestionCheckboxes() {
+				suggestCheckboxes.forEach(cb => {
+					const id = parseInt(cb.value, 10);
+					cb.checked = isSelected(id);
+				});
+			}
+
+			function updateCountWarning() {
+				const count = selectedPages.length;
+				if (selectedCountEl) {
+					selectedCountEl.textContent = '(' + count + ')';
+				}
+				if (selectedEmptyEl) {
+					selectedEmptyEl.style.display = count > 0 ? 'none' : '';
+				}
+				if (clearAllLink) {
+					clearAllLink.style.display = count > 0 ? '' : 'none';
+				}
+				if (!selectedWarnEl) return;
+				if (count > recommendedMax) {
+					selectedWarnEl.style.display = '';
+					selectedWarnEl.textContent = <?php echo wp_json_encode(
+						sprintf(
+							/* translators: %d: recommended maximum pages per import */
+							__( 'You have selected more than %d pages. Large imports take longer and cost more. Consider splitting into smaller runs.', 'ai-layer' ),
+							ImportPageSuggestions::RECOMMENDED_MAX
+						)
+					); ?>;
+				} else {
+					selectedWarnEl.style.display = 'none';
+					selectedWarnEl.textContent = '';
+				}
+			}
+
+			function renderChips() {
+				if (!selectedWrap) return;
+				selectedWrap.innerHTML = '';
+				selectedPages.forEach(page => {
+					const chip = document.createElement('span');
+					chip.className = 'wpail-import-pages__chip';
+					chip.textContent = page.title;
+					const rm = document.createElement('button');
+					rm.type = 'button';
+					rm.className = 'wpail-import-pages__chip-remove';
+					rm.textContent = '×';
+					rm.title = <?php echo wp_json_encode( __( 'Remove', 'ai-layer' ) ); ?>;
+					rm.addEventListener('click', () => removePage(page.id));
+					chip.appendChild(rm);
+					selectedWrap.appendChild(chip);
+				});
+				updateCountWarning();
+			}
+
+			function syncUi() {
+				syncSuggestionCheckboxes();
+				renderChips();
+			}
+
+			function collectCheckedSuggestions() {
+				const pages = [];
+				suggestCheckboxes.forEach(cb => {
+					if (!cb.checked) return;
+					pages.push({
+						id: parseInt(cb.value, 10),
+						title: cb.dataset.title || '',
+					});
+				});
+				return pages;
+			}
+
+			function applySuggestionSelection() {
+				const checkedIds = new Set(
+					collectCheckedSuggestions().map(p => p.id)
+				);
+				selectedPages = selectedPages.filter(p => {
+					const cb = document.querySelector('.wpail-suggest-cb[value="' + p.id + '"]');
+					return !cb || checkedIds.has(p.id);
+				});
+				collectCheckedSuggestions().forEach(page => {
+					if (!isSelected(page.id)) {
+						selectedPages.push(page);
+					}
+				});
+				syncUi();
+			}
+
+			suggestCheckboxes.forEach(cb => {
+				cb.addEventListener('change', applySuggestionSelection);
+			});
+
+			document.getElementById('wpail-suggest-select-all')?.addEventListener('click', function (e) {
+				e.preventDefault();
+				suggestCheckboxes.forEach(cb => { cb.checked = true; });
+				applySuggestionSelection();
+			});
+
+			document.getElementById('wpail-suggest-select-none')?.addEventListener('click', function (e) {
+				e.preventDefault();
+				suggestCheckboxes.forEach(cb => { cb.checked = false; });
+				applySuggestionSelection();
+			});
+
+			document.querySelectorAll('.wpail-import-preset-btn').forEach(btn => {
+				btn.addEventListener('click', function () {
+					const preset = btn.dataset.preset;
+					const pages = importPresets[preset] || [];
+					if (!pages.length) {
+						alert(<?php echo wp_json_encode( __( 'No matching pages were found for this preset.', 'ai-layer' ) ); ?>);
+						return;
+					}
+					addPages(pages);
+					suggestCheckboxes.forEach(cb => {
+						const id = parseInt(cb.value, 10);
+						cb.checked = isSelected(id);
+					});
+				});
+			});
+
+			clearAllLink?.addEventListener('click', function (e) {
+				e.preventDefault();
+				selectedPages = [];
+				suggestCheckboxes.forEach(cb => { cb.checked = false; });
+				syncUi();
+			});
+
+			sectionSelect?.addEventListener('change', function () {
+				const opt = sectionSelect.options[sectionSelect.selectedIndex];
+				const childCount = parseInt(opt?.dataset.childCount || '0', 10);
+				if (sectionAddBtn) {
+					sectionAddBtn.disabled = !sectionSelect.value;
+				}
+				if (!sectionHint) return;
+				if (!sectionSelect.value) {
+					sectionHint.textContent = '';
+					return;
+				}
+				const total = childCount + 1;
+				sectionHint.textContent = total === 1
+					? <?php echo wp_json_encode( __( 'Adds 1 page (this page has no sub-pages).', 'ai-layer' ) ); ?>
+					: <?php echo wp_json_encode( __( 'Adds this page plus all published sub-pages underneath it.', 'ai-layer' ) ); ?>;
+			});
+
+			sectionAddBtn?.addEventListener('click', async function () {
+				const parentId = parseInt(sectionSelect.value, 10);
+				if (!parentId) return;
+				sectionAddBtn.disabled = true;
+				const body = new FormData();
+				body.append('action', 'wpail_ai_pages_under_parent');
+				body.append('nonce', nonce);
+				body.append('parent_id', String(parentId));
+				try {
+					const res = await fetch(ajaxUrl, { method: 'POST', body });
+					const json = await res.json();
+					if (!json.success) {
+						alert(json.data?.message || <?php echo wp_json_encode( __( 'Could not load pages for that section.', 'ai-layer' ) ); ?>);
+						return;
+					}
+					addPages(json.data.pages || []);
+				} catch (err) {
+					alert(<?php echo wp_json_encode( __( 'Could not load pages for that section.', 'ai-layer' ) ); ?>);
+				} finally {
+					sectionAddBtn.disabled = !sectionSelect.value;
+				}
+			});
 
 			function searchPages(term, callback) {
 				if (searchCache[term]) { callback(searchCache[term]); return; }
-				const url = restUrl + 'wp/v2/search?search=' + encodeURIComponent(term) +
-					'&subtype=page&type=post&_fields=id,title&per_page=10';
-				fetch(url, { headers: { 'X-WP-Nonce': restNonce } })
+				const body = new FormData();
+				body.append('action', 'wpail_ai_search_pages');
+				body.append('nonce', nonce);
+				body.append('term', term);
+				fetch(ajaxUrl, { method: 'POST', body })
 					.then(r => r.json())
 					.then(data => {
-						const results = Array.isArray(data)
-							? data.map(item => ({ id: item.id, title: item.title }))
+						const results = data.success && Array.isArray(data.data?.pages)
+							? data.data.pages.map(item => ({
+								id: parseInt(item.id, 10),
+								title: item.title || '',
+							}))
 							: [];
 						searchCache[term] = results;
 						callback(results);
@@ -487,10 +836,11 @@ class AiImportPage {
 			}
 
 			function renderDropdown(results) {
+				if (!dropdown) return;
 				dropdown.innerHTML = '';
 				if (!results.length) {
 					const empty = document.createElement('div');
-					empty.className   = 'wpail-page-picker__option wpail-page-picker__option--empty';
+					empty.className = 'wpail-page-picker__option wpail-page-picker__option--empty';
 					empty.textContent = <?php echo wp_json_encode( __( 'No pages found.', 'ai-layer' ) ); ?>;
 					dropdown.appendChild(empty);
 					dropdown.style.display = 'block';
@@ -498,18 +848,19 @@ class AiImportPage {
 				}
 				results.forEach(page => {
 					const opt = document.createElement('div');
-					opt.className   = 'wpail-page-picker__option';
+					opt.className = 'wpail-page-picker__option';
 					opt.textContent = page.title;
-					if (selectedPages.some(p => p.id === page.id)) {
+					if (isSelected(page.id)) {
 						opt.style.opacity = '0.45';
-						opt.style.cursor  = 'default';
+						opt.style.cursor = 'default';
 					}
 					opt.addEventListener('mousedown', function (e) {
 						e.preventDefault();
-						if (selectedPages.some(p => p.id === page.id)) return;
-						selectedPages.push({ id: page.id, title: page.title });
-						renderChips();
-						searchInput.value      = '';
+						if (isSelected(page.id)) return;
+						addPages([page]);
+						if (searchInput) {
+							searchInput.value = '';
+						}
 						dropdown.style.display = 'none';
 					});
 					dropdown.appendChild(opt);
@@ -517,36 +868,15 @@ class AiImportPage {
 				dropdown.style.display = 'block';
 			}
 
-			function renderChips() {
-				selectedWrap.innerHTML = '';
-				selectedPages.forEach(page => {
-					const chip = document.createElement('span');
-					chip.style.cssText = 'display:inline-flex;align-items:center;gap:5px;background:#fff;' +
-						'border:1px solid #c3c4c7;border-radius:3px;padding:4px 8px;font-size:12px;line-height:1.4;';
-					chip.textContent = page.title;
-					const rm = document.createElement('button');
-					rm.type            = 'button';
-					rm.textContent     = '×';
-					rm.title           = <?php echo wp_json_encode( __( 'Remove', 'ai-layer' ) ); ?>;
-					rm.style.cssText   = 'background:none;border:none;cursor:pointer;padding:0 0 0 2px;' +
-						'font-size:14px;line-height:1;color:#646970;';
-					rm.addEventListener('click', () => {
-						selectedPages = selectedPages.filter(p => p.id !== page.id);
-						renderChips();
-					});
-					chip.appendChild(rm);
-					selectedWrap.appendChild(chip);
-				});
-				const hasPages = selectedPages.length > 0;
-				clearAllLink.style.display = hasPages ? '' : 'none';
-				hintEl.style.display       = hasPages ? 'none' : '';
-			}
-
-			if (searchInput && dropdown) {
+			if (searchInput && dropdown && picker) {
 				searchInput.addEventListener('input', function () {
 					clearTimeout(debounce);
 					const term = searchInput.value.trim();
-					if (term.length < 2) { dropdown.innerHTML = ''; dropdown.style.display = 'none'; return; }
+					if (term.length < 2) {
+						dropdown.innerHTML = '';
+						dropdown.style.display = 'none';
+						return;
+					}
 					debounce = setTimeout(() => searchPages(term, renderDropdown), 300);
 				});
 
@@ -560,11 +890,8 @@ class AiImportPage {
 				});
 			}
 
-			clearAllLink?.addEventListener('click', function (e) {
-				e.preventDefault();
-				selectedPages = [];
-				renderChips();
-			});
+			// Initialise from pre-checked suggestions (wizard / default).
+			applySuggestionSelection();
 
 			// ── Extraction ────────────────────────────────────────────────
 			const btn         = document.getElementById('wpail-ai-start-btn');
@@ -580,8 +907,12 @@ class AiImportPage {
 				const checkedTypes = [...document.querySelectorAll('.wpail-ai-type-cb:checked')].map(cb => cb.value);
 
 				if (!selectedPages.length) {
-					alert(<?php echo wp_json_encode( __( 'Search for and select at least one page.', 'ai-layer' ) ); ?>);
+					alert(<?php echo wp_json_encode( __( 'Select at least one page using the suggestions, a preset, or advanced search.', 'ai-layer' ) ); ?>);
 					return;
+				}
+				if (selectedPages.length > recommendedMax) {
+					const ok = confirm(<?php echo wp_json_encode( __( 'You selected many pages. Imports this large may be slow and costly. Continue anyway?', 'ai-layer' ) ); ?>);
+					if (!ok) return;
 				}
 				if (!checkedTypes.length) {
 					alert(<?php echo wp_json_encode( __( 'Select at least one entity type to extract.', 'ai-layer' ) ); ?>);

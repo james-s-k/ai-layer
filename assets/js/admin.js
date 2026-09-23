@@ -90,16 +90,25 @@
                 callback( pageSearchCache[ term ] );
                 return;
             }
-            var cfg    = window.wpailLlmsTxt || {};
-            var nonce  = cfg.nonce  || '';
-            var apiUrl = cfg.restUrl || '';
-            var url    = apiUrl + 'wp/v2/search?search=' + encodeURIComponent( term ) + '&_fields=id,title&per_page=10';
-            fetch( url, { headers: { 'X-WP-Nonce': nonce } } )
+            var cfg     = window.wpailAdmin || {};
+            var ajaxUrl = cfg.ajaxUrl || '';
+            var nonce   = cfg.searchPagesNonce || '';
+            if ( ! ajaxUrl || ! nonce ) {
+                callback( [] );
+                return;
+            }
+            var body = new FormData();
+            body.append( 'action', 'wpail_search_pages' );
+            body.append( 'nonce', nonce );
+            body.append( 'term', term );
+            fetch( ajaxUrl, { method: 'POST', body: body } )
                 .then( function ( r ) { return r.json(); } )
                 .then( function ( data ) {
-                    var results = Array.isArray( data ) ? data.map( function ( item ) {
-                        return { id: item.id, title: item.title };
-                    } ) : [];
+                    var results = data.success && Array.isArray( data.data && data.data.pages )
+                        ? data.data.pages.map( function ( item ) {
+                            return { id: parseInt( item.id, 10 ), title: item.title || '' };
+                        } )
+                        : [];
                     pageSearchCache[ term ] = results;
                     callback( results );
                 } )

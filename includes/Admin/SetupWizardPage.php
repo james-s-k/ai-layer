@@ -9,8 +9,9 @@
  *   scan        — detect available sources, show summary of what was found
  *   profile     — review and selectively apply Business Profile suggestions
  *   woocommerce — enable /products endpoint (shown only when WooCommerce is active)
- *   discovery   — configure endpoint discovery mode, link tags, llms.txt, and AI.txt
- *   done        — completion summary with next-step links
+ *   discovery   — endpoint discovery mode, signals, llms.txt, and AI.txt
+ *   ai          — configure AI provider (Connectors API or local keys) and model
+ *   done        — choose AI import or manual entity setup (configuration only — not full onboarding)
  *
  * @package WPAIL\Admin
  */
@@ -19,10 +20,14 @@ declare(strict_types=1);
 
 namespace WPAIL\Admin;
 
+use WPAIL\AI\AiSettings;
+use WPAIL\AI\ConnectorBridge;
 use WPAIL\Setup\Extractor;
+use WPAIL\Setup\SetupProgress;
 use WPAIL\Support\FieldDefinitions;
 use WPAIL\Support\Sanitizer;
 use WPAIL\Licensing\Features;
+use WPAIL\LLMsTxt\ConflictDetector;
 use WPAIL\LLMsTxt\LLMsTxtSettings;
 use WPAIL\LLMsTxt\LLMsTxtController;
 use WPAIL\AiTxt\AiTxtSettings;
@@ -35,11 +40,14 @@ class SetupWizardPage {
 	const STEP_PROFILE     = 'profile';
 	const STEP_WOOCOMMERCE = 'woocommerce';
 	const STEP_DISCOVERY   = 'discovery';
+	const STEP_AI_FILES    = 'ai_files';
+	const STEP_AI          = 'ai';
 	const STEP_DONE        = 'done';
 
 	const NONCE_PROFILE     = 'wpail_wizard_profile';
 	const NONCE_WOOCOMMERCE = 'wpail_wizard_woo';
 	const NONCE_DISCOVERY   = 'wpail_wizard_discovery';
+	const NONCE_AI          = 'wpail_wizard_ai';
 
 	public function register(): void {
 		add_action( 'admin_init', [ $this, 'handle_save' ] );
@@ -62,6 +70,8 @@ class SetupWizardPage {
 			$this->handle_enable_products();
 		} elseif ( 'save_discovery' === $action ) {
 			$this->handle_discovery_save();
+		} elseif ( 'save_ai' === $action ) {
+			$this->handle_ai_save();
 		}
 	}
 
@@ -180,24 +190,49 @@ class SetupWizardPage {
 		$settings[ SettingsPage::SETTING_SITEMAP_ENABLED ]          = ! empty( $_POST['sitemap_enabled'] );
 		update_option( WPAIL_OPT_SETTINGS, $settings );
 
-		// llms.txt — merge enabled flag into existing settings.
 		$llms            = LLMsTxtSettings::get_all();
 		$llms['enabled'] = ! empty( $_POST['llmstxt_enabled'] );
 		LLMsTxtSettings::save( $llms );
 
-		// AI.txt — merge enabled flag into existing settings.
 		$aitxt            = AiTxtSettings::get_all();
 		$aitxt['enabled'] = ! empty( $_POST['aitxt_enabled'] );
 		AiTxtSettings::save( $aitxt );
 
 		LLMsTxtController::flush_cache();
-		AiLayerController::flush_cache();
 		AiTxtController::flush_cache();
+		AiLayerController::flush_cache();
 		flush_rewrite_rules();
 
 		wp_safe_redirect(
 			add_query_arg(
-				[ 'page' => 'wpail_setup_wizard', 'step' => self::STEP_DONE ],
+				[ 'page' => 'wpail_setup_wizard', 'step' => self::STEP_AI, 'updated' => 'discovery' ],
+				admin_url( 'admin.php' )
+			)
+		);
+		exit;
+	}
+
+	private function handle_ai_save(): void {
+		if ( ! isset( $_POST['wpail_wizard_ai_nonce'] ) ) {
+			return;
+		}
+
+		if ( ! wp_verify_nonce(
+			sanitize_text_field( wp_unslash( $_POST['wpail_wizard_ai_nonce'] ) ),
+			self::NONCE_AI
+		) ) {
+			return;
+		}
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		AiSettings::save_from_request( (array) wp_unslash( $_POST ) );
+
+		wp_safe_redirect(
+			add_query_arg(
+				[ 'page' => 'wpail_setup_wizard', 'step' => self::STEP_DONE, 'updated' => 'ai' ],
 				admin_url( 'admin.php' )
 			)
 		);
@@ -221,9 +256,15 @@ class SetupWizardPage {
 			$current = [];
 		}
 
-		$step     = sanitize_key( wp_unslash( $_GET['step'] ?? self::STEP_SCAN ) );
-		$has_woo  = $extractor->has_woocommerce_products();
+		$step      = sanitize_key( wp_unslash( $_GET['step'] ?? self::STEP_SCAN ) );
+		$has_woo   = $extractor->has_woocommerce_products();
 		$all_steps = self::build_steps( $has_woo );
+		$setup     = SetupProgress::assess();
+
+		// Legacy step slug — merged into Discovery.
+		if ( self::STEP_AI_FILES === $step ) {
+			$step = self::STEP_DISCOVERY;
+		}
 
 		if ( ! array_key_exists( $step, $all_steps ) ) {
 			$step = self::STEP_SCAN;
@@ -252,10 +293,19 @@ class SetupWizardPage {
 				<?php endforeach; ?>
 			</nav>
 
+			<?php SetupProgress::render_widget( $setup ); ?>
+
 			<?php
 			if ( isset( $_GET['updated'] ) ) {
+				$updated = sanitize_key( wp_unslash( $_GET['updated'] ) );
 				echo '<div class="notice notice-success is-dismissible"><p>';
-				esc_html_e( 'Business Profile updated.', 'ai-layer' );
+				if ( 'ai' === $updated ) {
+					esc_html_e( 'AI settings saved.', 'ai-layer' );
+				} elseif ( 'discovery' === $updated ) {
+					esc_html_e( 'Discovery settings saved.', 'ai-layer' );
+				} else {
+					esc_html_e( 'Business Profile updated.', 'ai-layer' );
+				}
 				echo '</p></div>';
 			}
 
@@ -263,6 +313,7 @@ class SetupWizardPage {
 				self::STEP_PROFILE     => self::render_profile( $suggestions, $current ),
 				self::STEP_WOOCOMMERCE => self::render_woocommerce(),
 				self::STEP_DISCOVERY   => self::render_discovery( $has_woo ),
+				self::STEP_AI          => self::render_ai(),
 				self::STEP_DONE        => self::render_done(),
 				default                => self::render_scan( $sources, $suggestions, $has_woo ),
 			};
@@ -447,7 +498,7 @@ class SetupWizardPage {
 					<p><?php esc_html_e( 'The /products endpoint is already enabled. You can manage it in Settings.', 'ai-layer' ); ?></p>
 				</div>
 				<div class="wpail-wizard__nav">
-					<a href="<?php echo esc_url( add_query_arg( [ 'page' => 'wpail_setup_wizard', 'step' => self::STEP_DONE ], admin_url( 'admin.php' ) ) ); ?>"
+					<a href="<?php echo esc_url( add_query_arg( [ 'page' => 'wpail_setup_wizard', 'step' => self::STEP_DISCOVERY ], admin_url( 'admin.php' ) ) ); ?>"
 					   class="button button-primary">
 						<?php esc_html_e( 'Continue', 'ai-layer' ); ?> &rarr;
 					</a>
@@ -479,7 +530,7 @@ class SetupWizardPage {
 						   class="button button-secondary">
 							&larr; <?php esc_html_e( 'Back', 'ai-layer' ); ?>
 						</a>
-						<a href="<?php echo esc_url( add_query_arg( [ 'page' => 'wpail_setup_wizard', 'step' => self::STEP_DONE ], admin_url( 'admin.php' ) ) ); ?>"
+						<a href="<?php echo esc_url( add_query_arg( [ 'page' => 'wpail_setup_wizard', 'step' => self::STEP_DISCOVERY ], admin_url( 'admin.php' ) ) ); ?>"
 						   class="wpail-wizard__text-link">
 							<?php esc_html_e( 'Skip this step', 'ai-layer' ); ?>
 						</a>
@@ -498,14 +549,27 @@ class SetupWizardPage {
 		$http_headers      = SettingsPage::get( SettingsPage::SETTING_HTTP_HEADERS_ENABLED, true );
 		$ai_layer_page     = SettingsPage::get( SettingsPage::SETTING_AI_LAYER_PAGE_ENABLED, true );
 		$sitemap_enabled   = SettingsPage::get( SettingsPage::SETTING_SITEMAP_ENABLED, true );
-		$llmstxt_enabled   = LLMsTxtSettings::get( 'enabled', true );
-		$aitxt_enabled     = AiTxtSettings::get( 'enabled', true );
-		$back_step       = $has_woo ? self::STEP_WOOCOMMERCE : self::STEP_PROFILE;
+		$llmstxt_enabled   = (bool) LLMsTxtSettings::get( 'enabled', true );
+		$aitxt_enabled     = (bool) AiTxtSettings::get( 'enabled', false );
+		$llms_url          = home_url( '/llms.txt' );
+		$aitxt_url         = home_url( '/ai.txt' );
+		$conflicts         = ( new ConflictDetector() )->get_conflicts();
+		$llms_conflicts    = array_filter(
+			$conflicts,
+			static fn( array $c ): bool => in_array( $c['severity'] ?? '', [ 'error', 'warning' ], true )
+		);
+		$back_step         = $has_woo ? self::STEP_WOOCOMMERCE : self::STEP_PROFILE;
 		?>
 		<div class="wpail-wizard__body">
 
-			<h2><?php esc_html_e( 'Discovery &amp; AI Files', 'ai-layer' ); ?></h2>
-			<p><?php esc_html_e( 'Choose how AI agents and crawlers find your structured data, and which standard files your site serves.', 'ai-layer' ); ?></p>
+			<h2><?php esc_html_e( 'AI Discovery', 'ai-layer' ); ?></h2>
+			<p><?php esc_html_e( 'Configure how AI agents and crawlers find your structured data — endpoint routing, discovery signals, and standard AI files.', 'ai-layer' ); ?></p>
+
+			<?php foreach ( $llms_conflicts as $conflict ) : ?>
+				<div class="notice notice-<?php echo 'error' === ( $conflict['severity'] ?? '' ) ? 'error' : 'warning'; ?> inline" style="margin:0 0 16px;">
+					<p><?php echo wp_kses_post( $conflict['message'] ); ?></p>
+				</div>
+			<?php endforeach; ?>
 
 			<form method="post" action="">
 				<?php wp_nonce_field( self::NONCE_DISCOVERY, 'wpail_wizard_discovery_nonce' ); ?>
@@ -605,28 +669,48 @@ class SetupWizardPage {
 					</div>
 				</div>
 
-				<hr style="margin: 4px 0 8px; border: none; border-top: 1px solid #f0f0f1;">
-				<h3 style="margin: 12px 0 4px;"><?php esc_html_e( 'AI files', 'ai-layer' ); ?></h3>
+				<h3 style="margin-top: 28px;"><?php esc_html_e( 'Standard AI files', 'ai-layer' ); ?></h3>
+				<p class="description" style="margin-bottom: 16px;">
+					<?php esc_html_e( 'Served dynamically at your site root — no files are written to disk. Fine-tune content on the full settings pages later.', 'ai-layer' ); ?>
+				</p>
 
-				<div class="wpail-wizard__field">
-					<label class="wpail-wizard__field-check">
-						<input type="checkbox" name="llmstxt_enabled" value="1"
-							<?php checked( $llmstxt_enabled ); ?>>
-						<span class="wpail-wizard__field-label"><?php esc_html_e( 'Enable llms.txt', 'ai-layer' ); ?></span>
-					</label>
-					<div class="wpail-wizard__field-body">
-						<p class="description"><?php esc_html_e( 'Serves a generated /llms.txt file pointing AI systems to your structured data endpoints. Follows the emerging llms.txt standard. Fine-tune on the llms.txt settings page.', 'ai-layer' ); ?></p>
+				<div class="wpail-wizard__file-cards">
+					<div class="wpail-wizard__file-card wpail-wizard__file-card--featured">
+						<div class="wpail-wizard__file-card-head">
+							<label class="wpail-wizard__field-check">
+								<input type="checkbox" name="llmstxt_enabled" value="1" <?php checked( $llmstxt_enabled ); ?>>
+								<span class="wpail-wizard__field-label"><?php esc_html_e( 'Enable llms.txt', 'ai-layer' ); ?></span>
+							</label>
+							<span class="wpail-badge wpail-badge--new"><?php esc_html_e( 'Recommended', 'ai-layer' ); ?></span>
+						</div>
+						<p class="description">
+							<?php esc_html_e( 'A machine-readable index at /llms.txt that points AI crawlers to your business data endpoints and key pages.', 'ai-layer' ); ?>
+						</p>
+						<p class="wpail-wizard__file-url">
+							<code><?php echo esc_html( $llms_url ); ?></code>
+						</p>
+						<a href="<?php echo esc_url( admin_url( 'admin.php?page=wpail_llmstxt' ) ); ?>" class="button button-secondary">
+							<?php esc_html_e( 'Configure llms.txt', 'ai-layer' ); ?>
+						</a>
 					</div>
-				</div>
 
-				<div class="wpail-wizard__field">
-					<label class="wpail-wizard__field-check">
-						<input type="checkbox" name="aitxt_enabled" value="1"
-							<?php checked( $aitxt_enabled ); ?>>
-						<span class="wpail-wizard__field-label"><?php esc_html_e( 'Enable AI.txt', 'ai-layer' ); ?></span>
-					</label>
-					<div class="wpail-wizard__field-body">
-						<p class="description"><?php esc_html_e( 'Serves an /ai.txt file declaring your crawling and training permissions for AI agents. Fine-tune per-agent rules on the AI.txt settings page.', 'ai-layer' ); ?></p>
+					<div class="wpail-wizard__file-card">
+						<div class="wpail-wizard__file-card-head">
+							<label class="wpail-wizard__field-check">
+								<input type="checkbox" name="aitxt_enabled" value="1" <?php checked( $aitxt_enabled ); ?>>
+								<span class="wpail-wizard__field-label"><?php esc_html_e( 'Enable AI.txt', 'ai-layer' ); ?></span>
+							</label>
+							<span class="wpail-badge wpail-badge--beta"><?php esc_html_e( 'Beta', 'ai-layer' ); ?></span>
+						</div>
+						<p class="description">
+							<?php esc_html_e( 'Declares crawling, training, and attribution preferences for AI agents at /ai.txt.', 'ai-layer' ); ?>
+						</p>
+						<p class="wpail-wizard__file-url">
+							<code><?php echo esc_html( $aitxt_url ); ?></code>
+						</p>
+						<a href="<?php echo esc_url( admin_url( 'admin.php?page=wpail_aitxt' ) ); ?>" class="button button-secondary">
+							<?php esc_html_e( 'Configure AI.txt', 'ai-layer' ); ?>
+						</a>
 					</div>
 				</div>
 
@@ -638,12 +722,142 @@ class SetupWizardPage {
 					   class="button button-secondary">
 						&larr; <?php esc_html_e( 'Back', 'ai-layer' ); ?>
 					</a>
-					<a href="<?php echo esc_url( add_query_arg( [ 'page' => 'wpail_setup_wizard', 'step' => self::STEP_DONE ], admin_url( 'admin.php' ) ) ); ?>"
+					<a href="<?php echo esc_url( add_query_arg( [ 'page' => 'wpail_setup_wizard', 'step' => self::STEP_AI ], admin_url( 'admin.php' ) ) ); ?>"
 					   class="wpail-wizard__text-link">
 						<?php esc_html_e( 'Skip this step', 'ai-layer' ); ?>
 					</a>
 				</div>
+			</form>
+		</div>
+		<?php
+	}
 
+	private static function render_ai(): void {
+		$model           = AiSettings::get_selected_model();
+		$model_info      = AiSettings::get_model_info( $model );
+		$provider        = $model_info['provider'] ?? 'openai';
+		$has_key         = AiSettings::is_selected_provider_configured();
+		$use_connectors  = ConnectorBridge::is_available();
+		$connectors_url  = ConnectorBridge::get_admin_url();
+		$provider_status = ConnectorBridge::get_provider_status();
+		?>
+		<div class="wpail-wizard__body">
+
+			<h2><?php esc_html_e( 'AI Setup', 'ai-layer' ); ?></h2>
+			<p>
+				<?php esc_html_e( 'Optional but recommended if you want to use AI Import. Connect a provider and choose a model — you can skip and add entities manually instead.', 'ai-layer' ); ?>
+			</p>
+
+			<?php if ( $use_connectors && '' !== $connectors_url ) : ?>
+				<div class="notice notice-info inline" style="margin:0 0 20px;">
+					<p>
+						<?php
+						printf(
+							/* translators: %s: link to Settings → Connectors */
+							esc_html__( 'WordPress can store your AI provider keys centrally. Configure them on %s — any compatible plugin on this site can use the same connection.', 'ai-layer' ),
+							'<a href="' . esc_url( $connectors_url ) . '"><strong>' . esc_html__( 'Settings → Connectors', 'ai-layer' ) . '</strong></a>'
+						);
+						?>
+					</p>
+				</div>
+
+				<h3><?php esc_html_e( 'Provider status', 'ai-layer' ); ?></h3>
+				<ul class="wpail-wizard__found-list" style="margin-bottom:20px;">
+					<?php foreach ( AiSettings::PROVIDER_LABELS as $prov => $label ) : ?>
+						<li>
+							<strong><?php echo esc_html( $label ); ?>:</strong>
+							<?php if ( ! empty( $provider_status[ $prov ] ) ) : ?>
+								<span style="color:#00a32a;"><?php esc_html_e( 'Connected', 'ai-layer' ); ?></span>
+							<?php else : ?>
+								<span style="color:#646970;"><?php esc_html_e( 'Not configured', 'ai-layer' ); ?></span>
+							<?php endif; ?>
+						</li>
+					<?php endforeach; ?>
+				</ul>
+			<?php endif; ?>
+
+			<form method="post" action="">
+				<?php wp_nonce_field( self::NONCE_AI, 'wpail_wizard_ai_nonce' ); ?>
+				<input type="hidden" name="wpail_wizard_action" value="save_ai">
+
+				<div class="wpail-wizard__field" style="align-items:flex-start;">
+					<label class="wpail-wizard__field-check" for="wpail_wizard_ai_model" style="padding-top:6px;">
+						<span class="wpail-wizard__field-label"><?php esc_html_e( 'Model', 'ai-layer' ); ?></span>
+					</label>
+					<div class="wpail-wizard__field-body">
+						<select name="wpail_ai_model" id="wpail_wizard_ai_model" style="min-width:280px;">
+							<?php AiSettings::render_model_options( $model ); ?>
+						</select>
+						<p class="description"><?php esc_html_e( 'GPT-4o Mini works well for extraction. Use a stronger model for the relationship-linking step if results are imprecise.', 'ai-layer' ); ?></p>
+					</div>
+				</div>
+
+				<?php if ( ! $use_connectors ) : ?>
+					<h3 style="margin-top:20px;"><?php esc_html_e( 'API keys', 'ai-layer' ); ?></h3>
+					<p class="description"><?php esc_html_e( 'Enter the key for the provider your chosen model uses. Keys are stored in this site\'s database.', 'ai-layer' ); ?></p>
+
+					<?php foreach ( AiSettings::PROVIDER_LABELS as $prov => $label ) : ?>
+						<?php $stored_key = AiSettings::get_local_api_key( $prov ); ?>
+						<div class="wpail-wizard__field" style="align-items:flex-start;">
+							<label class="wpail-wizard__field-check" for="wpail_wizard_ai_key_<?php echo esc_attr( $prov ); ?>" style="padding-top:6px;">
+								<span class="wpail-wizard__field-label">
+									<?php
+									/* translators: %s: provider name */
+									printf( esc_html__( '%s API Key', 'ai-layer' ), esc_html( $label ) );
+									?>
+								</span>
+							</label>
+							<div class="wpail-wizard__field-body">
+								<input type="password"
+								       id="wpail_wizard_ai_key_<?php echo esc_attr( $prov ); ?>"
+								       name="wpail_ai_key_<?php echo esc_attr( $prov ); ?>"
+								       value=""
+								       placeholder="<?php echo $stored_key ? esc_attr__( '(saved — leave blank to keep)', 'ai-layer' ) : esc_attr__( 'Paste your API key', 'ai-layer' ); ?>"
+								       style="width:340px;font-family:monospace;" />
+								<?php if ( $stored_key ) : ?>
+									<span style="color:#00a32a;margin-left:8px;">&#10003; <?php esc_html_e( 'Key saved', 'ai-layer' ); ?></span>
+								<?php endif; ?>
+							</div>
+						</div>
+					<?php endforeach; ?>
+				<?php endif; ?>
+
+				<?php if ( ! $has_key ) : ?>
+					<div class="notice notice-warning inline" style="margin:16px 0 0;">
+						<p>
+							<?php
+							if ( $use_connectors ) {
+								printf(
+									/* translators: 1: provider name, 2: Settings → Connectors link */
+									esc_html__( 'Add an API key for %1$s on %2$s before running AI Import.', 'ai-layer' ),
+									esc_html( AiSettings::PROVIDER_LABELS[ $provider ] ?? $provider ),
+									'<a href="' . esc_url( $connectors_url ) . '">' . esc_html__( 'Settings → Connectors', 'ai-layer' ) . '</a>'
+								);
+							} else {
+								printf(
+									/* translators: %s: provider name */
+									esc_html__( 'Add an API key for %s above before running AI Import.', 'ai-layer' ),
+									esc_html( AiSettings::PROVIDER_LABELS[ $provider ] ?? $provider )
+								);
+							}
+							?>
+						</p>
+					</div>
+				<?php endif; ?>
+
+				<div class="wpail-wizard__nav">
+					<button type="submit" class="button button-primary">
+						<?php esc_html_e( 'Save and continue', 'ai-layer' ); ?> &rarr;
+					</button>
+					<a href="<?php echo esc_url( add_query_arg( [ 'page' => 'wpail_setup_wizard', 'step' => self::STEP_DISCOVERY ], admin_url( 'admin.php' ) ) ); ?>"
+					   class="button button-secondary">
+						&larr; <?php esc_html_e( 'Back', 'ai-layer' ); ?>
+					</a>
+					<a href="<?php echo esc_url( add_query_arg( [ 'page' => 'wpail_setup_wizard', 'step' => self::STEP_DONE ], admin_url( 'admin.php' ) ) ); ?>"
+					   class="wpail-wizard__text-link">
+						<?php esc_html_e( 'Skip for now', 'ai-layer' ); ?>
+					</a>
+				</div>
 			</form>
 		</div>
 		<?php
@@ -651,14 +865,31 @@ class SetupWizardPage {
 
 	private static function render_done(): void {
 		$products_enabled = isset( $_GET['products_enabled'] ) && '1' === $_GET['products_enabled'];
+		$has_ai_key       = AiSettings::is_selected_provider_configured();
+		$llmstxt_on       = (bool) LLMsTxtSettings::get( 'enabled', false );
+		$aitxt_on         = (bool) AiTxtSettings::get( 'enabled', false );
+		$import_url       = add_query_arg( 'from', 'wizard', admin_url( 'admin.php?page=wpail_ai_import' ) );
+		$manual_path      = isset( $_GET['path'] ) && 'manual' === sanitize_key( wp_unslash( $_GET['path'] ) );
+		$setup            = SetupProgress::assess();
 		?>
 		<div class="wpail-wizard__body">
 
-			<div class="wpail-wizard__done">
-				<span class="dashicons dashicons-yes-alt wpail-wizard__done-icon"></span>
-				<h2><?php esc_html_e( 'Setup complete', 'ai-layer' ); ?></h2>
+			<div class="wpail-wizard__milestone">
+				<span class="dashicons dashicons-flag wpail-wizard__milestone-icon"></span>
+				<h2><?php esc_html_e( 'Configuration saved', 'ai-layer' ); ?></h2>
 				<p>
-					<?php esc_html_e( 'Your auto-populated data has been applied. You can re-run the wizard any time from the menu.', 'ai-layer' ); ?>
+					<?php esc_html_e( 'Your profile, discovery, and AI connection settings are in place. Onboarding is not finished yet — you still need to add business entities before the answer engine can respond.', 'ai-layer' ); ?>
+				</p>
+				<p class="wpail-wizard__milestone-stat">
+					<?php
+					printf(
+						/* translators: 1: completed count, 2: total count, 3: percentage */
+						esc_html__( 'Overall setup progress: %1$d of %2$d (%3$d%%)', 'ai-layer' ),
+						$setup['complete_count'],
+						$setup['total_count'],
+						$setup['percent']
+					);
+					?>
 				</p>
 				<?php if ( $products_enabled ) : ?>
 					<p>
@@ -667,8 +898,79 @@ class SetupWizardPage {
 				<?php endif; ?>
 			</div>
 
-			<h2><?php esc_html_e( 'What to do next', 'ai-layer' ); ?></h2>
-			<p><?php esc_html_e( 'The wizard covers Business Profile and discovery settings. These sections still need your attention:', 'ai-layer' ); ?></p>
+			<h2><?php esc_html_e( 'Fine-tune AI files (recommended)', 'ai-layer' ); ?></h2>
+			<p class="description" style="margin-bottom: 12px;">
+				<?php esc_html_e( 'You chose defaults during discovery — adjust key pages, endpoint sections, or crawling policy anytime.', 'ai-layer' ); ?>
+			</p>
+			<div class="wpail-wizard__file-status">
+				<div class="wpail-wizard__file-status-item">
+					<strong>llms.txt</strong>
+					<span class="wpail-wizard__file-status-badge <?php echo $llmstxt_on ? 'is-on' : 'is-off'; ?>">
+						<?php echo esc_html( $llmstxt_on ? __( 'Enabled', 'ai-layer' ) : __( 'Disabled', 'ai-layer' ) ); ?>
+					</span>
+					<a href="<?php echo esc_url( admin_url( 'admin.php?page=wpail_llmstxt' ) ); ?>"><?php esc_html_e( 'Configure', 'ai-layer' ); ?></a>
+					<?php if ( $llmstxt_on ) : ?>
+						<a href="<?php echo esc_url( home_url( '/llms.txt' ) ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'View live', 'ai-layer' ); ?></a>
+					<?php endif; ?>
+				</div>
+				<div class="wpail-wizard__file-status-item">
+					<strong>AI.txt</strong>
+					<span class="wpail-wizard__file-status-badge <?php echo $aitxt_on ? 'is-on' : 'is-off'; ?>">
+						<?php echo esc_html( $aitxt_on ? __( 'Enabled', 'ai-layer' ) : __( 'Disabled', 'ai-layer' ) ); ?>
+					</span>
+					<a href="<?php echo esc_url( admin_url( 'admin.php?page=wpail_aitxt' ) ); ?>"><?php esc_html_e( 'Configure', 'ai-layer' ); ?></a>
+					<?php if ( $aitxt_on ) : ?>
+						<a href="<?php echo esc_url( home_url( '/ai.txt' ) ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'View live', 'ai-layer' ); ?></a>
+					<?php endif; ?>
+				</div>
+			</div>
+
+			<h2 style="margin-top:28px;"><?php esc_html_e( 'How do you want to add your entities?', 'ai-layer' ); ?></h2>
+
+			<div class="wpail-wizard__choices">
+				<div class="wpail-wizard__choice<?php echo ! $manual_path ? ' is-recommended' : ''; ?>">
+					<span class="dashicons dashicons-cloud-upload wpail-wizard__choice-icon"></span>
+					<h3><?php esc_html_e( 'Import with AI', 'ai-layer' ); ?></h3>
+					<p><?php esc_html_e( 'Scan your existing pages and create draft Services, FAQs, Locations, Proof, and Actions automatically. Review everything before publishing.', 'ai-layer' ); ?></p>
+					<?php if ( ! $has_ai_key ) : ?>
+						<p class="wpail-wizard__choice-note">
+							<?php
+							if ( ConnectorBridge::is_available() ) {
+								printf(
+									/* translators: %s: link to AI setup step */
+									esc_html__( 'Connect a provider on %s first.', 'ai-layer' ),
+									'<a href="' . esc_url( add_query_arg( [ 'page' => 'wpail_setup_wizard', 'step' => self::STEP_AI ], admin_url( 'admin.php' ) ) ) . '">' . esc_html__( 'the AI setup step', 'ai-layer' ) . '</a>'
+								);
+							} else {
+								printf(
+									/* translators: %s: link to AI setup step */
+									esc_html__( 'Add an API key on %s first.', 'ai-layer' ),
+									'<a href="' . esc_url( add_query_arg( [ 'page' => 'wpail_setup_wizard', 'step' => self::STEP_AI ], admin_url( 'admin.php' ) ) ) . '">' . esc_html__( 'the AI setup step', 'ai-layer' ) . '</a>'
+								);
+							}
+							?>
+						</p>
+					<?php endif; ?>
+					<a href="<?php echo esc_url( $import_url ); ?>"
+					   class="button button-primary">
+						<?php esc_html_e( 'Start AI Import', 'ai-layer' ); ?>
+					</a>
+				</div>
+
+				<div class="wpail-wizard__choice<?php echo $manual_path ? ' is-recommended' : ''; ?>">
+					<span class="dashicons dashicons-edit wpail-wizard__choice-icon"></span>
+					<h3><?php esc_html_e( 'Add manually', 'ai-layer' ); ?></h3>
+					<p><?php esc_html_e( 'Create Services, FAQs, Proof, and Actions yourself in the admin. Best if you already have structured data or prefer full control from the start.', 'ai-layer' ); ?></p>
+					<a href="<?php echo esc_url( add_query_arg( [ 'page' => 'wpail_setup_wizard', 'step' => self::STEP_DONE, 'path' => 'manual' ], admin_url( 'admin.php' ) ) ); ?>"
+					   class="button<?php echo $manual_path ? ' button-primary' : ' button-secondary'; ?>">
+						<?php esc_html_e( 'Show manual checklist', 'ai-layer' ); ?>
+					</a>
+				</div>
+			</div>
+
+			<?php if ( $manual_path ) : ?>
+			<h2 style="margin-top:32px;"><?php esc_html_e( 'Manual setup checklist', 'ai-layer' ); ?></h2>
+			<p><?php esc_html_e( 'Work through these in any order. You can switch to AI Import later from the menu.', 'ai-layer' ); ?></p>
 
 			<div class="wpail-wizard__next-steps">
 				<?php
@@ -742,6 +1044,7 @@ class SetupWizardPage {
 					</div>
 				<?php endforeach; ?>
 			</div>
+			<?php endif; ?>
 
 			<div class="wpail-wizard__nav" style="margin-top: 24px;">
 				<a href="<?php echo esc_url( admin_url( 'admin.php?page=wpail_dashboard' ) ); ?>"
@@ -777,7 +1080,8 @@ class SetupWizardPage {
 		}
 
 		$steps[ self::STEP_DISCOVERY ] = $n++ . '. ' . __( 'Discovery', 'ai-layer' );
-		$steps[ self::STEP_DONE ]      = $n . '. ' . __( 'Done', 'ai-layer' );
+		$steps[ self::STEP_AI ]        = $n++ . '. ' . __( 'AI Setup', 'ai-layer' );
+		$steps[ self::STEP_DONE ]      = $n . '. ' . __( 'Add content', 'ai-layer' );
 
 		return $steps;
 	}

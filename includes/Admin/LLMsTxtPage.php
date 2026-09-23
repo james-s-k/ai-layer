@@ -158,17 +158,36 @@ class LLMsTxtPage {
 										</label>
 										<p class="description">
 											<?php if ( $is_well_known_mode ) : ?>
-												<?php
-												printf(
-													/* translators: %s: well-known URL */
-													esc_html__( 'Inserts a single line pointing to %s (the machine-readable source of truth). Discovery mode is set to /.well-known/ai-layer — change it in Settings to list endpoints directly here instead.', 'ai-layer' ),
-													'<code>' . esc_html( home_url( '/.well-known/ai-layer' ) ) . '</code>'
-												);
-												?>
+												<?php esc_html_e( 'Adds an “AI Layer Structured Endpoints” section containing:', 'ai-layer' ); ?>
 											<?php else : ?>
-												<?php esc_html_e( 'Lists all active AI Layer endpoints directly in llms.txt. Products appear automatically when the Products endpoint is enabled in Settings and WooCommerce is active.', 'ai-layer' ); ?>
+												<?php esc_html_e( 'Adds an “AI Layer Structured Endpoints” section listing each REST endpoint directly in llms.txt:', 'ai-layer' ); ?>
 											<?php endif; ?>
 										</p>
+										<ul class="wpail-llmstxt-endpoint-list">
+											<li><?php esc_html_e( 'Canonical manifest (JSON)', 'ai-layer' ); ?></li>
+											<li><?php esc_html_e( 'OpenAPI specification', 'ai-layer' ); ?></li>
+											<?php if ( $is_well_known_mode ) : ?>
+												<li>
+													<?php
+													printf(
+														/* translators: %s: well-known URL */
+														esc_html__( 'Link to %s — the machine-readable index listing every endpoint (profile, services, FAQs, /answers, etc.)', 'ai-layer' ),
+														'<code>/.well-known/ai-layer</code>'
+													);
+													?>
+												</li>
+											<?php else : ?>
+												<li><?php esc_html_e( 'Profile, Services, Locations, FAQs, Proof, Actions', 'ai-layer' ); ?></li>
+												<?php if ( SettingsPage::get( SettingsPage::SETTING_PRODUCTS_ENABLED ) && class_exists( 'WooCommerce' ) ) : ?>
+													<li><?php esc_html_e( 'Products (when enabled in Settings)', 'ai-layer' ); ?></li>
+												<?php endif; ?>
+											<?php endif; ?>
+										</ul>
+										<?php if ( $is_well_known_mode ) : ?>
+											<p class="description">
+												<?php esc_html_e( 'Individual endpoints are not duplicated in llms.txt — agents follow the well-known JSON document. Change discovery mode in Settings to list endpoints inline instead.', 'ai-layer' ); ?>
+											</p>
+										<?php endif; ?>
 									</td>
 								</tr>
 								<?php if ( ! $is_well_known_mode && Features::answers_enabled() ): ?>
@@ -180,6 +199,9 @@ class LLMsTxtPage {
 												<?php checked( $settings['include_answers'] ); ?>>
 											<?php esc_html_e( 'Include the /answers natural language endpoint', 'ai-layer' ); ?>
 										</label>
+										<p class="description">
+											<?php esc_html_e( 'Only applies in /llms.txt-only discovery mode. Adds a line for the question-answering endpoint to the list above.', 'ai-layer' ); ?>
+										</p>
 									</td>
 								</tr>
 								<?php endif; ?>
@@ -317,13 +339,6 @@ class LLMsTxtPage {
 				</div><!-- /.wpail-llmstxt__layout -->
 
 			</form>
-
-			<script>
-			window.wpailLlmsTxt = {
-				nonce:   <?php echo wp_json_encode( wp_create_nonce( 'wp_rest' ) ); ?>,
-				restUrl: <?php echo wp_json_encode( rest_url() ); ?>
-			};
-			</script>
 
 		</div>
 		<?php

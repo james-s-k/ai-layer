@@ -11,6 +11,7 @@ namespace WPAIL\Admin;
 
 use WPAIL\Licensing\Features;
 use WPAIL\Licensing\License;
+use WPAIL\Setup\SetupProgress;
 
 class OverviewPage {
 
@@ -19,7 +20,8 @@ class OverviewPage {
 			return;
 		}
 
-		$profile_complete  = self::is_profile_complete();
+		$setup             = SetupProgress::assess();
+		$profile_complete  = SetupProgress::is_profile_complete();
 		$counts            = self::get_counts();
 		$rest_base         = rest_url( WPAIL_REST_NS );
 		$schema_enabled    = (bool) SettingsPage::get( SettingsPage::SETTING_SCHEMA_ENABLED, false );
@@ -37,6 +39,8 @@ class OverviewPage {
 					</p>
 				</div>
 			</div>
+
+			<?php SetupProgress::render_widget( $setup ); ?>
 
 			<?php if ( ! $profile_complete ) : ?>
 				<div class="notice notice-warning inline">
@@ -342,11 +346,6 @@ class OverviewPage {
 
 		</div>
 		<?php
-	}
-
-	private static function is_profile_complete(): bool {
-		$profile = get_option( WPAIL_OPT_BUSINESS, [] );
-		return ! empty( $profile['name'] ) && ! empty( $profile['phone'] );
 	}
 
 	/**

@@ -35,6 +35,15 @@ class Assets {
 			WPAIL_VERSION,
 			true
 		);
+
+		wp_localize_script(
+			'wpail-admin',
+			'wpailAdmin',
+			[
+				'ajaxUrl'          => admin_url( 'admin-ajax.php' ),
+				'searchPagesNonce' => wp_create_nonce( PageSearchAjax::NONCE_ACTION ),
+			]
+		);
 	}
 
 	private function is_wpail_page( string $hook ): bool {
