@@ -34,7 +34,7 @@ class LLMsTxtPage {
 		$saved = false;
 		if (
 			isset( $_POST['_wpnonce'] ) &&
-			wp_verify_nonce( sanitize_key( $_POST['_wpnonce'] ), 'wpail_llmstxt_save' )
+			wp_verify_nonce( sanitize_key( wp_unslash( $_POST['_wpnonce'] ) ), 'wpail_llmstxt_save' )
 		) {
 			self::handle_save();
 			$saved = true;
@@ -349,9 +349,18 @@ class LLMsTxtPage {
 			return;
 		}
 
-		$raw = isset( $_POST['wpail_llmstxt'] ) && is_array( $_POST['wpail_llmstxt'] )
-			? (array) wp_unslash( $_POST['wpail_llmstxt'] )
-			: [];
+		if (
+			! isset( $_POST['_wpnonce'] )
+			|| ! wp_verify_nonce( sanitize_key( wp_unslash( $_POST['_wpnonce'] ) ), 'wpail_llmstxt_save' )
+		) {
+			return;
+		}
+
+		$raw_post = [];
+		if ( isset( $_POST['wpail_llmstxt'] ) ) {
+			$raw_post = wp_unslash( $_POST['wpail_llmstxt'] );
+		}
+		$raw = is_array( $raw_post ) ? $raw_post : [];
 
 		$common = [];
 		foreach ( [ 'about', 'contact', 'privacy', 'terms', 'blog' ] as $key ) {

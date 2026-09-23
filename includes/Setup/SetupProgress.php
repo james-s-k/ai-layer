@@ -394,25 +394,29 @@ class SetupProgress {
 				<strong class="wpail-setup-progress__title"><?php esc_html_e( 'Setup progress', 'ai-layer' ); ?></strong>
 				<span class="wpail-setup-progress__stat">
 					<?php
-					printf(
-						/* translators: 1: completed count, 2: total count, 3: percentage */
-						esc_html__( '%1$d of %2$d complete (%3$d%%)', 'ai-layer' ),
-						$complete_count,
-						$total_count,
-						$percent
+					echo esc_html(
+						sprintf(
+							/* translators: 1: completed count, 2: total count, 3: percentage */
+							__( '%1$d of %2$d complete (%3$d%%)', 'ai-layer' ),
+							(int) $complete_count,
+							(int) $total_count,
+							(int) $percent
+						)
 					);
 					?>
 				</span>
 			</div>
 			<p class="wpail-setup-progress__breakdown">
 				<?php
-				printf(
-					/* translators: 1: essential complete, 2: essential total, 3: recommended complete, 4: recommended total */
-					esc_html__( 'Essential: %1$d/%2$d · Recommended: %3$d/%4$d', 'ai-layer' ),
-					$assessment['essential_complete'],
-					$assessment['essential_total'],
-					$assessment['recommended_complete'],
-					$assessment['recommended_total']
+				echo esc_html(
+					sprintf(
+						/* translators: 1: essential complete, 2: essential total, 3: recommended complete, 4: recommended total */
+						__( 'Essential: %1$d/%2$d · Recommended: %3$d/%4$d', 'ai-layer' ),
+						(int) $assessment['essential_complete'],
+						(int) $assessment['essential_total'],
+						(int) $assessment['recommended_complete'],
+						(int) $assessment['recommended_total']
+					)
 				);
 				?>
 			</p>

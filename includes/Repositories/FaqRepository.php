@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace WPAIL\Repositories;
 
 use WPAIL\Models\FaqModel;
+use WPAIL\Support\PublicEntityVisibility;
 use WPAIL\Transformers\FaqTransformer;
 use WPAIL\PostTypes\FaqPostType;
 
@@ -47,6 +48,16 @@ class FaqRepository {
 		}
 
 		return FaqTransformer::from_post( $post );
+	}
+
+	public function find_public_by_id( int $id ): ?FaqModel {
+		$faq = $this->find_by_id( $id );
+
+		if ( null === $faq || ! PublicEntityVisibility::faq_is_public( $faq, $id ) ) {
+			return null;
+		}
+
+		return $faq;
 	}
 
 	/**

@@ -58,10 +58,14 @@ class SetupWizardPage {
 	// ------------------------------------------------------------------
 
 	public function handle_save(): void {
-		if ( ( $_SERVER['REQUEST_METHOD'] ?? '' ) !== 'POST' ) {
+		$method = isset( $_SERVER['REQUEST_METHOD'] )
+			? sanitize_text_field( wp_unslash( (string) $_SERVER['REQUEST_METHOD'] ) )
+			: '';
+		if ( 'POST' !== $method ) {
 			return;
 		}
 
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Each handler verifies its own nonce.
 		$action = sanitize_key( wp_unslash( $_POST['wpail_wizard_action'] ?? '' ) );
 
 		if ( 'apply_profile' === $action ) {
@@ -97,7 +101,8 @@ class SetupWizardPage {
 		}
 
 		$fields     = FieldDefinitions::business();
-		$to_apply   = array_keys( (array) ( $_POST['wpail_apply'] ?? [] ) );
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Verified above via wpail_wizard_profile_nonce.
+		$to_apply   = array_keys( array_map( 'sanitize_key', (array) wp_unslash( $_POST['wpail_apply'] ?? [] ) ) );
 		$raw_values = (array) wp_unslash( $_POST['wpail_suggestions'] ?? [] );
 
 		foreach ( $to_apply as $key ) {
@@ -882,12 +887,14 @@ class SetupWizardPage {
 				</p>
 				<p class="wpail-wizard__milestone-stat">
 					<?php
-					printf(
-						/* translators: 1: completed count, 2: total count, 3: percentage */
-						esc_html__( 'Overall setup progress: %1$d of %2$d (%3$d%%)', 'ai-layer' ),
-						$setup['complete_count'],
-						$setup['total_count'],
-						$setup['percent']
+					echo esc_html(
+						sprintf(
+							/* translators: 1: completed count, 2: total count, 3: percentage */
+							__( 'Overall setup progress: %1$d of %2$d (%3$d%%)', 'ai-layer' ),
+							(int) $setup['complete_count'],
+							(int) $setup['total_count'],
+							(int) $setup['percent']
+						)
 					);
 					?>
 				</p>

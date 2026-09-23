@@ -125,7 +125,7 @@ class AnswersController extends BaseController {
 
 	private function list_authored(): \WP_REST_Response {
 		$answers = ( new AnswerRepository() )->get_all();
-		$data    = array_map( fn( $a ) => $this->resolve( $a ), $answers );
+		$data    = array_map( fn( $a ) => $this->resolve( $a, false ), $answers );
 		return $this->success( $data, [ 'count' => count( $data ) ] );
 	}
 
@@ -144,13 +144,13 @@ class AnswersController extends BaseController {
 	}
 
 	public function get_item( $request ) {
-		$answer = ( new AnswerRepository() )->find_by_id( (int) $request->get_param( 'id' ) );
+		$answer = ( new AnswerRepository() )->find_public_by_id( (int) $request->get_param( 'id' ) );
 
 		if ( null === $answer ) {
 			return $this->not_found( 'Answer not found.' );
 		}
 
-		return $this->success( $this->resolve( $answer ) );
+		return $this->success( $this->resolve( $answer, false ) );
 	}
 
 	public function create_item( $request ) {
@@ -188,7 +188,7 @@ class AnswersController extends BaseController {
 
 		$answer = ( new AnswerRepository() )->find_by_id( $post_id );
 		AuditLogger::log( AuditLogger::ACTION_CREATE, 'wpail_answer', $post_id );
-		return $this->created( $answer ? $this->resolve( $answer ) : null );
+		return $this->created( $answer ? $this->resolve( $answer, true ) : null );
 	}
 
 	public function update_item( $request ) {
@@ -219,7 +219,7 @@ class AnswersController extends BaseController {
 
 		$updated = $repo->find_by_id( $post_id );
 		AuditLogger::log( AuditLogger::ACTION_UPDATE, 'wpail_answer', $post_id );
-		return $this->success( $updated ? $this->resolve( $updated ) : null );
+		return $this->success( $updated ? $this->resolve( $updated, true ) : null );
 	}
 
 	public function delete_item( $request ) {
@@ -247,19 +247,24 @@ class AnswersController extends BaseController {
 	// Helpers.
 	// ------------------------------------------------------------------
 
-	private function resolve( $answer ): array {
-		return [
-			'id'             => $answer->post_id,
-			'short_answer'   => $answer->short_answer,
-			'long_answer'    => $answer->long_answer,
-			'modified_at'    => $answer->modified_at,
-			'confidence'     => $answer->confidence,
-			'query_patterns' => $answer->query_patterns,
-			'services'       => RelationshipHelper::resolve_summaries( $answer->related_service_ids ),
-			'locations'      => RelationshipHelper::resolve_summaries( $answer->related_location_ids ),
-			'next_actions'   => RelationshipHelper::resolve_summaries( $answer->next_action_ids ),
-			'source_faqs'    => RelationshipHelper::resolve_summaries( $answer->source_faq_ids ),
+	private function resolve( $answer, bool $include_internal = false ): array {
+		$data = [
+			'id'           => $answer->post_id,
+			'short_answer' => $answer->short_answer,
+			'long_answer'  => $answer->long_answer,
+			'modified_at'  => $answer->modified_at,
+			'confidence'   => $answer->confidence,
+			'services'     => RelationshipHelper::resolve_summaries( $answer->related_service_ids ),
+			'locations'    => RelationshipHelper::resolve_summaries( $answer->related_location_ids ),
+			'next_actions' => RelationshipHelper::resolve_summaries( $answer->next_action_ids ),
+			'source_faqs'  => RelationshipHelper::resolve_summaries( $answer->source_faq_ids ),
 		];
+
+		if ( $include_internal ) {
+			$data['query_patterns'] = $answer->query_patterns;
+		}
+
+		return $data;
 	}
 
 	/** Allow query_patterns to arrive as an array; FieldDefinitions stores it as textarea (newline string). */

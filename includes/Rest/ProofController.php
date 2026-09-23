@@ -87,7 +87,7 @@ class ProofController extends BaseController {
 
 	public function get_item( $request ) {
 		$repo  = new ProofRepository();
-		$proof = $repo->find_by_id( (int) $request->get_param( 'id' ) );
+		$proof = $repo->find_public_by_id( (int) $request->get_param( 'id' ) );
 
 		if ( null === $proof ) {
 			return $this->not_found( 'Proof item not found.' );

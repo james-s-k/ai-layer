@@ -13,9 +13,9 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 	exit;
 }
 
-$settings = (array) get_option( 'wpail_settings', [] );
+$wpail_settings = (array) get_option( 'wpail_settings', [] );
 
-if ( empty( $settings['delete_data_on_uninstall'] ) ) {
+if ( empty( $wpail_settings['delete_data_on_uninstall'] ) ) {
 	return;
 }
 
@@ -23,7 +23,7 @@ if ( empty( $settings['delete_data_on_uninstall'] ) ) {
 // Delete all CPT posts (WordPress cascades and removes their postmeta).
 // ------------------------------------------------------------------
 
-$post_types = [
+$wpail_post_types = [
 	'wpail_service',
 	'wpail_location',
 	'wpail_faq',
@@ -32,16 +32,16 @@ $post_types = [
 	'wpail_answer',
 ];
 
-foreach ( $post_types as $post_type ) {
-	$ids = get_posts( [
-		'post_type'      => $post_type,
+foreach ( $wpail_post_types as $wpail_post_type ) {
+	$wpail_post_ids = get_posts( [
+		'post_type'      => $wpail_post_type,
 		'post_status'    => 'any',
 		'posts_per_page' => -1,
 		'fields'         => 'ids',
 	] );
 
-	foreach ( $ids as $id ) {
-		wp_delete_post( (int) $id, true );
+	foreach ( $wpail_post_ids as $wpail_post_id ) {
+		wp_delete_post( (int) $wpail_post_id, true );
 	}
 }
 
@@ -60,14 +60,16 @@ $wpdb->query(
 	    OR option_name LIKE '\_transient\_timeout\_wpail\_%'"
 );
 
-$analytics_table = $wpdb->prefix . 'wpail_analytics';
-$audit_table     = $wpdb->prefix . 'wpail_audit_log';
-$wpdb->query( "DROP TABLE IF EXISTS {$analytics_table}" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-$wpdb->query( "DROP TABLE IF EXISTS {$audit_table}" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+$wpail_analytics_table = $wpdb->prefix . 'wpail_analytics';
+$wpail_audit_table     = $wpdb->prefix . 'wpail_audit_log';
+// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+$wpdb->query( "DROP TABLE IF EXISTS {$wpail_analytics_table}" );
+// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+$wpdb->query( "DROP TABLE IF EXISTS {$wpail_audit_table}" );
 // phpcs:enable WordPress.DB.DirectDatabaseQuery
 
 // ------------------------------------------------------------------
 // Flush rewrite rules so CPT-based routes are removed cleanly.
 // ------------------------------------------------------------------
 
-flush_rewrite_rules();
+flush_rewrite_rules( false );

@@ -9,5 +9,8 @@
         "psr-4": {
             "WPAIL\\Tests\\": "tests/"
         }
+    },
+    "scripts": {
+        "test": "phpunit --bootstrap tests/bootstrap.php tests/Unit"
     }
 }

@@ -146,7 +146,7 @@ class FieldRenderer {
 			printf(
 				'<label class="wpail-post-check"><input type="checkbox" name="%s[]" value="%d" %s> %s</label>',
 				esc_attr( $name ),
-				$post->ID,
+				absint( $post->ID ),
 				checked( $checked, true, false ),
 				esc_html( $post->post_title )
 			);

@@ -1,0 +1,10 @@
+.git
+.gitignore
+.cursor
+.claude
+.github
+composer.json
+composer.lock
+tests
+node_modules
+*.json

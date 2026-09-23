@@ -15,7 +15,7 @@ use WPAIL\Repositories\BusinessRepository;
 class ProfileAbilities {
 
 	public function register(): void {
-		wp_register_ability( 'ai-layer/get-profile', [
+		AbilityRegistry::register( 'ai-layer/get-profile', [
 			'label'       => 'Get Business Profile',
 			'description' => 'Returns the full AI Layer business profile: name, contact details, address, opening hours, service modes, social links, and trust summary.',
 			'input_schema' => [
@@ -32,7 +32,7 @@ class ProfileAbilities {
 			],
 		] );
 
-		wp_register_ability( 'ai-layer/update-profile', [
+		AbilityRegistry::register( 'ai-layer/update-profile', [
 			'label'       => 'Update Business Profile',
 			'description' => 'Partially updates the AI Layer business profile. Only fields included in the request are changed; omitted fields are left as-is.',
 			'input_schema' => [

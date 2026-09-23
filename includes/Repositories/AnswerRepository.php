@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace WPAIL\Repositories;
 
 use WPAIL\Models\AnswerModel;
+use WPAIL\Support\PublicEntityVisibility;
 use WPAIL\Transformers\AnswerTransformer;
 use WPAIL\PostTypes\AnswerPostType;
 
@@ -46,6 +47,14 @@ class AnswerRepository {
 			return null;
 		}
 		return AnswerTransformer::from_post( $post );
+	}
+
+	public function find_public_by_id( int $id ): ?AnswerModel {
+		if ( ! PublicEntityVisibility::post_is_published( $id ) ) {
+			return null;
+		}
+
+		return $this->find_by_id( $id );
 	}
 
 	/** @return array<AnswerModel> */

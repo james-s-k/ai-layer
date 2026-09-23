@@ -30,7 +30,7 @@ class AnswersAbilities {
 	}
 
 	private function register_list(): void {
-		wp_register_ability( 'ai-layer/list-answers', [
+		AbilityRegistry::register( 'ai-layer/list-answers', [
 			'label'       => 'List Authored Answers',
 			'description' => 'Returns all manually-authored AI Layer answers. These are guaranteed responses that take priority over the auto-assembly engine when a query matches their patterns.',
 			'input_schema' => [ 'type' => 'object', 'properties' => new \stdClass() ],
@@ -47,7 +47,7 @@ class AnswersAbilities {
 	}
 
 	private function register_get(): void {
-		wp_register_ability( 'ai-layer/get-answer', [
+		AbilityRegistry::register( 'ai-layer/get-answer', [
 			'label'       => 'Get Authored Answer',
 			'description' => 'Returns a single authored answer by ID, including its query patterns, confidence, and related entities.',
 			'input_schema' => [
@@ -60,7 +60,7 @@ class AnswersAbilities {
 			'execute_callback'    => function ( array $input ): array {
 				$answer = ( new AnswerRepository() )->find_by_id( (int) ( $input['id'] ?? 0 ) );
 				if ( null === $answer ) {
-					throw new \RuntimeException( 'Answer not found: ' . ( $input['id'] ?? '' ) );
+					AbilityRegistry::throwNotFoundId( 'Answer', (int) ( $input['id'] ?? 0 ) );
 				}
 				return $this->resolve( $answer );
 			},
@@ -73,7 +73,7 @@ class AnswersAbilities {
 	}
 
 	private function register_create(): void {
-		wp_register_ability( 'ai-layer/create-answer', [
+		AbilityRegistry::register( 'ai-layer/create-answer', [
 			'label'       => 'Create Authored Answer',
 			'description' => 'Creates a new manually-authored answer. When an incoming query matches any of the query_patterns, this answer is returned immediately at highest priority — bypassing the auto-assembly engine.',
 			'input_schema' => [
@@ -98,7 +98,7 @@ class AnswersAbilities {
 				], true );
 
 				if ( is_wp_error( $post_id ) ) {
-					throw new \RuntimeException( $post_id->get_error_message() );
+					AbilityRegistry::throwFromWpError( $post_id );
 				}
 
 				$input = $this->coerce_patterns( $input );
@@ -108,7 +108,7 @@ class AnswersAbilities {
 
 				$answer = ( new AnswerRepository() )->find_by_id( $post_id );
 				if ( null === $answer ) {
-					throw new \RuntimeException( 'Answer created but could not be retrieved.' );
+					AbilityRegistry::throwError( 'Answer created but could not be retrieved.' );
 				}
 				return $this->resolve( $answer );
 			},
@@ -121,7 +121,7 @@ class AnswersAbilities {
 	}
 
 	private function register_update(): void {
-		wp_register_ability( 'ai-layer/update-answer', [
+		AbilityRegistry::register( 'ai-layer/update-answer', [
 			'label'       => 'Update Authored Answer',
 			'description' => 'Partially updates an authored answer by ID. Only supplied fields are changed.',
 			'input_schema' => [
@@ -136,7 +136,7 @@ class AnswersAbilities {
 				$repo   = new AnswerRepository();
 				$answer = $repo->find_by_id( (int) ( $input['id'] ?? 0 ) );
 				if ( null === $answer ) {
-					throw new \RuntimeException( 'Answer not found: ' . ( $input['id'] ?? '' ) );
+					AbilityRegistry::throwNotFoundId( 'Answer', (int) ( $input['id'] ?? 0 ) );
 				}
 
 				$post_id  = $answer->post_id;
@@ -153,7 +153,7 @@ class AnswersAbilities {
 
 				$updated = $repo->find_by_id( $post_id );
 				if ( null === $updated ) {
-					throw new \RuntimeException( 'Answer updated but could not be retrieved.' );
+					AbilityRegistry::throwError( 'Answer updated but could not be retrieved.' );
 				}
 				return $this->resolve( $updated );
 			},
@@ -166,7 +166,7 @@ class AnswersAbilities {
 	}
 
 	private function register_delete(): void {
-		wp_register_ability( 'ai-layer/delete-answer', [
+		AbilityRegistry::register( 'ai-layer/delete-answer', [
 			'label'       => 'Delete Authored Answer',
 			'description' => 'Permanently deletes an authored answer by ID.',
 			'input_schema' => [
@@ -179,7 +179,7 @@ class AnswersAbilities {
 			'execute_callback'    => function ( array $input ): array {
 				$answer = ( new AnswerRepository() )->find_by_id( (int) ( $input['id'] ?? 0 ) );
 				if ( null === $answer ) {
-					throw new \RuntimeException( 'Answer not found: ' . ( $input['id'] ?? '' ) );
+					AbilityRegistry::throwNotFoundId( 'Answer', (int) ( $input['id'] ?? 0 ) );
 				}
 
 				$post_id  = $answer->post_id;
@@ -198,7 +198,7 @@ class AnswersAbilities {
 	}
 
 	private function register_query(): void {
-		wp_register_ability( 'ai-layer/query-answers', [
+		AbilityRegistry::register( 'ai-layer/query-answers', [
 			'label'       => 'Query Answer Engine',
 			'description' => 'Runs a natural-language query through the AI Layer rules-based answer engine. Returns a structured answer assembled from your authored answers, FAQs, services, locations, proof, and actions — no external AI call required.',
 			'input_schema' => [
@@ -223,7 +223,7 @@ class AnswersAbilities {
 				);
 
 				if ( null === $result ) {
-					throw new \RuntimeException( 'No matching answer found for: ' . $query );
+					AbilityRegistry::throwQueryNotFound( $query );
 				}
 
 				return $result;

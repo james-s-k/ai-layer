@@ -27,7 +27,7 @@ class ServicesAbilities {
 	}
 
 	private function register_list(): void {
-		wp_register_ability( 'ai-layer/list-services', [
+		AbilityRegistry::register( 'ai-layer/list-services', [
 			'label'       => 'List Services',
 			'description' => 'Returns all published AI Layer services as summaries (id, slug, name).',
 			'input_schema' => [ 'type' => 'object', 'properties' => new \stdClass() ],
@@ -44,7 +44,7 @@ class ServicesAbilities {
 	}
 
 	private function register_get(): void {
-		wp_register_ability( 'ai-layer/get-service', [
+		AbilityRegistry::register( 'ai-layer/get-service', [
 			'label'       => 'Get Service',
 			'description' => 'Returns full detail for a single service by slug, including related FAQs, proof, actions, and locations.',
 			'input_schema' => [
@@ -57,7 +57,7 @@ class ServicesAbilities {
 			'execute_callback'    => function ( array $input ): array {
 				$service = ( new ServiceRepository() )->find_by_slug( sanitize_title( $input['slug'] ?? '' ) );
 				if ( null === $service ) {
-					throw new \RuntimeException( 'Service not found: ' . ( $input['slug'] ?? '' ) );
+					AbilityRegistry::throwNotFoundSlug( 'Service', (string) ( $input['slug'] ?? '' ) );
 				}
 				return $this->resolve( $service );
 			},
@@ -70,7 +70,7 @@ class ServicesAbilities {
 	}
 
 	private function register_create(): void {
-		wp_register_ability( 'ai-layer/create-service', [
+		AbilityRegistry::register( 'ai-layer/create-service', [
 			'label'       => 'Create Service',
 			'description' => 'Creates a new AI Layer service. Bidirectional relationships are synced automatically.',
 			'input_schema' => [
@@ -92,7 +92,7 @@ class ServicesAbilities {
 				], true );
 
 				if ( is_wp_error( $post_id ) ) {
-					throw new \RuntimeException( $post_id->get_error_message() );
+					AbilityRegistry::throwFromWpError( $post_id );
 				}
 
 				$meta = Sanitizer::sanitize_partial( $input, FieldDefinitions::service() );
@@ -101,7 +101,7 @@ class ServicesAbilities {
 
 				$service = ( new ServiceRepository() )->find_by_id( $post_id );
 				if ( null === $service ) {
-					throw new \RuntimeException( 'Service created but could not be retrieved.' );
+					AbilityRegistry::throwError( 'Service created but could not be retrieved.' );
 				}
 				return $this->resolve( $service );
 			},
@@ -114,7 +114,7 @@ class ServicesAbilities {
 	}
 
 	private function register_update(): void {
-		wp_register_ability( 'ai-layer/update-service', [
+		AbilityRegistry::register( 'ai-layer/update-service', [
 			'label'       => 'Update Service',
 			'description' => 'Partially updates an existing service by slug. Only supplied fields are changed. Relationship changes are synced bidirectionally.',
 			'input_schema' => [
@@ -129,7 +129,7 @@ class ServicesAbilities {
 				$repo    = new ServiceRepository();
 				$service = $repo->find_by_slug( sanitize_title( $input['slug'] ?? '' ) );
 				if ( null === $service ) {
-					throw new \RuntimeException( 'Service not found: ' . ( $input['slug'] ?? '' ) );
+					AbilityRegistry::throwNotFoundSlug( 'Service', (string) ( $input['slug'] ?? '' ) );
 				}
 
 				$post_id  = $service->id;
@@ -145,7 +145,7 @@ class ServicesAbilities {
 
 				$updated = $repo->find_by_id( $post_id );
 				if ( null === $updated ) {
-					throw new \RuntimeException( 'Service updated but could not be retrieved.' );
+					AbilityRegistry::throwError( 'Service updated but could not be retrieved.' );
 				}
 				return $this->resolve( $updated );
 			},
@@ -158,7 +158,7 @@ class ServicesAbilities {
 	}
 
 	private function register_delete(): void {
-		wp_register_ability( 'ai-layer/delete-service', [
+		AbilityRegistry::register( 'ai-layer/delete-service', [
 			'label'       => 'Delete Service',
 			'description' => 'Permanently deletes a service by slug and cleans up all bidirectional relationship references.',
 			'input_schema' => [
@@ -171,7 +171,7 @@ class ServicesAbilities {
 			'execute_callback'    => function ( array $input ): array {
 				$service = ( new ServiceRepository() )->find_by_slug( sanitize_title( $input['slug'] ?? '' ) );
 				if ( null === $service ) {
-					throw new \RuntimeException( 'Service not found: ' . ( $input['slug'] ?? '' ) );
+					AbilityRegistry::throwNotFoundSlug( 'Service', (string) ( $input['slug'] ?? '' ) );
 				}
 
 				$post_id  = $service->id;

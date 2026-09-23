@@ -225,98 +225,72 @@ class ExtractionJob {
 	}
 
 	private static function services_prompt( string $content ): string {
-		return <<<PROMPT
-Extract all services or products this business offers.
-
-Return a JSON array. Each object must have:
-- "title": service name (3–8 words)
-- "short_summary": 1–2 sentences describing the service, max 200 characters
-- "long_summary": fuller description, 2–4 sentences, max 800 characters
-- "keywords": comma-separated search terms and synonyms a user might type to find this service
-- "benefits": key benefits of this service, one per line (use actual newlines, not \\n literals)
-
-Return [] if no services are found.
-
-CONTENT:
-{$content}
-PROMPT;
+		return 'Extract all services or products this business offers.' . "\n\n"
+			. "Return a JSON array. Each object must have:\n"
+			. "- \"title\": service name (3–8 words)\n"
+			. "- \"short_summary\": 1–2 sentences describing the service, max 200 characters\n"
+			. "- \"long_summary\": fuller description, 2–4 sentences, max 800 characters\n"
+			. "- \"keywords\": comma-separated search terms and synonyms a user might type to find this service\n"
+			. "- \"benefits\": key benefits of this service, one per line (use actual newlines, not \\n literals)\n\n"
+			. "Return [] if no services are found.\n\n"
+			. "CONTENT:\n"
+			. $content;
 	}
 
 	private static function faqs_prompt( string $content ): string {
-		return <<<PROMPT
-Extract frequently asked questions and their answers from this content.
-
-Return a JSON array. Each object must have:
-- "question": the full question as a sentence
-- "short_answer": direct answer, max 300 characters
-- "long_answer": detailed answer with context, max 1000 characters
-- "related_service_names": array of exact service or product names (from the content) this FAQ is about — empty array if none
-
-Return [] if no FAQs are found.
-
-CONTENT:
-{$content}
-PROMPT;
+		return 'Extract frequently asked questions and their answers from this content.' . "\n\n"
+			. "Return a JSON array. Each object must have:\n"
+			. "- \"question\": the full question as a sentence\n"
+			. "- \"short_answer\": direct answer, max 300 characters\n"
+			. "- \"long_answer\": detailed answer with context, max 1000 characters\n"
+			. "- \"related_service_names\": array of exact service or product names (from the content) this FAQ is about — empty array if none\n\n"
+			. "Return [] if no FAQs are found.\n\n"
+			. "CONTENT:\n"
+			. $content;
 	}
 
 	private static function locations_prompt( string $content ): string {
-		return <<<PROMPT
-Extract all locations, cities, towns, regions, or service areas this business mentions.
-
-Return a JSON array. Each object must have:
-- "title": location name
-- "location_type": one of: town, city, county, region, postcode_area, country
-- "summary": 1–2 sentences on what the business offers in or serves from this location — empty string if not mentioned
-
-Return [] if no locations are found.
-
-CONTENT:
-{$content}
-PROMPT;
+		return 'Extract all locations, cities, towns, regions, or service areas this business mentions.' . "\n\n"
+			. "Return a JSON array. Each object must have:\n"
+			. "- \"title\": location name\n"
+			. "- \"location_type\": one of: town, city, county, region, postcode_area, country\n"
+			. "- \"summary\": 1–2 sentences on what the business offers in or serves from this location — empty string if not mentioned\n\n"
+			. "Return [] if no locations are found.\n\n"
+			. "CONTENT:\n"
+			. $content;
 	}
 
 	private static function proof_prompt( string $content ): string {
-		return <<<PROMPT
-Extract testimonials, statistics, case studies, awards, accreditations, or trust signals.
-
-Return a JSON object with a "proof" key containing an array of items.
-Example format: {"proof": [{...}, {...}]}
-
-Each item must have:
-- "title": a short descriptive title (e.g. "Sarah Mitchell Testimonial" or "Google Partner")
-- "proof_type": one of: testimonial, statistic, accreditation, case_study, award, media_mention
-- "headline": the key quote, stat, or achievement — max 200 characters
-- "content": full quote or description — max 800 characters
-- "source_name": person, company, or awarding body name
-- "source_context": role, company, or publication info about the source (e.g. "CEO, Acme Ltd") — empty string if unknown
-- "related_service_names": array of exact service or product names (from the content) this proof clearly relates to — empty array if none or if the proof is general/company-wide
-
-Return {"proof": []} if none found.
-
-CONTENT:
-{$content}
-PROMPT;
+		return 'Extract testimonials, statistics, case studies, awards, accreditations, or trust signals.' . "\n\n"
+			. "Return a JSON object with a \"proof\" key containing an array of items.\n"
+			. "Example format: {\"proof\": [{...}, {...}]}\n\n"
+			. "Each item must have:\n"
+			. "- \"title\": a short descriptive title (e.g. \"Sarah Mitchell Testimonial\" or \"Google Partner\")\n"
+			. "- \"proof_type\": one of: testimonial, statistic, accreditation, case_study, award, media_mention\n"
+			. "- \"headline\": the key quote, stat, or achievement — max 200 characters\n"
+			. "- \"content\": full quote or description — max 800 characters\n"
+			. "- \"source_name\": person, company, or awarding body name\n"
+			. "- \"source_context\": role, company, or publication info about the source (e.g. \"CEO, Acme Ltd\") — empty string if unknown\n"
+			. "- \"related_service_names\": array of exact service or product names (from the content) this proof clearly relates to — empty array if none or if the proof is general/company-wide\n\n"
+			. "Return {\"proof\": []} if none found.\n\n"
+			. "CONTENT:\n"
+			. $content;
 	}
 
 	private static function actions_prompt( string $content ): string {
-		return <<<PROMPT
-Extract calls-to-action, contact methods, and conversion opportunities.
-
-Return a JSON array. Each object must have:
-- "title": descriptive name for this action (e.g. "Book a Free Consultation")
-- "label": short button/link text, 2–5 words (e.g. "Book Now")
-- "action_type": one of: book, call, email, quote, visit, download, chat
-- "description": one sentence describing what happens when the user takes this action — empty string if obvious
-- "method": one of: link, phone, form, email
-- "url": full URL if present, otherwise null
-- "phone": phone number if action_type is "call", otherwise null
-- "related_service_names": array of exact service or product names (from the content) this action relates to — empty array if none
-
-Return [] if none found.
-
-CONTENT:
-{$content}
-PROMPT;
+		return 'Extract calls-to-action, contact methods, and conversion opportunities.' . "\n\n"
+			. "Return a JSON array. Each object must have:\n"
+			. "- \"title\": descriptive name for this action (e.g. \"Book a Free Consultation\")\n"
+			. "- \"label\": short button/link text, 2–5 words (e.g. \"Book Now\")\n"
+			. "- \"action_type\": one of: book, call, email, quote, visit, download, chat\n"
+			. "- \"description\": one sentence describing what happens when the user takes this action — empty string if obvious\n"
+			. "- \"method\": one of: link, phone, form, email\n"
+			. "- \"url\": full URL if present, otherwise null\n"
+			. "- \"phone\": phone number if action_type is \"call\", otherwise null\n"
+			. "- \"related_service_names\": array of exact service or product names (from the content) this action relates to — empty array if none\n\n"
+			. "Return [] if none found.\n\n"
+			. "CONTENT:\n"
+			. $content;
 	}
 
 	// ------------------------------------------------------------------
@@ -515,34 +489,23 @@ PROMPT;
 			? '(none)'
 			: implode( "\n", array_map( fn( $t ) => "- {$t}", $items ) );
 
-		$user = <<<PROMPT
-Given the following business entities from a single website, identify logical relationships between them.
-
-SERVICES:
-{$fmt( $service_titles )}
-
-LOCATIONS:
-{$fmt( $location_titles )}
-
-PROOF ITEMS (testimonials, stats, awards, accreditations):
-{$fmt( $proof_titles )}
-
-Tasks:
-1. For each LOCATION, list which SERVICES it relates to (e.g. a regional office that offers specific services).
-2. For each PROOF ITEM: only link it to a location if that city, town, or area is EXPLICITLY NAMED in the proof title — do not infer from company HQ, general region, or context. Leave locations empty if the proof text contains no specific place name.
-
-Return a JSON object:
-{
-  "location_services": [
-    {"location": "exact location title", "services": ["exact service title", ...]}
-  ],
-  "proof_locations": [
-    {"proof": "exact proof title", "locations": ["exact location title"]}
-  ]
-}
-
-Only include entries where at least one relationship clearly exists. Use exact titles as given above. Return empty arrays for either key if nothing applies.
-PROMPT;
+		$user = 'Given the following business entities from a single website, identify logical relationships between them.' . "\n\n"
+			. "SERVICES:\n" . $fmt( $service_titles ) . "\n\n"
+			. "LOCATIONS:\n" . $fmt( $location_titles ) . "\n\n"
+			. "PROOF ITEMS (testimonials, stats, awards, accreditations):\n" . $fmt( $proof_titles ) . "\n\n"
+			. "Tasks:\n"
+			. "1. For each LOCATION, list which SERVICES it relates to (e.g. a regional office that offers specific services).\n"
+			. "2. For each PROOF ITEM: only link it to a location if that city, town, or area is EXPLICITLY NAMED in the proof title — do not infer from company HQ, general region, or context. Leave locations empty if the proof text contains no specific place name.\n\n"
+			. "Return a JSON object:\n"
+			. "{\n"
+			. "  \"location_services\": [\n"
+			. "    {\"location\": \"exact location title\", \"services\": [\"exact service title\", ...]}\n"
+			. "  ],\n"
+			. "  \"proof_locations\": [\n"
+			. "    {\"proof\": \"exact proof title\", \"locations\": [\"exact location title\"]}\n"
+			. "  ]\n"
+			. "}\n\n"
+			. 'Only include entries where at least one relationship clearly exists. Use exact titles as given above. Return empty arrays for either key if nothing applies.';
 
 		return [ $system, $user ];
 	}
@@ -919,50 +882,34 @@ PROMPT;
 		$proof_list     = $fmt( $proof,     'headline'      );
 		$actions_list   = $fmt( $actions,   'description'   );
 
-		$user = <<<PROMPT
-You are given every content entity from a business website. Map relationships between them based on logical relevance.
-
-SERVICES:
-{$services_list}
-
-FAQS:
-{$faqs_list}
-
-LOCATIONS:
-{$locations_list}
-
-PROOF ITEMS (testimonials, stats, awards, accreditations):
-{$proof_list}
-
-ACTIONS (calls-to-action, contact methods):
-{$actions_list}
-
-Return a JSON object using the rules below. Only include entries where at least one relationship clearly exists.
-
-Rules:
-- faqs.related_services: link a FAQ to a service if it is clearly about that service.
-- proof.related_services: link proof to a service if the testimonial, stat, or award is clearly about that service.
-- proof.related_locations: ONLY set this if a specific city, town, or area is EXPLICITLY NAMED in the proof headline or title — never infer from company location, region, or context. Leave empty if no place name appears.
-- actions.related_services: link an action to a service if it is the primary way to enquire about or book that service.
-- locations.related_services: link a location to every service offered there.
-
-{
-  "faqs": [
-    {"title": "exact FAQ title", "related_services": ["exact service title", ...]}
-  ],
-  "proof": [
-    {"title": "exact proof title", "related_services": ["exact service title", ...], "related_locations": ["exact location title", ...]}
-  ],
-  "actions": [
-    {"title": "exact action title", "related_services": ["exact service title", ...]}
-  ],
-  "locations": [
-    {"title": "exact location title", "related_services": ["exact service title", ...]}
-  ]
-}
-
-Use exact titles as given above. Return empty arrays for any key where nothing applies.
-PROMPT;
+		$user = 'You are given every content entity from a business website. Map relationships between them based on logical relevance.' . "\n\n"
+			. "SERVICES:\n{$services_list}\n\n"
+			. "FAQS:\n{$faqs_list}\n\n"
+			. "LOCATIONS:\n{$locations_list}\n\n"
+			. "PROOF ITEMS (testimonials, stats, awards, accreditations):\n{$proof_list}\n\n"
+			. "ACTIONS (calls-to-action, contact methods):\n{$actions_list}\n\n"
+			. "Return a JSON object using the rules below. Only include entries where at least one relationship clearly exists.\n\n"
+			. "Rules:\n"
+			. "- faqs.related_services: link a FAQ to a service if it is clearly about that service.\n"
+			. "- proof.related_services: link proof to a service if the testimonial, stat, or award is clearly about that service.\n"
+			. "- proof.related_locations: ONLY set this if a specific city, town, or area is EXPLICITLY NAMED in the proof headline or title — never infer from company location, region, or context. Leave empty if no place name appears.\n"
+			. "- actions.related_services: link an action to a service if it is the primary way to enquire about or book that service.\n"
+			. "- locations.related_services: link a location to every service offered there.\n\n"
+			. "{\n"
+			. "  \"faqs\": [\n"
+			. "    {\"title\": \"exact FAQ title\", \"related_services\": [\"exact service title\", ...]}\n"
+			. "  ],\n"
+			. "  \"proof\": [\n"
+			. "    {\"title\": \"exact proof title\", \"related_services\": [\"exact service title\", ...], \"related_locations\": [\"exact location title\", ...]}\n"
+			. "  ],\n"
+			. "  \"actions\": [\n"
+			. "    {\"title\": \"exact action title\", \"related_services\": [\"exact service title\", ...]}\n"
+			. "  ],\n"
+			. "  \"locations\": [\n"
+			. "    {\"title\": \"exact location title\", \"related_services\": [\"exact service title\", ...]}\n"
+			. "  ]\n"
+			. "}\n\n"
+			. 'Use exact titles as given above. Return empty arrays for any key where nothing applies.';
 
 		return [ $system, $user ];
 	}
@@ -1080,50 +1027,34 @@ PROMPT;
 		$proof_list     = $fmt( $proof,     'headline'      );
 		$actions_list   = $fmt( $actions,   'description'   );
 
-		$user = <<<PROMPT
-You are given every content entity from a business website. Produce a complete and authoritative relationship map.
-
-SERVICES:
-{$services_list}
-
-FAQS:
-{$faqs_list}
-
-LOCATIONS:
-{$locations_list}
-
-PROOF ITEMS (testimonials, stats, awards, accreditations):
-{$proof_list}
-
-ACTIONS (calls-to-action, contact methods):
-{$actions_list}
-
-Rules:
-- faqs.related_services: link a FAQ to a service if it is clearly about that service.
-- proof.related_services: link proof to a service if the testimonial, stat, or award is clearly about that specific service. Leave empty for general company-wide proof.
-- proof.related_locations: ONLY set if a specific city, town, or area is EXPLICITLY NAMED in the proof headline or title. Never infer from context. Leave empty if no place name appears.
-- actions.related_services: link an action to a service if it is the primary way to enquire about or book that service.
-- locations.related_services: link a location to every service offered there.
-
-IMPORTANT: You MUST include an entry for EVERY FAQ, proof item, action, and location listed above — even those with no relationships. Use empty arrays where nothing applies. This output will replace all existing relationship data.
-
-{
-  "faqs": [
-    {"title": "exact FAQ title", "related_services": ["exact service title", ...]}
-  ],
-  "proof": [
-    {"title": "exact proof title", "related_services": ["exact service title", ...], "related_locations": ["exact location title", ...]}
-  ],
-  "actions": [
-    {"title": "exact action title", "related_services": ["exact service title", ...]}
-  ],
-  "locations": [
-    {"title": "exact location title", "related_services": ["exact service title", ...]}
-  ]
-}
-
-Use exact titles as given above.
-PROMPT;
+		$user = 'You are given every content entity from a business website. Produce a complete and authoritative relationship map.' . "\n\n"
+			. "SERVICES:\n{$services_list}\n\n"
+			. "FAQS:\n{$faqs_list}\n\n"
+			. "LOCATIONS:\n{$locations_list}\n\n"
+			. "PROOF ITEMS (testimonials, stats, awards, accreditations):\n{$proof_list}\n\n"
+			. "ACTIONS (calls-to-action, contact methods):\n{$actions_list}\n\n"
+			. "Rules:\n"
+			. "- faqs.related_services: link a FAQ to a service if it is clearly about that service.\n"
+			. "- proof.related_services: link proof to a service if the testimonial, stat, or award is clearly about that specific service. Leave empty for general company-wide proof.\n"
+			. "- proof.related_locations: ONLY set if a specific city, town, or area is EXPLICITLY NAMED in the proof headline or title. Never infer from context. Leave empty if no place name appears.\n"
+			. "- actions.related_services: link an action to a service if it is the primary way to enquire about or book that service.\n"
+			. "- locations.related_services: link a location to every service offered there.\n\n"
+			. "IMPORTANT: You MUST include an entry for EVERY FAQ, proof item, action, and location listed above — even those with no relationships. Use empty arrays where nothing applies. This output will replace all existing relationship data.\n\n"
+			. "{\n"
+			. "  \"faqs\": [\n"
+			. "    {\"title\": \"exact FAQ title\", \"related_services\": [\"exact service title\", ...]}\n"
+			. "  ],\n"
+			. "  \"proof\": [\n"
+			. "    {\"title\": \"exact proof title\", \"related_services\": [\"exact service title\", ...], \"related_locations\": [\"exact location title\", ...]}\n"
+			. "  ],\n"
+			. "  \"actions\": [\n"
+			. "    {\"title\": \"exact action title\", \"related_services\": [\"exact service title\", ...]}\n"
+			. "  ],\n"
+			. "  \"locations\": [\n"
+			. "    {\"title\": \"exact location title\", \"related_services\": [\"exact service title\", ...]}\n"
+			. "  ]\n"
+			. "}\n\n"
+			. 'Use exact titles as given above.';
 
 		return [ $system, $user ];
 	}

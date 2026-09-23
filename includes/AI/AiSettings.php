@@ -153,14 +153,28 @@ class AiSettings {
 			$current['model'] = isset( self::MODELS[ $model ] ) ? $model : self::DEFAULT_MODEL;
 		}
 
+		$encrypt_failed = false;
+
 		foreach ( array_keys( self::PROVIDER_LABELS ) as $provider ) {
 			$raw_key = sanitize_text_field( $raw_post[ 'wpail_ai_key_' . $provider ] ?? '' );
-			if ( '' !== $raw_key ) {
-				$current[ 'api_key_' . $provider ] = AiKeyEncryption::encrypt( $raw_key );
+			if ( '' === $raw_key ) {
+				continue;
 			}
+
+			$encrypted = AiKeyEncryption::encrypt( $raw_key );
+			if ( '' === $encrypted ) {
+				$encrypt_failed = true;
+				continue;
+			}
+
+			$current[ 'api_key_' . $provider ] = $encrypted;
 		}
 
 		update_option( self::OPTION_KEY, $current );
+
+		if ( $encrypt_failed ) {
+			set_transient( 'wpail_ai_key_encrypt_failed', 1, MINUTE_IN_SECONDS );
+		}
 	}
 
 	public static function get_selected_model(): string {
@@ -210,6 +224,10 @@ class AiSettings {
 		self::save_from_request( (array) wp_unslash( $_POST ) );
 
 		add_action( 'admin_notices', static function () {
+			if ( get_transient( 'wpail_ai_key_encrypt_failed' ) ) {
+				delete_transient( 'wpail_ai_key_encrypt_failed' );
+				echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'AI settings saved, but one or more API keys could not be encrypted on this server. Keys were not updated.', 'ai-layer' ) . '</p></div>';
+			}
 			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'AI settings saved.', 'ai-layer' ) . '</p></div>';
 		} );
 	}

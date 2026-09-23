@@ -58,8 +58,10 @@ class SitemapController {
 	 * Check whether the current request is for /ai-layer-sitemap.xml.
 	 */
 	private function is_sitemap_request(): bool {
-		$uri       = isset( $_SERVER['REQUEST_URI'] ) ? strtok( $_SERVER['REQUEST_URI'], '?' ) : '';
-		$home_path = rtrim( (string) parse_url( home_url(), PHP_URL_PATH ), '/' );
+		$uri       = isset( $_SERVER['REQUEST_URI'] )
+			? strtok( sanitize_text_field( wp_unslash( (string) $_SERVER['REQUEST_URI'] ) ), '?' )
+			: '';
+		$home_path = rtrim( (string) wp_parse_url( home_url(), PHP_URL_PATH ), '/' );
 		$relative  = substr( $uri, strlen( $home_path ) );
 
 		return '/ai-layer-sitemap.xml' === $relative;

@@ -76,12 +76,19 @@ class SettingsPage {
 			wp_die( esc_html__( 'Permission denied.', 'ai-layer' ) );
 		}
 
-		$raw_page_ids = isset( $_POST[ self::SETTING_SCHEMA_FAQ_PAGE_IDS ] )
-			? (array) wp_unslash( $_POST[ self::SETTING_SCHEMA_FAQ_PAGE_IDS ] )
-			: [];
+		$raw_page_ids = [];
+		if ( isset( $_POST[ self::SETTING_SCHEMA_FAQ_PAGE_IDS ] ) ) {
+			$raw_page_ids = (array) wp_unslash( $_POST[ self::SETTING_SCHEMA_FAQ_PAGE_IDS ] );
+		}
 
 		$faq_pages_mode_raw = sanitize_text_field( wp_unslash( $_POST[ self::SETTING_SCHEMA_FAQ_PAGES_MODE ] ?? '' ) );
 		$ai_discovery_raw   = sanitize_text_field( wp_unslash( $_POST[ self::SETTING_AI_DISCOVERY_MODE ] ?? '' ) );
+
+		$service_slug_raw  = isset( $_POST[ self::SETTING_SERVICE_SLUG ] ) ? wp_unslash( $_POST[ self::SETTING_SERVICE_SLUG ] ) : '';
+		$location_slug_raw = isset( $_POST[ self::SETTING_LOCATION_SLUG ] ) ? wp_unslash( $_POST[ self::SETTING_LOCATION_SLUG ] ) : '';
+		$faq_slug_raw      = isset( $_POST[ self::SETTING_FAQ_SLUG ] ) ? wp_unslash( $_POST[ self::SETTING_FAQ_SLUG ] ) : '';
+		$proof_slug_raw    = isset( $_POST[ self::SETTING_PROOF_SLUG ] ) ? wp_unslash( $_POST[ self::SETTING_PROOF_SLUG ] ) : '';
+		$retention_raw     = isset( $_POST[ self::SETTING_ANALYTICS_RETENTION_DAYS ] ) ? wp_unslash( $_POST[ self::SETTING_ANALYTICS_RETENTION_DAYS ] ) : '';
 
 		$settings = [
 			self::SETTING_SCHEMA_ENABLED        => isset( $_POST[ self::SETTING_SCHEMA_ENABLED ] ),
@@ -94,13 +101,13 @@ class SettingsPage {
 			self::SETTING_ENDPOINT_CACHE_TTL    => absint( wp_unslash( $_POST[ self::SETTING_ENDPOINT_CACHE_TTL ] ?? 0 ) ),
 			self::SETTING_PRODUCTS_ENABLED      => isset( $_POST[ self::SETTING_PRODUCTS_ENABLED ] ),
 			self::SETTING_SERVICE_PUBLIC        => isset( $_POST[ self::SETTING_SERVICE_PUBLIC ] ),
-			self::SETTING_SERVICE_SLUG          => self::sanitize_rewrite_slug( $_POST[ self::SETTING_SERVICE_SLUG ] ?? '', 'services' ),
+			self::SETTING_SERVICE_SLUG          => self::sanitize_rewrite_slug( (string) $service_slug_raw, 'services' ),
 			self::SETTING_LOCATION_PUBLIC       => isset( $_POST[ self::SETTING_LOCATION_PUBLIC ] ),
-			self::SETTING_LOCATION_SLUG         => self::sanitize_rewrite_slug( $_POST[ self::SETTING_LOCATION_SLUG ] ?? '', 'locations' ),
+			self::SETTING_LOCATION_SLUG         => self::sanitize_rewrite_slug( (string) $location_slug_raw, 'locations' ),
 			self::SETTING_FAQ_PUBLIC            => isset( $_POST[ self::SETTING_FAQ_PUBLIC ] ),
-			self::SETTING_FAQ_SLUG              => self::sanitize_rewrite_slug( $_POST[ self::SETTING_FAQ_SLUG ] ?? '', 'faqs' ),
+			self::SETTING_FAQ_SLUG              => self::sanitize_rewrite_slug( (string) $faq_slug_raw, 'faqs' ),
 			self::SETTING_PROOF_PUBLIC          => isset( $_POST[ self::SETTING_PROOF_PUBLIC ] ),
-			self::SETTING_PROOF_SLUG            => self::sanitize_rewrite_slug( $_POST[ self::SETTING_PROOF_SLUG ] ?? '', 'proof' ),
+			self::SETTING_PROOF_SLUG            => self::sanitize_rewrite_slug( (string) $proof_slug_raw, 'proof' ),
 			self::SETTING_AI_DISCOVERY_MODE     => in_array( $ai_discovery_raw, [ self::AI_DISCOVERY_WELL_KNOWN, self::AI_DISCOVERY_LLMSTXT ], true )
 				? $ai_discovery_raw
 				: self::AI_DISCOVERY_WELL_KNOWN,
@@ -110,7 +117,7 @@ class SettingsPage {
 			self::SETTING_AI_LAYER_PAGE_ENABLED      => isset( $_POST[ self::SETTING_AI_LAYER_PAGE_ENABLED ] ),
 			self::SETTING_SITEMAP_ENABLED            => isset( $_POST[ self::SETTING_SITEMAP_ENABLED ] ),
 			self::SETTING_DELETE_ON_UNINSTALL        => isset( $_POST[ self::SETTING_DELETE_ON_UNINSTALL ] ),
-			self::SETTING_ANALYTICS_RETENTION_DAYS  => self::sanitize_retention_days( $_POST[ self::SETTING_ANALYTICS_RETENTION_DAYS ] ?? '' ),
+			self::SETTING_ANALYTICS_RETENTION_DAYS  => self::sanitize_retention_days( (string) $retention_raw ),
 		];
 
 		update_option( WPAIL_OPT_SETTINGS, $settings );

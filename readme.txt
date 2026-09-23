@@ -2,7 +2,7 @@
 Contributors:      JamesKoussertari, strivewp
 Tags:              ai, structured data, rest api, llms.txt, ai discovery
 Requires at least: 6.0
-Tested up to:      6.7
+Tested up to:      7.1
 Requires PHP:      8.1
 Stable tag:        1.6.0
 License:           GPLv2 or later
@@ -314,7 +314,7 @@ Single-site only in the current version. Multisite support is not explicitly blo
 AI Import, multi-provider AI support, improved onboarding, encrypted local API keys, and MCP permission alignment. Flush permalinks after upgrading if discovery URLs 404.
 
 = 1.5.0 =
-No data migration required. Ten new discovery channels are activated automatically — all enabled by default and independently toggleable in AI Layer → Settings → AI Discovery. Flush your permalinks once after upgrading (Settings → Permalinks → Save Changes) to register the new rewrite rules for `/ai-layer`, `/ai-layer.md`, and `/ai-layer-sitemap.xml`.
+Discovery channels enabled by default. Flush permalinks after upgrading (Settings → Permalinks → Save) so `/ai-layer`, `/ai-layer.md`, and `/ai-layer-sitemap.xml` resolve.
 
 = 1.4.0 =
 A new `wpail_analytics` database table is created automatically on first load. No data migration required. Visit AI Layer → Analytics to see endpoint and query data. Set a data retention period in Settings → Data Management if needed.

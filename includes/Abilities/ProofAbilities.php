@@ -27,7 +27,7 @@ class ProofAbilities {
 	}
 
 	private function register_list(): void {
-		wp_register_ability( 'ai-layer/list-proof', [
+		AbilityRegistry::register( 'ai-layer/list-proof', [
 			'label'       => 'List Proof & Trust',
 			'description' => 'Returns published AI Layer proof and trust signals. Optionally filter by service ID.',
 			'input_schema' => [
@@ -55,7 +55,7 @@ class ProofAbilities {
 	}
 
 	private function register_get(): void {
-		wp_register_ability( 'ai-layer/get-proof-item', [
+		AbilityRegistry::register( 'ai-layer/get-proof-item', [
 			'label'       => 'Get Proof Item',
 			'description' => 'Returns full detail for a single proof or trust signal by its post ID.',
 			'input_schema' => [
@@ -66,9 +66,9 @@ class ProofAbilities {
 				],
 			],
 			'execute_callback'    => function ( array $input ): array {
-				$proof = ( new ProofRepository() )->find_by_id( (int) ( $input['id'] ?? 0 ) );
+				$proof = ( new ProofRepository() )->find_public_by_id( (int) ( $input['id'] ?? 0 ) );
 				if ( null === $proof ) {
-					throw new \RuntimeException( 'Proof item not found: ' . ( $input['id'] ?? '' ) );
+					AbilityRegistry::throwNotFoundId( 'Proof item', (int) ( $input['id'] ?? 0 ) );
 				}
 				return $this->resolve( $proof );
 			},
@@ -81,7 +81,7 @@ class ProofAbilities {
 	}
 
 	private function register_create(): void {
-		wp_register_ability( 'ai-layer/create-proof-item', [
+		AbilityRegistry::register( 'ai-layer/create-proof-item', [
 			'label'       => 'Create Proof Item',
 			'description' => 'Creates a new AI Layer proof or trust signal (testimonial, accreditation, statistic, award, case study, or media mention).',
 			'input_schema' => [
@@ -103,7 +103,7 @@ class ProofAbilities {
 				], true );
 
 				if ( is_wp_error( $post_id ) ) {
-					throw new \RuntimeException( $post_id->get_error_message() );
+					AbilityRegistry::throwFromWpError( $post_id );
 				}
 
 				$meta = Sanitizer::sanitize_partial( $input, FieldDefinitions::proof() );
@@ -112,7 +112,7 @@ class ProofAbilities {
 
 				$proof = ( new ProofRepository() )->find_by_id( $post_id );
 				if ( null === $proof ) {
-					throw new \RuntimeException( 'Proof item created but could not be retrieved.' );
+					AbilityRegistry::throwError( 'Proof item created but could not be retrieved.' );
 				}
 				return $this->resolve( $proof );
 			},
@@ -125,7 +125,7 @@ class ProofAbilities {
 	}
 
 	private function register_update(): void {
-		wp_register_ability( 'ai-layer/update-proof-item', [
+		AbilityRegistry::register( 'ai-layer/update-proof-item', [
 			'label'       => 'Update Proof Item',
 			'description' => 'Partially updates an existing proof item by ID. Only supplied fields are changed.',
 			'input_schema' => [
@@ -140,7 +140,7 @@ class ProofAbilities {
 				$repo  = new ProofRepository();
 				$proof = $repo->find_by_id( (int) ( $input['id'] ?? 0 ) );
 				if ( null === $proof ) {
-					throw new \RuntimeException( 'Proof item not found: ' . ( $input['id'] ?? '' ) );
+					AbilityRegistry::throwNotFoundId( 'Proof item', (int) ( $input['id'] ?? 0 ) );
 				}
 
 				$post_id  = $proof->id;
@@ -156,7 +156,7 @@ class ProofAbilities {
 
 				$updated = $repo->find_by_id( $post_id );
 				if ( null === $updated ) {
-					throw new \RuntimeException( 'Proof item updated but could not be retrieved.' );
+					AbilityRegistry::throwError( 'Proof item updated but could not be retrieved.' );
 				}
 				return $this->resolve( $updated );
 			},
@@ -169,7 +169,7 @@ class ProofAbilities {
 	}
 
 	private function register_delete(): void {
-		wp_register_ability( 'ai-layer/delete-proof-item', [
+		AbilityRegistry::register( 'ai-layer/delete-proof-item', [
 			'label'       => 'Delete Proof Item',
 			'description' => 'Permanently deletes a proof item by ID and removes all bidirectional relationship references.',
 			'input_schema' => [
@@ -182,7 +182,7 @@ class ProofAbilities {
 			'execute_callback'    => function ( array $input ): array {
 				$proof = ( new ProofRepository() )->find_by_id( (int) ( $input['id'] ?? 0 ) );
 				if ( null === $proof ) {
-					throw new \RuntimeException( 'Proof item not found: ' . ( $input['id'] ?? '' ) );
+					AbilityRegistry::throwNotFoundId( 'Proof item', (int) ( $input['id'] ?? 0 ) );
 				}
 
 				$post_id  = $proof->id;

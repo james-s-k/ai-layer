@@ -87,7 +87,7 @@ class ActionsController extends BaseController {
 
 	public function get_item( $request ) {
 		$repo   = new ActionRepository();
-		$action = $repo->find_by_id( (int) $request->get_param( 'id' ) );
+		$action = $repo->find_public_by_id( (int) $request->get_param( 'id' ) );
 
 		if ( null === $action ) {
 			return $this->not_found( 'Action not found.' );

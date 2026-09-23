@@ -14,6 +14,7 @@ use WPAIL\Admin\SettingsPage;
 class RestRegistrar {
 
 	public function register(): void {
+		( new RestRateLimiter() )->register();
 		add_action( 'rest_api_init', [ $this, 'register_routes' ] );
 
 		// WordPress 6.9+ requires is_ssl() || 'local' === wp_get_environment_type() for
@@ -27,7 +28,9 @@ class RestRegistrar {
 		if ( $is_api_request ) {
 			return true;
 		}
-		$uri = isset( $_SERVER['REQUEST_URI'] ) ? (string) wp_unslash( $_SERVER['REQUEST_URI'] ) : '';
+		$uri = isset( $_SERVER['REQUEST_URI'] )
+			? sanitize_text_field( wp_unslash( (string) $_SERVER['REQUEST_URI'] ) )
+			: '';
 		return '' !== $uri && false !== strpos( $uri, '/wp-json/' );
 	}
 

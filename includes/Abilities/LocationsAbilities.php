@@ -27,7 +27,7 @@ class LocationsAbilities {
 	}
 
 	private function register_list(): void {
-		wp_register_ability( 'ai-layer/list-locations', [
+		AbilityRegistry::register( 'ai-layer/list-locations', [
 			'label'       => 'List Locations',
 			'description' => 'Returns all published AI Layer locations as summaries (id, slug, name).',
 			'input_schema' => [ 'type' => 'object', 'properties' => new \stdClass() ],
@@ -44,7 +44,7 @@ class LocationsAbilities {
 	}
 
 	private function register_get(): void {
-		wp_register_ability( 'ai-layer/get-location', [
+		AbilityRegistry::register( 'ai-layer/get-location', [
 			'label'       => 'Get Location',
 			'description' => 'Returns full detail for a single location by slug, including related services and local proof.',
 			'input_schema' => [
@@ -57,7 +57,7 @@ class LocationsAbilities {
 			'execute_callback'    => function ( array $input ): array {
 				$location = ( new LocationRepository() )->find_by_slug( sanitize_title( $input['slug'] ?? '' ) );
 				if ( null === $location ) {
-					throw new \RuntimeException( 'Location not found: ' . ( $input['slug'] ?? '' ) );
+					AbilityRegistry::throwNotFoundSlug( 'Location', (string) ( $input['slug'] ?? '' ) );
 				}
 				return $this->resolve( $location );
 			},
@@ -70,7 +70,7 @@ class LocationsAbilities {
 	}
 
 	private function register_create(): void {
-		wp_register_ability( 'ai-layer/create-location', [
+		AbilityRegistry::register( 'ai-layer/create-location', [
 			'label'       => 'Create Location',
 			'description' => 'Creates a new AI Layer location. Bidirectional relationships are synced automatically.',
 			'input_schema' => [
@@ -92,7 +92,7 @@ class LocationsAbilities {
 				], true );
 
 				if ( is_wp_error( $post_id ) ) {
-					throw new \RuntimeException( $post_id->get_error_message() );
+					AbilityRegistry::throwFromWpError( $post_id );
 				}
 
 				$meta = Sanitizer::sanitize_partial( $input, FieldDefinitions::location() );
@@ -101,7 +101,7 @@ class LocationsAbilities {
 
 				$location = ( new LocationRepository() )->find_by_id( $post_id );
 				if ( null === $location ) {
-					throw new \RuntimeException( 'Location created but could not be retrieved.' );
+					AbilityRegistry::throwError( 'Location created but could not be retrieved.' );
 				}
 				return $this->resolve( $location );
 			},
@@ -114,7 +114,7 @@ class LocationsAbilities {
 	}
 
 	private function register_update(): void {
-		wp_register_ability( 'ai-layer/update-location', [
+		AbilityRegistry::register( 'ai-layer/update-location', [
 			'label'       => 'Update Location',
 			'description' => 'Partially updates an existing location by slug. Only supplied fields are changed.',
 			'input_schema' => [
@@ -129,7 +129,7 @@ class LocationsAbilities {
 				$repo     = new LocationRepository();
 				$location = $repo->find_by_slug( sanitize_title( $input['slug'] ?? '' ) );
 				if ( null === $location ) {
-					throw new \RuntimeException( 'Location not found: ' . ( $input['slug'] ?? '' ) );
+					AbilityRegistry::throwNotFoundSlug( 'Location', (string) ( $input['slug'] ?? '' ) );
 				}
 
 				$post_id  = $location->id;
@@ -145,7 +145,7 @@ class LocationsAbilities {
 
 				$updated = $repo->find_by_id( $post_id );
 				if ( null === $updated ) {
-					throw new \RuntimeException( 'Location updated but could not be retrieved.' );
+					AbilityRegistry::throwError( 'Location updated but could not be retrieved.' );
 				}
 				return $this->resolve( $updated );
 			},
@@ -158,7 +158,7 @@ class LocationsAbilities {
 	}
 
 	private function register_delete(): void {
-		wp_register_ability( 'ai-layer/delete-location', [
+		AbilityRegistry::register( 'ai-layer/delete-location', [
 			'label'       => 'Delete Location',
 			'description' => 'Permanently deletes a location by slug and removes all bidirectional relationship references.',
 			'input_schema' => [
@@ -171,7 +171,7 @@ class LocationsAbilities {
 			'execute_callback'    => function ( array $input ): array {
 				$location = ( new LocationRepository() )->find_by_slug( sanitize_title( $input['slug'] ?? '' ) );
 				if ( null === $location ) {
-					throw new \RuntimeException( 'Location not found: ' . ( $input['slug'] ?? '' ) );
+					AbilityRegistry::throwNotFoundSlug( 'Location', (string) ( $input['slug'] ?? '' ) );
 				}
 
 				$post_id  = $location->id;

@@ -27,7 +27,7 @@ class AiTxtPage {
 		$saved = false;
 		if (
 			isset( $_POST['_wpnonce'] ) &&
-			wp_verify_nonce( sanitize_key( $_POST['_wpnonce'] ), 'wpail_aitxt_save' )
+			wp_verify_nonce( sanitize_key( wp_unslash( $_POST['_wpnonce'] ) ), 'wpail_aitxt_save' )
 		) {
 			self::handle_save();
 			$saved = true;
@@ -214,9 +214,9 @@ class AiTxtPage {
 								<div class="wpail-aitxt__agent-row">
 									<div class="wpail-aitxt__agent-header">
 										<input type="text"
-										       name="wpail_aitxt[agents][<?php echo $idx; ?>][name]"
-										       class="wpail-aitxt__agent-name"
-										       value="<?php echo $agent_name; ?>"
+									       name="wpail_aitxt[agents][<?php echo (int) $idx; ?>][name]"
+									       class="wpail-aitxt__agent-name"
+									       value="<?php echo esc_attr( $agent_name ); ?>"
 										       placeholder="<?php esc_attr_e( 'e.g. GPTBot', 'ai-layer' ); ?>">
 										<button type="button" class="wpail-aitxt__agent-remove button-link">
 											<?php esc_html_e( '✕ Remove', 'ai-layer' ); ?>
@@ -225,21 +225,21 @@ class AiTxtPage {
 									<div class="wpail-aitxt__agent-controls">
 										<label>
 											<input type="checkbox"
-											       name="wpail_aitxt[agents][<?php echo $idx; ?>][allow]"
+											       name="wpail_aitxt[agents][<?php echo (int) $idx; ?>][allow]"
 											       class="wpail-aitxt__agent-allow"
 											       value="1" <?php checked( $agent_allow ); ?>>
 											<?php esc_html_e( 'Allow crawling', 'ai-layer' ); ?>
 										</label>
 										<label>
 											<input type="checkbox"
-											       name="wpail_aitxt[agents][<?php echo $idx; ?>][allow_training]"
+											       name="wpail_aitxt[agents][<?php echo (int) $idx; ?>][allow_training]"
 											       class="wpail-aitxt__agent-training"
 											       value="1" <?php checked( $agent_train ); ?>>
 											<?php esc_html_e( 'Allow training', 'ai-layer' ); ?>
 										</label>
 										<label>
 											<input type="checkbox"
-											       name="wpail_aitxt[agents][<?php echo $idx; ?>][require_attribution]"
+											       name="wpail_aitxt[agents][<?php echo (int) $idx; ?>][require_attribution]"
 											       class="wpail-aitxt__agent-attribution"
 											       value="1" <?php checked( $agent_attr ); ?>>
 											<?php esc_html_e( 'Require attribution', 'ai-layer' ); ?>
@@ -330,9 +330,18 @@ class AiTxtPage {
 			return;
 		}
 
-		$raw = isset( $_POST['wpail_aitxt'] ) && is_array( $_POST['wpail_aitxt'] )
-			? (array) wp_unslash( $_POST['wpail_aitxt'] )
-			: [];
+		if (
+			! isset( $_POST['_wpnonce'] )
+			|| ! wp_verify_nonce( sanitize_key( wp_unslash( $_POST['_wpnonce'] ) ), 'wpail_aitxt_save' )
+		) {
+			return;
+		}
+
+		$raw_post = [];
+		if ( isset( $_POST['wpail_aitxt'] ) ) {
+			$raw_post = wp_unslash( $_POST['wpail_aitxt'] );
+		}
+		$raw = is_array( $raw_post ) ? $raw_post : [];
 
 		// Sanitize agent rows.
 		$agents = [];

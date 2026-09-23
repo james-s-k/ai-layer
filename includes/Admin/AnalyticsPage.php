@@ -78,10 +78,12 @@ class AnalyticsPage {
 				<?php if ( $retention_days > 0 ) : ?>
 					<span class="wpail-analytics__retention-note">
 						<?php
-						printf(
-							/* translators: %d: number of days */
-							esc_html__( 'Data retained for %d days.', 'ai-layer' ),
-							$retention_days
+						echo esc_html(
+							sprintf(
+								/* translators: %d: number of days */
+								__( 'Data retained for %d days.', 'ai-layer' ),
+								(int) $retention_days
+							)
 						);
 						?>
 						<a href="<?php echo esc_url( admin_url( 'admin.php?page=wpail_settings#wpail-analytics-retention' ) ); ?>"><?php esc_html_e( 'Change', 'ai-layer' ); ?></a>
@@ -149,10 +151,12 @@ class AnalyticsPage {
 												? (int) round( (int) $row['matched_count'] / (int) $row['count'] * 100 )
 												: 0;
 											$color = $answered_pct >= 80 ? '#00a32a' : ( $answered_pct >= 50 ? '#996800' : '#c02b0a' );
-											printf(
-												'<span style="color:%s;font-weight:600;">%d%%</span>',
-												esc_attr( $color ),
-												$answered_pct
+											echo wp_kses_post(
+												sprintf(
+													'<span style="color:%s;font-weight:600;">%d%%</span>',
+													esc_attr( $color ),
+													(int) $answered_pct
+												)
 											);
 											?>
 										</td>

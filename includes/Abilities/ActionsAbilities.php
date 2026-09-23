@@ -27,7 +27,7 @@ class ActionsAbilities {
 	}
 
 	private function register_list(): void {
-		wp_register_ability( 'ai-layer/list-actions', [
+		AbilityRegistry::register( 'ai-layer/list-actions', [
 			'label'       => 'List Actions',
 			'description' => 'Returns published AI Layer calls-to-action. Optionally filter by service ID.',
 			'input_schema' => [
@@ -55,7 +55,7 @@ class ActionsAbilities {
 	}
 
 	private function register_get(): void {
-		wp_register_ability( 'ai-layer/get-action', [
+		AbilityRegistry::register( 'ai-layer/get-action', [
 			'label'       => 'Get Action',
 			'description' => 'Returns full detail for a single call-to-action by its post ID.',
 			'input_schema' => [
@@ -66,9 +66,9 @@ class ActionsAbilities {
 				],
 			],
 			'execute_callback'    => function ( array $input ): array {
-				$action = ( new ActionRepository() )->find_by_id( (int) ( $input['id'] ?? 0 ) );
+				$action = ( new ActionRepository() )->find_public_by_id( (int) ( $input['id'] ?? 0 ) );
 				if ( null === $action ) {
-					throw new \RuntimeException( 'Action not found: ' . ( $input['id'] ?? '' ) );
+					AbilityRegistry::throwNotFoundId( 'Action', (int) ( $input['id'] ?? 0 ) );
 				}
 				return $this->resolve( $action );
 			},
@@ -81,7 +81,7 @@ class ActionsAbilities {
 	}
 
 	private function register_create(): void {
-		wp_register_ability( 'ai-layer/create-action', [
+		AbilityRegistry::register( 'ai-layer/create-action', [
 			'label'       => 'Create Action',
 			'description' => 'Creates a new AI Layer call-to-action. The title field sets the internal name; label is the user-facing CTA text.',
 			'input_schema' => [
@@ -103,7 +103,7 @@ class ActionsAbilities {
 				], true );
 
 				if ( is_wp_error( $post_id ) ) {
-					throw new \RuntimeException( $post_id->get_error_message() );
+					AbilityRegistry::throwFromWpError( $post_id );
 				}
 
 				$meta = Sanitizer::sanitize_partial( $input, FieldDefinitions::action() );
@@ -112,7 +112,7 @@ class ActionsAbilities {
 
 				$action = ( new ActionRepository() )->find_by_id( $post_id );
 				if ( null === $action ) {
-					throw new \RuntimeException( 'Action created but could not be retrieved.' );
+					AbilityRegistry::throwError( 'Action created but could not be retrieved.' );
 				}
 				return $this->resolve( $action );
 			},
@@ -125,7 +125,7 @@ class ActionsAbilities {
 	}
 
 	private function register_update(): void {
-		wp_register_ability( 'ai-layer/update-action', [
+		AbilityRegistry::register( 'ai-layer/update-action', [
 			'label'       => 'Update Action',
 			'description' => 'Partially updates an existing call-to-action by ID. Only supplied fields are changed.',
 			'input_schema' => [
@@ -140,7 +140,7 @@ class ActionsAbilities {
 				$repo   = new ActionRepository();
 				$action = $repo->find_by_id( (int) ( $input['id'] ?? 0 ) );
 				if ( null === $action ) {
-					throw new \RuntimeException( 'Action not found: ' . ( $input['id'] ?? '' ) );
+					AbilityRegistry::throwNotFoundId( 'Action', (int) ( $input['id'] ?? 0 ) );
 				}
 
 				$post_id  = $action->id;
@@ -156,7 +156,7 @@ class ActionsAbilities {
 
 				$updated = $repo->find_by_id( $post_id );
 				if ( null === $updated ) {
-					throw new \RuntimeException( 'Action updated but could not be retrieved.' );
+					AbilityRegistry::throwError( 'Action updated but could not be retrieved.' );
 				}
 				return $this->resolve( $updated );
 			},
@@ -169,7 +169,7 @@ class ActionsAbilities {
 	}
 
 	private function register_delete(): void {
-		wp_register_ability( 'ai-layer/delete-action', [
+		AbilityRegistry::register( 'ai-layer/delete-action', [
 			'label'       => 'Delete Action',
 			'description' => 'Permanently deletes a call-to-action by ID and removes all bidirectional relationship references.',
 			'input_schema' => [
@@ -182,7 +182,7 @@ class ActionsAbilities {
 			'execute_callback'    => function ( array $input ): array {
 				$action = ( new ActionRepository() )->find_by_id( (int) ( $input['id'] ?? 0 ) );
 				if ( null === $action ) {
-					throw new \RuntimeException( 'Action not found: ' . ( $input['id'] ?? '' ) );
+					AbilityRegistry::throwNotFoundId( 'Action', (int) ( $input['id'] ?? 0 ) );
 				}
 
 				$post_id  = $action->id;

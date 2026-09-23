@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace WPAIL\Repositories;
 
 use WPAIL\Models\ActionModel;
+use WPAIL\Support\PublicEntityVisibility;
 use WPAIL\Transformers\ActionTransformer;
 use WPAIL\PostTypes\ActionPostType;
 
@@ -45,6 +46,16 @@ class ActionRepository {
 		}
 
 		return ActionTransformer::from_post( $post );
+	}
+
+	public function find_public_by_id( int $id ): ?ActionModel {
+		$action = $this->find_by_id( $id );
+
+		if ( null === $action || ! PublicEntityVisibility::action_is_public( $action, $id ) ) {
+			return null;
+		}
+
+		return $action;
 	}
 
 	/** @return array<ActionModel> */

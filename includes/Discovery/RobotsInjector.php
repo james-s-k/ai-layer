@@ -35,8 +35,7 @@ class RobotsInjector {
 		$path = ABSPATH . 'robots.txt';
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_unlink
 		if ( file_exists( $path ) && 0 === (int) filesize( $path ) ) {
-			// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
-			@unlink( $path );
+			wp_delete_file( $path );
 		}
 	}
 
@@ -58,8 +57,10 @@ class RobotsInjector {
 	 * Check whether the current request is for /robots.txt.
 	 */
 	private function is_robots_request(): bool {
-		$uri       = isset( $_SERVER['REQUEST_URI'] ) ? strtok( $_SERVER['REQUEST_URI'], '?' ) : '';
-		$home_path = rtrim( (string) parse_url( home_url(), PHP_URL_PATH ), '/' );
+		$uri       = isset( $_SERVER['REQUEST_URI'] )
+			? strtok( sanitize_text_field( wp_unslash( (string) $_SERVER['REQUEST_URI'] ) ), '?' )
+			: '';
+		$home_path = rtrim( (string) wp_parse_url( home_url(), PHP_URL_PATH ), '/' );
 		$relative  = substr( $uri, strlen( $home_path ) );
 
 		return '/robots.txt' === $relative;

@@ -105,7 +105,12 @@ class ManifestController extends BaseController {
 		$max = $wpdb->get_var(
 			$wpdb->prepare(
 				"SELECT MAX(post_modified_gmt) FROM {$wpdb->posts} WHERE post_type IN (%s,%s,%s,%s,%s,%s) AND post_status = 'publish'",
-				...[ 'wpail_service', 'wpail_location', 'wpail_faq', 'wpail_proof', 'wpail_action', 'wpail_answer' ]
+				'wpail_service',
+				'wpail_location',
+				'wpail_faq',
+				'wpail_proof',
+				'wpail_action',
+				'wpail_answer'
 			)
 		);
 

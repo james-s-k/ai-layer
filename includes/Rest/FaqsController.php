@@ -102,7 +102,7 @@ class FaqsController extends BaseController {
 
 	public function get_item( $request ) {
 		$repo = new FaqRepository();
-		$faq  = $repo->find_by_id( (int) $request->get_param( 'id' ) );
+		$faq  = $repo->find_public_by_id( (int) $request->get_param( 'id' ) );
 
 		if ( null === $faq ) {
 			return $this->not_found( 'FAQ not found.' );

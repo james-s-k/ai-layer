@@ -27,7 +27,7 @@ class FaqsAbilities {
 	}
 
 	private function register_list(): void {
-		wp_register_ability( 'ai-layer/list-faqs', [
+		AbilityRegistry::register( 'ai-layer/list-faqs', [
 			'label'       => 'List FAQs',
 			'description' => 'Returns published AI Layer FAQs. Optionally filter by service ID or location ID.',
 			'input_schema' => [
@@ -61,7 +61,7 @@ class FaqsAbilities {
 	}
 
 	private function register_get(): void {
-		wp_register_ability( 'ai-layer/get-faq', [
+		AbilityRegistry::register( 'ai-layer/get-faq', [
 			'label'       => 'Get FAQ',
 			'description' => 'Returns full detail for a single FAQ by its post ID.',
 			'input_schema' => [
@@ -72,9 +72,9 @@ class FaqsAbilities {
 				],
 			],
 			'execute_callback'    => function ( array $input ): array {
-				$faq = ( new FaqRepository() )->find_by_id( (int) ( $input['id'] ?? 0 ) );
+				$faq = ( new FaqRepository() )->find_public_by_id( (int) ( $input['id'] ?? 0 ) );
 				if ( null === $faq ) {
-					throw new \RuntimeException( 'FAQ not found: ' . ( $input['id'] ?? '' ) );
+					AbilityRegistry::throwNotFoundId( 'FAQ', (int) ( $input['id'] ?? 0 ) );
 				}
 				return $this->resolve( $faq );
 			},
@@ -87,7 +87,7 @@ class FaqsAbilities {
 	}
 
 	private function register_create(): void {
-		wp_register_ability( 'ai-layer/create-faq', [
+		AbilityRegistry::register( 'ai-layer/create-faq', [
 			'label'       => 'Create FAQ',
 			'description' => 'Creates a new AI Layer FAQ. Both question and short_answer are required.',
 			'input_schema' => [
@@ -114,7 +114,7 @@ class FaqsAbilities {
 				], true );
 
 				if ( is_wp_error( $post_id ) ) {
-					throw new \RuntimeException( $post_id->get_error_message() );
+					AbilityRegistry::throwFromWpError( $post_id );
 				}
 
 				$meta = Sanitizer::sanitize_partial( $input, FieldDefinitions::faq() );
@@ -123,7 +123,7 @@ class FaqsAbilities {
 
 				$faq = ( new FaqRepository() )->find_by_id( $post_id );
 				if ( null === $faq ) {
-					throw new \RuntimeException( 'FAQ created but could not be retrieved.' );
+					AbilityRegistry::throwError( 'FAQ created but could not be retrieved.' );
 				}
 				return $this->resolve( $faq );
 			},
@@ -136,7 +136,7 @@ class FaqsAbilities {
 	}
 
 	private function register_update(): void {
-		wp_register_ability( 'ai-layer/update-faq', [
+		AbilityRegistry::register( 'ai-layer/update-faq', [
 			'label'       => 'Update FAQ',
 			'description' => 'Partially updates an existing FAQ by ID. Updating "question" also updates the post title.',
 			'input_schema' => [
@@ -151,7 +151,7 @@ class FaqsAbilities {
 				$repo = new FaqRepository();
 				$faq  = $repo->find_by_id( (int) ( $input['id'] ?? 0 ) );
 				if ( null === $faq ) {
-					throw new \RuntimeException( 'FAQ not found: ' . ( $input['id'] ?? '' ) );
+					AbilityRegistry::throwNotFoundId( 'FAQ', (int) ( $input['id'] ?? 0 ) );
 				}
 
 				$post_id  = $faq->id;
@@ -167,7 +167,7 @@ class FaqsAbilities {
 
 				$updated = $repo->find_by_id( $post_id );
 				if ( null === $updated ) {
-					throw new \RuntimeException( 'FAQ updated but could not be retrieved.' );
+					AbilityRegistry::throwError( 'FAQ updated but could not be retrieved.' );
 				}
 				return $this->resolve( $updated );
 			},
@@ -180,7 +180,7 @@ class FaqsAbilities {
 	}
 
 	private function register_delete(): void {
-		wp_register_ability( 'ai-layer/delete-faq', [
+		AbilityRegistry::register( 'ai-layer/delete-faq', [
 			'label'       => 'Delete FAQ',
 			'description' => 'Permanently deletes a FAQ by ID and removes all bidirectional relationship references.',
 			'input_schema' => [
@@ -193,7 +193,7 @@ class FaqsAbilities {
 			'execute_callback'    => function ( array $input ): array {
 				$faq = ( new FaqRepository() )->find_by_id( (int) ( $input['id'] ?? 0 ) );
 				if ( null === $faq ) {
-					throw new \RuntimeException( 'FAQ not found: ' . ( $input['id'] ?? '' ) );
+					AbilityRegistry::throwNotFoundId( 'FAQ', (int) ( $input['id'] ?? 0 ) );
 				}
 
 				$post_id  = $faq->id;

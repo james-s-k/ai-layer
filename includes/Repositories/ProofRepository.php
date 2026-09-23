@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace WPAIL\Repositories;
 
 use WPAIL\Models\ProofModel;
+use WPAIL\Support\PublicEntityVisibility;
 use WPAIL\Transformers\ProofTransformer;
 use WPAIL\PostTypes\ProofPostType;
 
@@ -45,6 +46,16 @@ class ProofRepository {
 		}
 
 		return ProofTransformer::from_post( $post );
+	}
+
+	public function find_public_by_id( int $id ): ?ProofModel {
+		$proof = $this->find_by_id( $id );
+
+		if ( null === $proof || ! PublicEntityVisibility::proof_is_public( $proof, $id ) ) {
+			return null;
+		}
+
+		return $proof;
 	}
 
 	/** @return array<ProofModel> */
