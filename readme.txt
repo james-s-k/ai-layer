@@ -59,18 +59,28 @@ The engine checks manually-authored Answers first (so you can guarantee specific
 
 Returns the matched service, location, a direct answer, supporting testimonial, and a booking link — in one hop, from your own data.
 
+**Knowledge page (crawlable HTML export)**
+
+A single page with your **complete** business knowledge — profile, services, locations, FAQs, proof, actions, authored answers, and all entity relationships — rendered as normal HTML and Markdown for crawlers that read page content rather than REST APIs:
+
+* `/ai-layer/knowledge` — full HTML export with table of contents, FAQPage JSON-LD, and semantic sections
+* `/ai-layer/knowledge.md` — same content as Markdown for LLM ingestion
+
+Enabled by default in **Settings → AI Discovery → Knowledge page**. Linked prominently from llms.txt, the manifest, robots.txt (`AI-Layer-Knowledge:`), and the AI Layer sitemap. **Discourage search indexing (noindex)** is on by default to prevent duplicate content with your existing marketing pages while keeping the export available for AI crawlers — uncheck in Settings if you want search engines to index the URL.
+
 **AI discovery features**
 
-AI Layer broadcasts your structured data endpoints across ten independent discovery channels — all enabled by default, all independently toggleable:
+AI Layer broadcasts your structured data endpoints across multiple independent discovery channels — all enabled by default, all independently toggleable:
 
 * `GET /wp-json/ai-layer/v1/manifest` — Semantic manifest listing all active entity endpoint URLs, discovery channel URLs, relationship capabilities, query capabilities, and authentication details. The recommended first request for any agent integrating with your site.
 * `GET /wp-json/ai-layer/v1/openapi` — Full OpenAPI 3.1.0 specification generated dynamically from live plugin state. Import into Postman, Insomnia, or any AI coding assistant.
 * `/.well-known/ai-layer` — Machine-readable JSON discovery document. The canonical source of truth for agents.
 * `llms.txt` — Dynamically generated at `/llms.txt` following the emerging llms.txt standard. In well-known mode it links to the JSON document; in llms.txt-only mode it lists endpoints directly.
 * `AI.txt` *(Beta)* — `/ai.txt` file declaring your crawling, training, and attribution preferences to AI systems.
+* `/ai-layer/knowledge` and `/ai-layer/knowledge.md` — Complete business knowledge export (see above); toggle and noindex in Settings → AI Discovery
 * `/ai-layer` — Human-readable HTML discovery page listing all endpoints, discovery links, and a live query example. `/ai-layer.md` serves the same content as Markdown.
-* `/ai-layer-sitemap.xml` — XML sitemap listing all AI Layer endpoints. Automatically injected into Yoast SEO's sitemap index when Yoast is active.
-* `robots.txt` injection — `AI-Layer:`, `AI-Layer-Manifest:`, and `AI-Layer-OpenAPI:` directives appended to the WordPress-generated `robots.txt`.
+* `/ai-layer-sitemap.xml` — XML sitemap listing all AI Layer endpoints and the knowledge page (when indexable). Automatically injected into Yoast SEO's sitemap index when Yoast is active.
+* `robots.txt` injection — `AI-Layer:`, `AI-Layer-Manifest:`, `AI-Layer-OpenAPI:`, and `AI-Layer-Knowledge:` directives appended to the WordPress-generated `robots.txt`.
 * HTTP headers — `Link: rel="service"`, `Link: rel="service-desc"`, and `X-AI-Layer` headers injected on every frontend response.
 * `<head>` link tags — `rel="ai-layer"`, `rel="llms-txt"`, `rel="alternate"` (manifest), and `rel="service-desc"` (OpenAPI) plus a DataCatalog JSON-LD block injected into every page `<head>`.
 
@@ -148,7 +158,7 @@ All features are managed under **AI Layer** in the WordPress admin:
 * **Setup Wizard** — revisitable onboarding; imports suggestions from WordPress, Yoast SEO, Rank Math, and WooCommerce
 * **AI Import** — extract entities from existing pages; configure AI provider keys and models; relationship management tools
 * **Services, Locations, FAQs, Proof & Trust, Actions, Answers** — custom post types with structured meta boxes
-* **Settings** — schema.org output, endpoint cache TTL, AI discovery mode, post-type front-end visibility, WooCommerce products endpoint, analytics retention, uninstall behaviour
+* **Settings** — schema.org output, endpoint cache TTL, AI discovery mode, knowledge page and noindex, post-type front-end visibility, WooCommerce products endpoint, analytics retention, uninstall behaviour
 * **llms.txt** — page picker, custom intro, live preview, SEO plugin conflict detection
 * **ai.txt (Beta)** — crawling, training, and attribution preferences with agent-specific rules
 * **Test Answer Engine** — internal query console for debugging the answer engine
@@ -193,7 +203,8 @@ Terms and privacy policies for each provider apply to data you send through AI I
 6. Optionally enable llms.txt at **AI Layer → llms.txt**
 7. If WooCommerce is active, optionally enable the `/products` endpoint at **AI Layer → Settings**
 8. Visit `/.well-known/ai-layer` to verify your discovery document is live
-9. For MCP agent access, install the [WordPress MCP Adapter](https://github.com/wordpress/mcp-adapter) plugin (requires WordPress 6.9+)
+9. Visit `/ai-layer/knowledge` to verify your crawlable business knowledge export (enabled by default; noindex on by default)
+10. For MCP agent access, install the [WordPress MCP Adapter](https://github.com/wordpress/mcp-adapter) plugin (requires WordPress 6.9+)
 
 == Frequently Asked Questions ==
 
@@ -244,6 +255,10 @@ Yes. Empty endpoints return empty arrays. The plugin is fully functional with pa
 = Is the data public? =
 
 All REST read endpoints are public for **published** entity posts. Draft and private items return 404 on public GET requests. Fields marked as internal in the field definitions are always excluded from API responses. Write operations always require authentication.
+
+= What is the /ai-layer/knowledge page? =
+
+A single HTML page (and matching Markdown file) containing your full structured business data — every service, FAQ, location, proof item, action, authored answer, and the relationships between them. It is generated automatically from your AI Layer entities so crawlers and AI systems can read your business knowledge as normal page content without calling the REST API. Enable or disable it under **Settings → AI Discovery → Knowledge page**. **Discourage search indexing** is on by default to avoid duplicate content with your marketing pages; the page remains linked from llms.txt and discovery files for AI ingest.
 
 = What is the difference between /.well-known/ai-layer and llms.txt? =
 
@@ -297,6 +312,7 @@ Single-site only in the current version. Multisite support is not explicitly blo
 * **Security** — public REST and MCP reads exclude draft/private entities; REST rate limiting for anonymous traffic; authored Answer query patterns omitted from public REST responses; MCP write tools unified under `wpail_manage_content`
 * **Settings** — endpoint cache TTL wired to discovery and REST response caching
 * **Help & Docs** — in-plugin documentation for the answer engine pipeline and MCP tool names
+* **Knowledge page** — `/ai-layer/knowledge` (HTML) and `/ai-layer/knowledge.md` (Markdown) publish your complete entity graph as crawlable page content; linked from llms.txt, manifest, robots.txt, and sitemap; optional noindex (on by default) prevents duplicate content in search results while keeping the export available for AI crawlers; toggle in Settings → AI Discovery
 
 = 1.5.0 =
 * **Manifest endpoint** — `GET /wp-json/ai-layer/v1/manifest` returns a semantic manifest: site info, all active entity endpoint URLs, discovery channel URLs, relationship capabilities, query capabilities, and authentication details
@@ -369,7 +385,7 @@ Single-site only in the current version. Multisite support is not explicitly blo
 == Upgrade Notice ==
 
 = 1.6.0 =
-AI Import, multi-provider AI support, improved onboarding, encrypted local API keys, and MCP permission alignment. Flush permalinks after upgrading if discovery URLs 404.
+AI Import, knowledge page export at /ai-layer/knowledge, multi-provider AI support, improved onboarding, encrypted local API keys, and MCP permission alignment. Flush permalinks after upgrading if discovery or knowledge URLs 404.
 
 = 1.5.0 =
 Discovery channels enabled by default. Flush permalinks after upgrading (Settings → Permalinks → Save) so `/ai-layer`, `/ai-layer.md`, and `/ai-layer-sitemap.xml` resolve.

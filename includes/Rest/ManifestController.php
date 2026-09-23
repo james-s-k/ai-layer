@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace WPAIL\Rest;
 
+use WPAIL\Discovery\KnowledgePage;
 use WPAIL\Repositories\BusinessRepository;
 use WPAIL\Admin\SettingsPage;
 use WPAIL\LLMsTxt\LLMsTxtSettings;
@@ -161,6 +162,14 @@ class ManifestController extends BaseController {
 
 		if ( AiTxtSettings::get( 'enabled', false ) ) {
 			$discovery['ai_txt'] = home_url( '/ai.txt' );
+		}
+
+		if ( KnowledgePage::is_enabled() ) {
+			$discovery['knowledge_html']     = KnowledgePage::html_url();
+			$discovery['knowledge_markdown'] = KnowledgePage::markdown_url();
+			if ( KnowledgePage::is_noindex() ) {
+				$discovery['knowledge_indexing'] = 'noindex';
+			}
 		}
 
 		return $discovery;

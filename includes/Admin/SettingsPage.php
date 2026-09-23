@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace WPAIL\Admin;
 
+use WPAIL\Discovery\KnowledgePage;
 use WPAIL\WellKnown\AiLayerController;
 use WPAIL\LLMsTxt\LLMsTxtController;
 
@@ -38,6 +39,9 @@ class SettingsPage {
 	const SETTING_ROBOTS_INJECTION_ENABLED = 'robots_injection_enabled';
 	const SETTING_HTTP_HEADERS_ENABLED     = 'http_headers_enabled';
 	const SETTING_AI_LAYER_PAGE_ENABLED    = 'ai_layer_page_enabled';
+	const SETTING_KNOWLEDGE_PAGE_ENABLED   = 'knowledge_page_enabled';
+	const SETTING_KNOWLEDGE_PAGE_NOINDEX   = 'knowledge_page_noindex';
+	const DEFAULT_KNOWLEDGE_PAGE_NOINDEX   = true;
 	const SETTING_SITEMAP_ENABLED          = 'sitemap_enabled';
 
 	// Data management.
@@ -115,6 +119,8 @@ class SettingsPage {
 			self::SETTING_ROBOTS_INJECTION_ENABLED   => isset( $_POST[ self::SETTING_ROBOTS_INJECTION_ENABLED ] ),
 			self::SETTING_HTTP_HEADERS_ENABLED       => isset( $_POST[ self::SETTING_HTTP_HEADERS_ENABLED ] ),
 			self::SETTING_AI_LAYER_PAGE_ENABLED      => isset( $_POST[ self::SETTING_AI_LAYER_PAGE_ENABLED ] ),
+			self::SETTING_KNOWLEDGE_PAGE_ENABLED     => isset( $_POST[ self::SETTING_KNOWLEDGE_PAGE_ENABLED ] ),
+			self::SETTING_KNOWLEDGE_PAGE_NOINDEX     => isset( $_POST[ self::SETTING_KNOWLEDGE_PAGE_NOINDEX ] ),
 			self::SETTING_SITEMAP_ENABLED            => isset( $_POST[ self::SETTING_SITEMAP_ENABLED ] ),
 			self::SETTING_DELETE_ON_UNINSTALL        => isset( $_POST[ self::SETTING_DELETE_ON_UNINSTALL ] ),
 			self::SETTING_ANALYTICS_RETENTION_DAYS  => self::sanitize_retention_days( (string) $retention_raw ),
@@ -129,6 +135,7 @@ class SettingsPage {
 		// Settings that affect discovery output — invalidate both caches.
 		AiLayerController::flush_cache();
 		LLMsTxtController::flush_cache();
+		KnowledgePage::flush_cache();
 
 		add_action( 'admin_notices', function (): void {
 			echo '<div class="notice notice-success is-dismissible"><p>';
@@ -156,6 +163,8 @@ class SettingsPage {
 		$robots_injection    = (bool) self::get( self::SETTING_ROBOTS_INJECTION_ENABLED, true );
 		$http_headers        = (bool) self::get( self::SETTING_HTTP_HEADERS_ENABLED, true );
 		$ai_layer_page       = (bool) self::get( self::SETTING_AI_LAYER_PAGE_ENABLED, true );
+		$knowledge_page      = (bool) self::get( self::SETTING_KNOWLEDGE_PAGE_ENABLED, true );
+		$knowledge_noindex   = (bool) self::get( self::SETTING_KNOWLEDGE_PAGE_NOINDEX, self::DEFAULT_KNOWLEDGE_PAGE_NOINDEX );
 		$sitemap_enabled     = (bool) self::get( self::SETTING_SITEMAP_ENABLED, true );
 
 		$service_public      = (bool) self::get( self::SETTING_SERVICE_PUBLIC, false );
@@ -303,7 +312,7 @@ class SettingsPage {
 							       class="small-text">
 							<span><?php esc_html_e( 'seconds', 'ai-layer' ); ?></span>
 							<p class="description">
-								<?php esc_html_e( 'Cache-Control max-age for manifest, OpenAPI, llms.txt, ai.txt, well-known JSON, and sitemap responses. Leave blank for 3600 (1 hour).', 'ai-layer' ); ?>
+								<?php esc_html_e( 'Cache-Control max-age for manifest, OpenAPI, llms.txt, ai.txt, well-known JSON, knowledge page, and sitemap responses. Leave blank for 3600 (1 hour).', 'ai-layer' ); ?>
 							</p>
 						</td>
 					</tr>
@@ -335,7 +344,7 @@ class SettingsPage {
 				<div class="wpail-card" style="margin-top:24px;">
 				<h2 style="margin-top:0;"><?php esc_html_e( 'AI Discovery', 'ai-layer' ); ?></h2>
 				<p class="description" style="margin-bottom:12px;">
-					<?php esc_html_e( 'Controls how AI systems and agents discover your AI Layer endpoints. This affects both /.well-known/ai-layer and the endpoints section of /llms.txt.', 'ai-layer' ); ?>
+					<?php esc_html_e( 'Controls how AI systems and agents discover your AI Layer endpoints, knowledge page, and discovery files. This affects /.well-known/ai-layer, /ai-layer/knowledge, and the endpoints section of /llms.txt.', 'ai-layer' ); ?>
 				</p>
 				<table class="form-table" role="presentation">
 					<tr>
@@ -385,7 +394,7 @@ class SettingsPage {
 								<code>&lt;head&gt;</code>
 							</label>
 							<p class="description">
-								<?php esc_html_e( 'Signals to AI crawlers and agents where to find machine-readable business data. Outputs a rel="ai-layer" link for /.well-known/ai-layer (when active) and a rel="llms-txt" link for /llms.txt (when enabled). Enabled by default.', 'ai-layer' ); ?>
+								<?php esc_html_e( 'Signals to AI crawlers and agents where to find machine-readable business data. Outputs link tags for /.well-known/ai-layer (when active), /ai-layer/knowledge (when enabled), and /llms.txt (when enabled). Enabled by default.', 'ai-layer' ); ?>
 							</p>
 						</td>
 					</tr>
@@ -400,7 +409,7 @@ class SettingsPage {
 								<?php esc_html_e( 'Add AI Layer discovery directives to robots.txt', 'ai-layer' ); ?>
 							</label>
 							<p class="description">
-								<?php esc_html_e( 'Appends AI-Layer:, AI-Layer-Manifest:, and AI-Layer-OpenAPI: directives to the dynamically generated robots.txt. Does not modify any physical file.', 'ai-layer' ); ?>
+								<?php esc_html_e( 'Appends AI-Layer:, AI-Layer-Manifest:, AI-Layer-OpenAPI:, and AI-Layer-Knowledge: directives to the dynamically generated robots.txt. Does not modify any physical file.', 'ai-layer' ); ?>
 							</p>
 						</td>
 					</tr>
@@ -448,6 +457,39 @@ class SettingsPage {
 						</td>
 					</tr>
 					<tr>
+						<th scope="row"><?php esc_html_e( 'Knowledge page', 'ai-layer' ); ?></th>
+						<td>
+							<label>
+								<input type="checkbox"
+								       name="<?php echo esc_attr( self::SETTING_KNOWLEDGE_PAGE_ENABLED ); ?>"
+								       value="1"
+								       <?php checked( $knowledge_page ); ?>>
+								<?php esc_html_e( 'Enable the /ai-layer/knowledge full business export', 'ai-layer' ); ?>
+							</label>
+							<p class="description">
+								<?php
+								printf(
+									/* translators: 1: HTML knowledge URL, 2: Markdown knowledge URL */
+									esc_html__( 'Single crawlable page with your complete profile, services, FAQs, locations, proof, actions, and relationships in HTML (%1$s) and Markdown (%2$s).', 'ai-layer' ),
+									'<code>' . esc_html( home_url( '/ai-layer/knowledge' ) ) . '</code>',
+									'<code>' . esc_html( home_url( '/ai-layer/knowledge.md' ) ) . '</code>'
+								);
+								?>
+							</p>
+							<label style="display:block;margin-top:12px;">
+								<input type="checkbox"
+								       name="<?php echo esc_attr( self::SETTING_KNOWLEDGE_PAGE_NOINDEX ); ?>"
+								       value="1"
+								       <?php checked( $knowledge_noindex ); ?>
+								       <?php disabled( ! $knowledge_page ); ?>>
+								<?php esc_html_e( 'Discourage search engine indexing (noindex)', 'ai-layer' ); ?>
+							</label>
+							<p class="description">
+								<?php esc_html_e( 'Prevents duplicate content in search results by adding noindex/nofollow and removing the page from the AI Layer sitemap. The export stays available for AI crawlers, llms.txt, and direct links — recommended when the same information already appears on your marketing pages.', 'ai-layer' ); ?>
+							</p>
+						</td>
+					</tr>
+					<tr>
 						<th scope="row"><?php esc_html_e( 'AI Layer sitemap', 'ai-layer' ); ?></th>
 						<td>
 							<label>
@@ -461,7 +503,7 @@ class SettingsPage {
 								<?php
 								printf(
 									/* translators: %s: sitemap URL */
-									esc_html__( 'Dedicated sitemap at %s listing the manifest, OpenAPI spec, and key endpoints. Added to the Yoast sitemap index automatically when Yoast is active.', 'ai-layer' ),
+									esc_html__( 'Dedicated sitemap at %s listing the manifest, knowledge page, OpenAPI spec, and key endpoints. Added to the Yoast sitemap index automatically when Yoast is active.', 'ai-layer' ),
 									'<code>' . esc_html( home_url( '/ai-layer-sitemap.xml' ) ) . '</code>'
 								);
 								?>

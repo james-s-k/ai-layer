@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace WPAIL\Admin;
 
+use WPAIL\Discovery\KnowledgePage;
 use WPAIL\LLMsTxt\ConflictDetector;
 use WPAIL\LLMsTxt\Generator;
 use WPAIL\LLMsTxt\LLMsTxtSettings;
@@ -89,7 +90,7 @@ class LLMsTxtPage {
 						</span>
 					</h1>
 					<p class="wpail-overview__tagline">
-						<?php esc_html_e( 'Help AI systems and agents discover your structured data by exposing a standardised llms.txt file at your site root.', 'ai-layer' ); ?>
+						<?php esc_html_e( 'Help AI systems and agents discover your structured data — including the /ai-layer/knowledge export — via a standardised llms.txt file at your site root.', 'ai-layer' ); ?>
 					</p>
 				</div>
 			</div>
@@ -164,6 +165,18 @@ class LLMsTxtPage {
 											<?php endif; ?>
 										</p>
 										<ul class="wpail-llmstxt-endpoint-list">
+											<?php if ( KnowledgePage::is_enabled() ) : ?>
+												<li>
+													<?php
+													printf(
+														/* translators: 1: HTML knowledge URL, 2: Markdown knowledge URL */
+														esc_html__( 'Complete business knowledge at %1$s and %2$s', 'ai-layer' ),
+														'<code>/ai-layer/knowledge</code>',
+														'<code>/ai-layer/knowledge.md</code>'
+													);
+													?>
+												</li>
+											<?php endif; ?>
 											<li><?php esc_html_e( 'Canonical manifest (JSON)', 'ai-layer' ); ?></li>
 											<li><?php esc_html_e( 'OpenAPI specification', 'ai-layer' ); ?></li>
 											<?php if ( $is_well_known_mode ) : ?>

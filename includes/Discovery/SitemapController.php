@@ -90,6 +90,11 @@ class SitemapController {
 			home_url( '/.well-known/ai-layer' ),
 		];
 
+		if ( KnowledgePage::is_indexable() ) {
+			$urls[] = KnowledgePage::html_url();
+			$urls[] = KnowledgePage::markdown_url();
+		}
+
 		$entries = '';
 		foreach ( $urls as $url ) {
 			$entries .= "\t<url>\n";

@@ -192,6 +192,8 @@ class SetupWizardPage {
 		$settings[ SettingsPage::SETTING_ROBOTS_INJECTION_ENABLED ] = ! empty( $_POST['robots_injection_enabled'] );
 		$settings[ SettingsPage::SETTING_HTTP_HEADERS_ENABLED ]     = ! empty( $_POST['http_headers_enabled'] );
 		$settings[ SettingsPage::SETTING_AI_LAYER_PAGE_ENABLED ]    = ! empty( $_POST['ai_layer_page_enabled'] );
+		$settings[ SettingsPage::SETTING_KNOWLEDGE_PAGE_ENABLED ]   = ! empty( $_POST['knowledge_page_enabled'] );
+		$settings[ SettingsPage::SETTING_KNOWLEDGE_PAGE_NOINDEX ]     = ! empty( $_POST['knowledge_page_noindex'] );
 		$settings[ SettingsPage::SETTING_SITEMAP_ENABLED ]          = ! empty( $_POST['sitemap_enabled'] );
 		update_option( WPAIL_OPT_SETTINGS, $settings );
 
@@ -206,6 +208,7 @@ class SetupWizardPage {
 		LLMsTxtController::flush_cache();
 		AiTxtController::flush_cache();
 		AiLayerController::flush_cache();
+		\WPAIL\Discovery\KnowledgePage::flush_cache();
 		flush_rewrite_rules();
 
 		wp_safe_redirect(
@@ -553,6 +556,8 @@ class SetupWizardPage {
 		$robots_injection  = SettingsPage::get( SettingsPage::SETTING_ROBOTS_INJECTION_ENABLED, true );
 		$http_headers      = SettingsPage::get( SettingsPage::SETTING_HTTP_HEADERS_ENABLED, true );
 		$ai_layer_page     = SettingsPage::get( SettingsPage::SETTING_AI_LAYER_PAGE_ENABLED, true );
+		$knowledge_page    = SettingsPage::get( SettingsPage::SETTING_KNOWLEDGE_PAGE_ENABLED, true );
+		$knowledge_noindex = SettingsPage::get( SettingsPage::SETTING_KNOWLEDGE_PAGE_NOINDEX, SettingsPage::DEFAULT_KNOWLEDGE_PAGE_NOINDEX );
 		$sitemap_enabled   = SettingsPage::get( SettingsPage::SETTING_SITEMAP_ENABLED, true );
 		$llmstxt_enabled   = (bool) LLMsTxtSettings::get( 'enabled', true );
 		$aitxt_enabled     = (bool) AiTxtSettings::get( 'enabled', false );
@@ -665,12 +670,39 @@ class SetupWizardPage {
 
 				<div class="wpail-wizard__field">
 					<label class="wpail-wizard__field-check">
+						<input type="checkbox" name="knowledge_page_enabled" value="1"
+							<?php checked( $knowledge_page ); ?>>
+						<span class="wpail-wizard__field-label"><?php esc_html_e( 'Enable /ai-layer/knowledge export', 'ai-layer' ); ?></span>
+					</label>
+					<div class="wpail-wizard__field-body">
+						<p class="description">
+							<?php
+							printf(
+								/* translators: 1: HTML knowledge URL, 2: Markdown knowledge URL */
+								esc_html__( 'Publishes your complete business knowledge — profile, services, FAQs, locations, proof, actions, and relationships — as one crawlable page at %1$s (HTML) and %2$s (Markdown). Recommended for AI crawlers and search indexing.', 'ai-layer' ),
+								'<code>' . esc_html( home_url( '/ai-layer/knowledge' ) ) . '</code>',
+								'<code>' . esc_html( home_url( '/ai-layer/knowledge.md' ) ) . '</code>'
+							);
+							?>
+						</p>
+						<label class="wpail-wizard__field-check" style="margin-top:10px;">
+							<input type="checkbox" name="knowledge_page_noindex" value="1"
+								<?php checked( $knowledge_noindex ); ?>
+								<?php disabled( ! $knowledge_page ); ?>>
+							<span class="wpail-wizard__field-label"><?php esc_html_e( 'Discourage search indexing (noindex)', 'ai-layer' ); ?></span>
+						</label>
+						<p class="description"><?php esc_html_e( 'Prevents duplicate content in search results while keeping the page available for AI crawlers and llms.txt. On by default — uncheck only if you want this URL indexed.', 'ai-layer' ); ?></p>
+					</div>
+				</div>
+
+				<div class="wpail-wizard__field">
+					<label class="wpail-wizard__field-check">
 						<input type="checkbox" name="sitemap_enabled" value="1"
 							<?php checked( $sitemap_enabled ); ?>>
 						<span class="wpail-wizard__field-label"><?php esc_html_e( 'Enable AI Layer sitemap', 'ai-layer' ); ?></span>
 					</label>
 					<div class="wpail-wizard__field-body">
-						<p class="description"><?php esc_html_e( 'Serves a dedicated XML sitemap at /ai-layer-sitemap.xml and adds it to the Yoast sitemap index automatically when Yoast is active.', 'ai-layer' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Serves a dedicated XML sitemap at /ai-layer-sitemap.xml listing the manifest, knowledge page, and key endpoints. Added to the Yoast sitemap index automatically when Yoast is active.', 'ai-layer' ); ?></p>
 					</div>
 				</div>
 
@@ -689,7 +721,7 @@ class SetupWizardPage {
 							<span class="wpail-badge wpail-badge--new"><?php esc_html_e( 'Recommended', 'ai-layer' ); ?></span>
 						</div>
 						<p class="description">
-							<?php esc_html_e( 'A machine-readable index at /llms.txt that points AI crawlers to your business data endpoints and key pages.', 'ai-layer' ); ?>
+							<?php esc_html_e( 'A machine-readable index at /llms.txt that points AI crawlers to your /ai-layer/knowledge export, REST endpoints, and key pages.', 'ai-layer' ); ?>
 						</p>
 						<p class="wpail-wizard__file-url">
 							<code><?php echo esc_html( $llms_url ); ?></code>
@@ -910,6 +942,16 @@ class SetupWizardPage {
 				<?php esc_html_e( 'You chose defaults during discovery — adjust key pages, endpoint sections, or crawling policy anytime.', 'ai-layer' ); ?>
 			</p>
 			<div class="wpail-wizard__file-status">
+				<div class="wpail-wizard__file-status-item">
+					<strong><?php esc_html_e( 'Knowledge page', 'ai-layer' ); ?></strong>
+					<span class="wpail-wizard__file-status-badge <?php echo \WPAIL\Discovery\KnowledgePage::is_enabled() ? 'is-on' : 'is-off'; ?>">
+						<?php echo esc_html( \WPAIL\Discovery\KnowledgePage::is_enabled() ? __( 'Enabled', 'ai-layer' ) : __( 'Disabled', 'ai-layer' ) ); ?>
+					</span>
+					<a href="<?php echo esc_url( admin_url( 'admin.php?page=wpail_settings' ) ); ?>"><?php esc_html_e( 'Settings', 'ai-layer' ); ?></a>
+					<?php if ( \WPAIL\Discovery\KnowledgePage::is_enabled() ) : ?>
+						<a href="<?php echo esc_url( \WPAIL\Discovery\KnowledgePage::html_url() ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'View live', 'ai-layer' ); ?></a>
+					<?php endif; ?>
+				</div>
 				<div class="wpail-wizard__file-status-item">
 					<strong>llms.txt</strong>
 					<span class="wpail-wizard__file-status-badge <?php echo $llmstxt_on ? 'is-on' : 'is-off'; ?>">

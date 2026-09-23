@@ -30,6 +30,8 @@ class Activator {
 		add_rewrite_rule( '^ai\.txt$', 'index.php?wpail_aitxt=1', 'top' );
 		add_rewrite_rule( '^ai-layer$', 'index.php?wpail_ai_page=html', 'top' );
 		add_rewrite_rule( '^ai-layer\.md$', 'index.php?wpail_ai_page=md', 'top' );
+		add_rewrite_rule( '^ai-layer/knowledge\.md$', 'index.php?wpail_knowledge=md', 'top' );
+		add_rewrite_rule( '^ai-layer/knowledge$', 'index.php?wpail_knowledge=html', 'top' );
 		add_rewrite_rule( '^ai-layer-sitemap\.xml$', 'index.php?wpail_sitemap=1', 'top' );
 
 		flush_rewrite_rules();

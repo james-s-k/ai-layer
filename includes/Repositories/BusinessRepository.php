@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace WPAIL\Repositories;
 
+use WPAIL\Discovery\KnowledgePage;
 use WPAIL\Models\BusinessModel;
 use WPAIL\Transformers\BusinessTransformer;
 use WPAIL\Support\Sanitizer;
@@ -40,6 +41,7 @@ class BusinessRepository {
 	public function save( array $data ): void {
 		$clean = Sanitizer::sanitize_fields( $data, FieldDefinitions::business() );
 		update_option( WPAIL_OPT_BUSINESS, $clean );
+		KnowledgePage::flush_cache();
 	}
 
 	/**

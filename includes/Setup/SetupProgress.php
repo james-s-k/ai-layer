@@ -169,8 +169,8 @@ class SetupProgress {
 				'llms_endpoints',
 				__( 'llms.txt — endpoint discovery', 'ai-layer' ),
 				$is_llmstxt_mode
-					? __( 'Enable the endpoints section so llms.txt lists your REST API URLs (including /answers when checked below).', 'ai-layer' )
-					: __( 'Enable the endpoints section — adds manifest, OpenAPI, and a link to /.well-known/ai-layer (which lists all endpoints including /answers).', 'ai-layer' ),
+					? __( 'Enable the endpoints section so llms.txt lists your REST API URLs and the /ai-layer/knowledge crawlable export (including /answers when checked below).', 'ai-layer' )
+					: __( 'Enable the endpoints section — adds manifest, OpenAPI, the /ai-layer/knowledge export, and a link to /.well-known/ai-layer.', 'ai-layer' ),
 				admin_url( 'admin.php?page=wpail_llmstxt' ),
 				self::is_llms_endpoints_configured( $llms, $discovery_mode )
 			);
@@ -206,9 +206,16 @@ class SetupProgress {
 				true,
 			],
 			[
+				'discovery_knowledge_page',
+				__( 'Knowledge page', 'ai-layer' ),
+				__( 'Full crawlable HTML and Markdown export at /ai-layer/knowledge — all entities and relationships in one page. Optional noindex in Settings if you want AI ingest without search indexing.', 'ai-layer' ),
+				SettingsPage::SETTING_KNOWLEDGE_PAGE_ENABLED,
+				true,
+			],
+			[
 				'discovery_sitemap',
 				__( 'AI Layer sitemap', 'ai-layer' ),
-				__( 'XML sitemap listing manifest, OpenAPI, and key endpoints.', 'ai-layer' ),
+				__( 'XML sitemap listing manifest, OpenAPI, knowledge page, and key endpoints.', 'ai-layer' ),
 				SettingsPage::SETTING_SITEMAP_ENABLED,
 				true,
 			],

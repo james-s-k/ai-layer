@@ -109,7 +109,21 @@ code{background:#1e2a3a;padding:2px 6px;border-radius:4px;font-size:.85rem;color
 <h1>AI Layer: Structured Business Data</h1>
 <p class="subtitle">This site exposes structured business data via AI Layer for direct access by AI systems, agents, and search tools.</p>
 
-<h2>Discovery</h2>
+<h2>Discovery</h2>';
+
+		if ( KnowledgePage::is_enabled() ) {
+			echo '
+<div class="card">
+<a href="' . esc_url( KnowledgePage::html_url() ) . '">Complete business knowledge (HTML) &rarr;</a>
+<span class="desc">Full crawlable export of profile, services, FAQs, locations, proof, actions, and relationships.</span>
+</div>
+<div class="card">
+<a href="' . esc_url( KnowledgePage::markdown_url() ) . '">Complete business knowledge (Markdown) &rarr;</a>
+<span class="desc">Same content as Markdown for LLM and agent ingestion.</span>
+</div>';
+		}
+
+		echo '
 <div class="card">
 <a href="' . esc_url( $manifest ) . '">Manifest (JSON) &rarr;</a>
 <span class="desc">Primary discovery document — start here.</span>

@@ -51,6 +51,7 @@ use WPAIL\Admin\AnalyticsPage;
 use WPAIL\Discovery\RobotsInjector;
 use WPAIL\Discovery\HttpHeadersInjector;
 use WPAIL\Discovery\AiLayerPage;
+use WPAIL\Discovery\KnowledgePage;
 use WPAIL\Discovery\SitemapController;
 
 /**
@@ -106,6 +107,11 @@ final class Plugin {
 		if ( ! get_option( 'wpail_rewrites_flushed_150' ) ) {
 			set_transient( 'wpail_flush_rewrite', true, MINUTE_IN_SECONDS );
 			update_option( 'wpail_rewrites_flushed_150', true );
+		}
+
+		if ( ! get_option( 'wpail_rewrites_flushed_knowledge' ) ) {
+			set_transient( 'wpail_flush_rewrite', true, MINUTE_IN_SECONDS );
+			update_option( 'wpail_rewrites_flushed_knowledge', true );
 		}
 
 		$installed = get_option( 'wpail_version', '1.0.0' );
@@ -228,6 +234,7 @@ final class Plugin {
 		( new RobotsInjector() )->register();
 		( new HttpHeadersInjector() )->register();
 		( new AiLayerPage() )->register();
+		( new KnowledgePage() )->register();
 		( new SitemapController() )->register();
 	}
 

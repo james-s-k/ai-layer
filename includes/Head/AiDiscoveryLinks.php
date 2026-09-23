@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace WPAIL\Head;
 
 use WPAIL\Admin\SettingsPage;
+use WPAIL\Discovery\KnowledgePage;
 use WPAIL\LLMsTxt\LLMsTxtSettings;
 
 class AiDiscoveryLinks {
@@ -55,6 +56,14 @@ class AiDiscoveryLinks {
 			printf(
 				'<link rel="llms-txt" href="%s" type="text/plain">' . "\n",
 				esc_url( home_url( '/llms.txt' ) )
+			);
+		}
+
+		if ( KnowledgePage::is_enabled() ) {
+			printf(
+				'<link rel="alternate" type="text/html" href="%s" title="%s">' . "\n",
+				esc_url( KnowledgePage::html_url() ),
+				esc_attr__( 'AI Layer business knowledge', 'ai-layer' )
 			);
 		}
 

@@ -92,6 +92,10 @@ class RobotsInjector {
 		$output .= 'AI-Layer-Manifest: ' . $manifest . "\n";
 		$output .= 'AI-Layer-OpenAPI: ' . $openapi . "\n";
 
+		if ( KnowledgePage::is_enabled() ) {
+			$output .= 'AI-Layer-Knowledge: ' . KnowledgePage::html_url() . "\n";
+		}
+
 		return $output;
 	}
 }

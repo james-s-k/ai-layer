@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace WPAIL\LLMsTxt;
 
+use WPAIL\Discovery\KnowledgePage;
 use WPAIL\Repositories\BusinessRepository;
 use WPAIL\Admin\SettingsPage;
 use WPAIL\Licensing\Features;
@@ -53,6 +54,15 @@ class Generator {
 
 			$lines[] = '## AI Layer Structured Endpoints';
 			$lines[] = '';
+
+			if ( KnowledgePage::is_enabled() ) {
+				$knowledge_html = KnowledgePage::html_url();
+				$knowledge_md   = KnowledgePage::markdown_url();
+				$lines[] = "Complete business knowledge (HTML): [{$knowledge_html}]({$knowledge_html})";
+				$lines[] = "Complete business knowledge (Markdown): [{$knowledge_md}]({$knowledge_md})";
+				$lines[] = '';
+			}
+
 			$lines[] = "Canonical manifest (JSON): [{$base}/manifest]({$base}/manifest)";
 			$lines[] = "OpenAPI specification: [{$base}/openapi]({$base}/openapi)";
 			$lines[] = '';

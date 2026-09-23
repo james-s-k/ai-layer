@@ -161,6 +161,7 @@ AI Layer is a free plugin with a Pro upgrade available via Freemius.
 - Schema.org JSON-LD output (Organization, LocalBusiness, FAQPage)
 - llms.txt support
 - `/.well-known/ai-layer` machine-readable discovery document
+- **Knowledge page** — `/ai-layer/knowledge` (HTML) and `/ai-layer/knowledge.md` (Markdown): full crawlable export of profile, entities, and relationships; noindex on by default to prevent duplicate content (toggle in Settings → AI Discovery)
 - AI discovery `<link>` tags — `rel="ai-layer"` and `rel="llms-txt"` injected in every page `<head>` (enabled by default; toggle in Settings)
 - AI.txt support *(beta)* — signal crawling, training, and attribution preferences to AI systems
 - Setup Wizard — auto-populate Business Profile from WordPress, Yoast SEO, Rank Math, and WooCommerce
@@ -349,10 +350,12 @@ Relationship state is stored as arrays of post IDs in the `_wpail_data` JSON met
 | **AI Discovery** | |
 | Endpoint discovery mode | **/.well-known/ai-layer (recommended)** — machine-readable JSON is the source of truth; /llms.txt links to it. **llms.txt only** — endpoints listed in /llms.txt; `/.well-known/ai-layer` returns 404 |
 | Discovery link tags | Output `<link rel="ai-layer">` and `<link rel="llms-txt">` in every page `<head>`. Enabled by default — uncheck to suppress |
-| robots.txt injection | Append `AI-Layer:`, `AI-Layer-Manifest:`, and `AI-Layer-OpenAPI:` directives to the virtual `robots.txt`. Enabled by default |
+| robots.txt injection | Append `AI-Layer:`, `AI-Layer-Manifest:`, `AI-Layer-OpenAPI:`, and `AI-Layer-Knowledge:` directives to the virtual `robots.txt`. Enabled by default |
 | HTTP discovery headers | Inject `Link: rel="service"` and `Link: rel="service-desc"` headers plus `X-AI-Layer` on every frontend response. Enabled by default |
 | /ai-layer discovery page | Serve a human-readable HTML discovery page at `/ai-layer` and a Markdown version at `/ai-layer.md`. Enabled by default |
-| AI Layer sitemap | Serve an XML sitemap at `/ai-layer-sitemap.xml` listing all AI Layer endpoints. Also injects into Yoast SEO's sitemap index when Yoast is active. Enabled by default |
+| Knowledge page | Serve a complete business knowledge export at `/ai-layer/knowledge` (HTML) and `/ai-layer/knowledge.md` (Markdown). Enabled by default |
+| Discourage search indexing (noindex) | Prevents duplicate content in search results; on by default. Removes the knowledge page from the AI Layer sitemap while keeping it in llms.txt and robots hints for AI crawlers |
+| AI Layer sitemap | Serve an XML sitemap at `/ai-layer-sitemap.xml` listing all AI Layer endpoints and the knowledge page (when indexable). Also injects into Yoast SEO's sitemap index when Yoast is active. Enabled by default |
 | **Post Type Visibility** | |
 | Services — Enable public | Make the Services CPT publicly accessible on the front-end |
 | Services — Rewrite slug | URL base for the Services archive and single posts (default: `services`) |
@@ -574,6 +577,8 @@ The Products endpoint is not a separate llms.txt toggle — it appears automatic
 ## AI Layer Structured Endpoints
 
 Machine-readable endpoint index (JSON): https://strivewp.com/.well-known/ai-layer
+Complete business knowledge (HTML): [https://strivewp.com/ai-layer/knowledge](https://strivewp.com/ai-layer/knowledge)
+Complete business knowledge (Markdown): [https://strivewp.com/ai-layer/knowledge.md](https://strivewp.com/ai-layer/knowledge.md)
 
 ## Notes
 
@@ -678,22 +683,25 @@ Each agent block fully overrides the global `*` block for that agent, so all app
 
 ### AI Discovery & Agent Signals
 
-AI Layer broadcasts your structured data endpoints across ten independent discovery channels. Each channel is independently toggleable in **AI Layer → Settings → AI Discovery**. All default to enabled.
+AI Layer broadcasts your structured data endpoints across multiple independent discovery channels — including the crawlable knowledge export at `/ai-layer/knowledge`. Each channel is independently toggleable in **AI Layer → Settings → AI Discovery**. All default to enabled.
 
 ---
 
 #### `<head>` link tags
 
-AI Layer injects four `<link>` tags into every front-end page `<head>`:
+AI Layer injects up to five `<link>` tags into every front-end page `<head>` (conditional on discovery mode and llms.txt / knowledge page settings):
 
 ```html
+<!-- Standard service discovery -->
+<link rel="alternate" type="application/json" href="https://example.com/wp-json/ai-layer/v1/manifest">
+<link rel="service-desc" type="application/vnd.oai.openapi+json" href="https://example.com/wp-json/ai-layer/v1/openapi">
+
 <!-- AI Layer legacy discovery tags -->
 <link rel="ai-layer" href="https://example.com/.well-known/ai-layer" type="application/json">
 <link rel="llms-txt" href="https://example.com/llms.txt" type="text/plain">
 
-<!-- Standard service discovery (new in 1.5.0) -->
-<link rel="alternate" type="application/json" href="https://example.com/wp-json/ai-layer/v1/manifest">
-<link rel="service-desc" type="application/vnd.oai.openapi+json" href="https://example.com/wp-json/ai-layer/v1/openapi">
+<!-- Knowledge page (when enabled) -->
+<link rel="alternate" type="text/html" href="https://example.com/ai-layer/knowledge" title="AI Layer business knowledge">
 ```
 
 The `rel="alternate"` and `rel="service-desc"` tags follow standard web conventions for API discoverability and are understood by a growing range of AI tools.
@@ -733,6 +741,7 @@ AI Layer appends discovery directives to the WordPress-generated `robots.txt`. N
 AI-Layer: https://example.com/ai-layer
 AI-Layer-Manifest: https://example.com/wp-json/ai-layer/v1/manifest
 AI-Layer-OpenAPI: https://example.com/wp-json/ai-layer/v1/openapi
+AI-Layer-Knowledge: https://example.com/ai-layer/knowledge
 ```
 
 Only appended when the site is set to public (not in search-engine-discouraged mode).
@@ -773,11 +782,30 @@ A machine-friendly Markdown version of the discovery page, served at `/ai-layer.
 
 ---
 
+#### `/ai-layer/knowledge` — Complete business knowledge export
+
+**AI Layer → Settings → AI Discovery → Knowledge page**
+
+A single crawlable page containing your **full** structured business data: Business Profile, every Service, Location, FAQ, Proof item, Action, authored Answer, and the relationships between them. Served as:
+
+- `/ai-layer/knowledge` — HTML with table of contents, semantic sections, and FAQPage JSON-LD
+- `/ai-layer/knowledge.md` — the same content as Markdown
+
+Generated automatically from your entities (single source of truth — no manual duplication). Linked from llms.txt, the REST manifest, robots.txt (`AI-Layer-Knowledge:`), and the `<head>` alternate link.
+
+**Discourage search indexing (noindex)** is enabled by default. This prevents duplicate content with your existing marketing pages while keeping the export available for AI crawlers and llms.txt. When noindex is on, the knowledge URLs are omitted from the AI Layer sitemap but remain reachable via direct links and discovery files.
+
+**To disable the export entirely:** uncheck **Knowledge page** in **AI Layer → Settings → AI Discovery**.
+
+**To allow search engines to index the URL:** uncheck **Discourage search indexing (noindex)** on the same settings row.
+
+---
+
 #### `/ai-layer-sitemap.xml` — XML sitemap
 
 **AI Layer → Settings → AI Discovery → AI Layer sitemap**
 
-An XML sitemap listing all AI Layer REST endpoints and the `/ai-layer` discovery page:
+An XML sitemap listing all AI Layer REST endpoints, the `/ai-layer` discovery page, and the knowledge page (when indexable — omitted when noindex is on):
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -793,6 +821,8 @@ An XML sitemap listing all AI Layer REST endpoints and the `/ai-layer` discovery
   <url><loc>https://example.com/wp-json/ai-layer/v1/answers</loc><changefreq>daily</changefreq></url>
   <url><loc>https://example.com/ai-layer</loc><changefreq>daily</changefreq></url>
   <url><loc>https://example.com/ai-layer.md</loc><changefreq>daily</changefreq></url>
+  <url><loc>https://example.com/ai-layer/knowledge</loc><changefreq>daily</changefreq></url>
+  <url><loc>https://example.com/ai-layer/knowledge.md</loc><changefreq>daily</changefreq></url>
   <url><loc>https://example.com/.well-known/ai-layer</loc><changefreq>daily</changefreq></url>
 </urlset>
 ```
@@ -811,6 +841,8 @@ When Yoast SEO is active, the sitemap is automatically injected into Yoast's sit
 | HTTP `Link` + `X-AI-Layer` headers | Every frontend response | Yes |
 | HTML discovery page | `/ai-layer` | Yes |
 | Markdown discovery page | `/ai-layer.md` | Yes (same toggle as HTML) |
+| Knowledge page (HTML) | `/ai-layer/knowledge` | Yes (Knowledge page) |
+| Knowledge page (Markdown) | `/ai-layer/knowledge.md` | Yes (same toggle as HTML) |
 | XML sitemap | `/ai-layer-sitemap.xml` + Yoast index | Yes |
 | `/.well-known/ai-layer` | Standard well-known endpoint | Follows discovery mode setting |
 | `llms.txt` | `/llms.txt` | AI Layer → llms.txt settings |
@@ -975,11 +1007,14 @@ This is the **recommended first request** for any agent or integration that has 
     "answers":   "https://example.com/wp-json/ai-layer/v1/answers"
   },
   "discovery": {
-    "openapi":        "https://example.com/wp-json/ai-layer/v1/openapi",
-    "well_known":     "https://example.com/.well-known/ai-layer",
-    "discovery_page": "https://example.com/ai-layer",
-    "sitemap":        "https://example.com/ai-layer-sitemap.xml",
-    "llms_txt":       "https://example.com/llms.txt"
+    "openapi":            "https://example.com/wp-json/ai-layer/v1/openapi",
+    "well_known":         "https://example.com/.well-known/ai-layer",
+    "discovery_page":     "https://example.com/ai-layer",
+    "knowledge_html":     "https://example.com/ai-layer/knowledge",
+    "knowledge_markdown": "https://example.com/ai-layer/knowledge.md",
+    "knowledge_indexing": "noindex",
+    "sitemap":            "https://example.com/ai-layer-sitemap.xml",
+    "llms_txt":           "https://example.com/llms.txt"
   },
   "relationships": {
     "services.related_faqs":      true,
@@ -2141,6 +2176,15 @@ Agents that inspect the spec before consuming the API can identify and handle th
 ---
 
 ## Changelog
+
+### 1.6.0
+
+- **AI Import** — new admin page at **AI Layer → AI Import**; extract Services, FAQs, Locations, Proof & Trust, and Actions from any published page as drafts; persistent jobs, duplicate detection, and automatic relationship linking
+- **Multi-provider AI support** — OpenAI, Anthropic, and Google models; API keys encrypted at rest
+- **Knowledge page** — `/ai-layer/knowledge` (HTML) and `/ai-layer/knowledge.md` (Markdown) publish your complete entity graph as crawlable page content; linked from llms.txt, manifest, robots.txt, and sitemap; **noindex on by default** to prevent duplicate content in search results while keeping the export available for AI crawlers
+- **Onboarding** — activation redirect to Setup Wizard; discovery health panel on Overview
+- **Security** — public REST and MCP reads exclude draft/private entities; REST rate limiting; encrypted API keys
+- **Settings** — endpoint cache TTL wired to discovery and REST response caching
 
 ### 1.5.0
 

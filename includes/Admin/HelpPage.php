@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace WPAIL\Admin;
 
+use WPAIL\Discovery\KnowledgePage;
 use WPAIL\Licensing\Features;
 
 class HelpPage {
@@ -184,6 +185,55 @@ class HelpPage {
 						<?php endforeach; ?>
 					</tbody>
 				</table>
+			</div>
+
+			<?php /* ── Discovery & crawlable content ── */ ?>
+			<div class="wpail-card wpail-help__section">
+				<h2 class="wpail-help__heading">
+					<span class="dashicons dashicons-admin-site-alt3 wpail-help__heading-icon"></span>
+					<?php esc_html_e( 'Discovery & Crawlable Content', 'ai-layer' ); ?>
+				</h2>
+				<p>
+					<?php esc_html_e( 'AI Layer exposes your structured data through REST APIs and through discovery files that crawlers and agents can find without prior configuration.', 'ai-layer' ); ?>
+				</p>
+				<ul class="wpail-help__tips">
+					<li>
+						<strong><?php esc_html_e( 'Knowledge page (recommended for crawlers)', 'ai-layer' ); ?></strong> —
+						<?php if ( KnowledgePage::is_enabled() ) : ?>
+							<?php
+							printf(
+								/* translators: 1: HTML knowledge URL, 2: Markdown knowledge URL */
+								esc_html__( 'Full business export at %1$s and %2$s — profile, services, FAQs, locations, proof, actions, authored answers, and all relationships in one page.', 'ai-layer' ),
+								'<a href="' . esc_url( KnowledgePage::html_url() ) . '" target="_blank" rel="noopener noreferrer"><code>/ai-layer/knowledge</code></a>',
+								'<a href="' . esc_url( KnowledgePage::markdown_url() ) . '" target="_blank" rel="noopener noreferrer"><code>/ai-layer/knowledge.md</code></a>'
+							);
+							?>
+							<?php if ( KnowledgePage::is_noindex() ) : ?>
+								<?php esc_html_e( 'Search indexing is discouraged (noindex) — the page is omitted from the AI Layer sitemap but remains linked from llms.txt for AI crawlers.', 'ai-layer' ); ?>
+							<?php endif; ?>
+						<?php else : ?>
+							<?php
+							printf(
+								/* translators: %s: link to settings page */
+								esc_html__( 'Disabled. Enable in %s under AI Discovery → Knowledge page.', 'ai-layer' ),
+								'<a href="' . esc_url( $settings_url ) . '">' . esc_html__( 'Settings', 'ai-layer' ) . '</a>'
+							);
+							?>
+						<?php endif; ?>
+					</li>
+					<li>
+						<strong><?php esc_html_e( 'REST manifest', 'ai-layer' ); ?></strong> —
+						<a href="<?php echo esc_url( $rest_base . '/manifest' ); ?>" target="_blank" rel="noopener noreferrer"><code><?php echo esc_html( $rest_base . '/manifest' ); ?></code></a>
+					</li>
+					<li>
+						<strong><?php esc_html_e( 'Endpoint listing', 'ai-layer' ); ?></strong> —
+						<a href="<?php echo esc_url( home_url( '/ai-layer' ) ); ?>" target="_blank" rel="noopener noreferrer"><code>/ai-layer</code></a>
+					</li>
+					<li>
+						<strong>llms.txt</strong> —
+						<?php esc_html_e( 'When enabled, links to the knowledge page and structured endpoints. Configure at AI Layer → llms.txt.', 'ai-layer' ); ?>
+					</li>
+				</ul>
 			</div>
 
 			<?php /* ── Troubleshooting ── */ ?>

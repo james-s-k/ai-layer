@@ -14,6 +14,7 @@ use WPAIL\Licensing\Features;
 use WPAIL\Licensing\License;
 use WPAIL\LLMsTxt\ConflictDetector;
 use WPAIL\LLMsTxt\LLMsTxtSettings;
+use WPAIL\Discovery\KnowledgePage;
 use WPAIL\Setup\SetupProgress;
 
 class OverviewPage {
@@ -329,6 +330,25 @@ class OverviewPage {
 				<code><?php echo esc_html( $rest_base ); ?></code>
 			</p>
 
+			<?php if ( KnowledgePage::is_enabled() ) : ?>
+				<div class="notice notice-info inline" style="margin: 16px 0 24px;">
+					<p>
+						<strong><?php esc_html_e( 'Crawlable knowledge export:', 'ai-layer' ); ?></strong>
+						<?php
+						printf(
+							/* translators: 1: HTML knowledge URL, 2: Markdown knowledge URL */
+							esc_html__( 'All entities and relationships are also published as one HTML page (%1$s) and Markdown file (%2$s) for crawlers and AI systems that read page content rather than REST APIs.', 'ai-layer' ),
+							'<a href="' . esc_url( KnowledgePage::html_url() ) . '" target="_blank" rel="noopener noreferrer"><code>/ai-layer/knowledge</code></a>',
+							'<a href="' . esc_url( KnowledgePage::markdown_url() ) . '" target="_blank" rel="noopener noreferrer"><code>/ai-layer/knowledge.md</code></a>'
+						);
+						?>
+						<?php if ( KnowledgePage::is_noindex() ) : ?>
+							<br><em><?php esc_html_e( 'Search indexing is discouraged (noindex) — change in Settings → AI Discovery.', 'ai-layer' ); ?></em>
+						<?php endif; ?>
+					</p>
+				</div>
+			<?php endif; ?>
+
 			<?php /* ── Schema status ── */ ?>
 			<h2><?php esc_html_e( 'Structured data (Schema.org)', 'ai-layer' ); ?></h2>
 			<p class="wpail-overview__schema-desc">
@@ -377,6 +397,18 @@ class OverviewPage {
 				</span>
 				<?php if ( $well_known_on ) : ?>
 					<a href="<?php echo esc_url( $well_known_url ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'View', 'ai-layer' ); ?></a>
+				<?php endif; ?>
+			</div>
+			<div class="wpail-wizard__file-status-item">
+				<strong><?php esc_html_e( 'Knowledge page', 'ai-layer' ); ?></strong>
+				<span class="wpail-wizard__file-status-badge <?php echo KnowledgePage::is_enabled() ? 'is-on' : 'is-off'; ?>">
+					<?php echo esc_html( KnowledgePage::is_enabled() ? __( 'Active', 'ai-layer' ) : __( 'Disabled', 'ai-layer' ) ); ?>
+				</span>
+				<?php if ( KnowledgePage::is_enabled() ) : ?>
+					<a href="<?php echo esc_url( KnowledgePage::html_url() ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'View', 'ai-layer' ); ?></a>
+					<?php if ( KnowledgePage::is_noindex() ) : ?>
+						<span class="wpail-wizard__file-status-badge is-off"><?php esc_html_e( 'Noindex', 'ai-layer' ); ?></span>
+					<?php endif; ?>
 				<?php endif; ?>
 			</div>
 			<div class="wpail-wizard__file-status-item">
