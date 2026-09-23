@@ -74,7 +74,7 @@ AI Layer broadcasts your structured data endpoints across multiple independent d
 
 * `GET /wp-json/ai-layer/v1/manifest` — Semantic manifest listing all active entity endpoint URLs, discovery channel URLs, relationship capabilities, query capabilities, and authentication details. The recommended first request for any agent integrating with your site.
 * `GET /wp-json/ai-layer/v1/openapi` — Full OpenAPI 3.1.0 specification generated dynamically from live plugin state. Import into Postman, Insomnia, or any AI coding assistant.
-* `/.well-known/ai-layer` — Machine-readable JSON discovery document. The canonical source of truth for agents.
+* `/.well-known/ai-layer` — Machine-readable JSON discovery document listing REST endpoints, manifest, OpenAPI, and the knowledge export when enabled. The canonical source of truth for agents.
 * `llms.txt` — Dynamically generated at `/llms.txt` following the emerging llms.txt standard. In well-known mode it links to the JSON document; in llms.txt-only mode it lists endpoints directly.
 * `AI.txt` *(Beta)* — `/ai.txt` file declaring your crawling, training, and attribution preferences to AI systems.
 * `/ai-layer/knowledge` and `/ai-layer/knowledge.md` — Complete business knowledge export (see above); toggle and noindex in Settings → AI Discovery
@@ -262,7 +262,7 @@ A single HTML page (and matching Markdown file) containing your full structured 
 
 = What is the difference between /.well-known/ai-layer and llms.txt? =
 
-`/.well-known/ai-layer` is a machine-readable JSON document listing all active endpoints — designed for agents and tools to query programmatically. `llms.txt` is a human-readable text file following the emerging llms.txt standard — designed as a signpost for AI systems reading your site. In the recommended setup, llms.txt links to the well-known document as a pointer; agents use the JSON as their source of truth.
+`/.well-known/ai-layer` is a machine-readable JSON document listing all active REST endpoints plus discovery URLs (manifest, OpenAPI, and the /ai-layer/knowledge export when enabled) — designed for agents and tools to query programmatically. `llms.txt` is a human-readable text file following the emerging llms.txt standard — designed as a signpost for AI systems reading your site. In the recommended setup, llms.txt links to the well-known document as a pointer; agents use the JSON as their source of truth.
 
 = Will this conflict with Yoast SEO's own llms.txt? =
 
@@ -312,7 +312,7 @@ Single-site only in the current version. Multisite support is not explicitly blo
 * **Security** — public REST and MCP reads exclude draft/private entities; REST rate limiting for anonymous traffic; authored Answer query patterns omitted from public REST responses; MCP write tools unified under `wpail_manage_content`
 * **Settings** — endpoint cache TTL wired to discovery and REST response caching
 * **Help & Docs** — in-plugin documentation for the answer engine pipeline and MCP tool names
-* **Knowledge page** — `/ai-layer/knowledge` (HTML) and `/ai-layer/knowledge.md` (Markdown) publish your complete entity graph as crawlable page content; linked from llms.txt, manifest, robots.txt, and sitemap; optional noindex (on by default) prevents duplicate content in search results while keeping the export available for AI crawlers; toggle in Settings → AI Discovery
+* **Knowledge page** — `/ai-layer/knowledge` (HTML) and `/ai-layer/knowledge.md` (Markdown) publish your complete entity graph as crawlable page content; linked from llms.txt, `/.well-known/ai-layer`, manifest, robots.txt, and sitemap; optional noindex (on by default) prevents duplicate content in search results while keeping the export available for AI crawlers; toggle in Settings → AI Discovery
 
 = 1.5.0 =
 * **Manifest endpoint** — `GET /wp-json/ai-layer/v1/manifest` returns a semantic manifest: site info, all active entity endpoint URLs, discovery channel URLs, relationship capabilities, query capabilities, and authentication details
