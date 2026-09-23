@@ -12,6 +12,8 @@ declare(strict_types=1);
 
 namespace WPAIL\AiTxt;
 
+use WPAIL\Support\EndpointCache;
+
 class AiTxtController {
 
 	public function register(): void {
@@ -49,7 +51,7 @@ class AiTxtController {
 		$content = $this->get_cached_content();
 
 		header( 'Content-Type: text/plain; charset=utf-8' );
-		header( 'Cache-Control: public, max-age=3600' );
+		header( 'Cache-Control: ' . EndpointCache::header_value() );
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo $content;
 		exit;

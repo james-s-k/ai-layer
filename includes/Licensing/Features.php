@@ -45,7 +45,7 @@ class Features {
 	 * Answer analytics and query logging.
 	 */
 	public static function analytics_enabled(): bool {
-		return License::is_pro();
+		return true;
 	}
 
 	/**

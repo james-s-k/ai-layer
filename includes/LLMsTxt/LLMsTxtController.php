@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace WPAIL\LLMsTxt;
 
+use WPAIL\Support\EndpointCache;
+
 class LLMsTxtController {
 
 	private Generator $generator;
@@ -55,7 +57,7 @@ class LLMsTxtController {
 		$content = $this->get_cached_content();
 
 		header( 'Content-Type: text/plain; charset=utf-8' );
-		header( 'Cache-Control: public, max-age=3600' );
+		header( 'Cache-Control: ' . EndpointCache::header_value() );
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo $content;
 		exit;

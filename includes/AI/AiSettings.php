@@ -53,11 +53,11 @@ class AiSettings {
 			return $connector_key;
 		}
 
-		return (string) self::get( 'api_key_' . $provider, '' );
+		return AiKeyEncryption::decrypt( (string) self::get( 'api_key_' . $provider, '' ) );
 	}
 
 	public static function get_local_api_key( string $provider ): string {
-		return (string) self::get( 'api_key_' . $provider, '' );
+		return AiKeyEncryption::decrypt( (string) self::get( 'api_key_' . $provider, '' ) );
 	}
 
 	public static function is_provider_configured( string $provider ): bool {
@@ -156,7 +156,7 @@ class AiSettings {
 		foreach ( array_keys( self::PROVIDER_LABELS ) as $provider ) {
 			$raw_key = sanitize_text_field( $raw_post[ 'wpail_ai_key_' . $provider ] ?? '' );
 			if ( '' !== $raw_key ) {
-				$current[ 'api_key_' . $provider ] = $raw_key;
+				$current[ 'api_key_' . $provider ] = AiKeyEncryption::encrypt( $raw_key );
 			}
 		}
 

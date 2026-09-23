@@ -9,8 +9,11 @@ declare(strict_types=1);
 
 namespace WPAIL\Admin;
 
+use WPAIL\AiTxt\AiTxtSettings;
 use WPAIL\Licensing\Features;
 use WPAIL\Licensing\License;
+use WPAIL\LLMsTxt\ConflictDetector;
+use WPAIL\LLMsTxt\LLMsTxtSettings;
 use WPAIL\Setup\SetupProgress;
 
 class OverviewPage {
@@ -41,6 +44,8 @@ class OverviewPage {
 			</div>
 
 			<?php SetupProgress::render_widget( $setup ); ?>
+
+			<?php self::render_discovery_health(); ?>
 
 			<?php if ( ! $profile_complete ) : ?>
 				<div class="notice notice-warning inline">
@@ -345,6 +350,57 @@ class OverviewPage {
 			<?php endif; ?>
 
 		</div>
+		<?php
+	}
+
+	private static function render_discovery_health(): void {
+		$llms_on          = (bool) LLMsTxtSettings::get( 'enabled', false );
+		$aitxt_on         = (bool) AiTxtSettings::get( 'enabled', false );
+		$discovery_mode   = (string) SettingsPage::get( SettingsPage::SETTING_AI_DISCOVERY_MODE, SettingsPage::AI_DISCOVERY_WELL_KNOWN );
+		$well_known_on    = SettingsPage::AI_DISCOVERY_WELL_KNOWN === $discovery_mode;
+		$conflicts        = ( new ConflictDetector() )->get_conflicts();
+		$has_conflicts    = ! empty( $conflicts );
+		$manifest_url     = rest_url( WPAIL_REST_NS . '/manifest' );
+		$well_known_url   = home_url( '/.well-known/ai-layer' );
+		?>
+		<h2><?php esc_html_e( 'AI discovery', 'ai-layer' ); ?></h2>
+		<div class="wpail-wizard__file-status" style="margin-bottom:24px;">
+			<div class="wpail-wizard__file-status-item">
+				<strong><?php esc_html_e( 'Manifest', 'ai-layer' ); ?></strong>
+				<span class="wpail-wizard__file-status-badge is-on"><?php esc_html_e( 'Active', 'ai-layer' ); ?></span>
+				<a href="<?php echo esc_url( $manifest_url ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'View', 'ai-layer' ); ?></a>
+			</div>
+			<div class="wpail-wizard__file-status-item">
+				<strong><?php esc_html_e( 'Well-known', 'ai-layer' ); ?></strong>
+				<span class="wpail-wizard__file-status-badge <?php echo $well_known_on ? 'is-on' : 'is-off'; ?>">
+					<?php echo esc_html( $well_known_on ? __( 'Active', 'ai-layer' ) : __( 'Disabled', 'ai-layer' ) ); ?>
+				</span>
+				<?php if ( $well_known_on ) : ?>
+					<a href="<?php echo esc_url( $well_known_url ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'View', 'ai-layer' ); ?></a>
+				<?php endif; ?>
+			</div>
+			<div class="wpail-wizard__file-status-item">
+				<strong>llms.txt</strong>
+				<span class="wpail-wizard__file-status-badge <?php echo $llms_on ? 'is-on' : 'is-off'; ?>">
+					<?php echo esc_html( $llms_on ? __( 'Enabled', 'ai-layer' ) : __( 'Disabled', 'ai-layer' ) ); ?>
+				</span>
+				<a href="<?php echo esc_url( admin_url( 'admin.php?page=wpail_llmstxt' ) ); ?>"><?php esc_html_e( 'Configure', 'ai-layer' ); ?></a>
+			</div>
+			<div class="wpail-wizard__file-status-item">
+				<strong>AI.txt</strong>
+				<span class="wpail-wizard__file-status-badge <?php echo $aitxt_on ? 'is-on' : 'is-off'; ?>">
+					<?php echo esc_html( $aitxt_on ? __( 'Enabled', 'ai-layer' ) : __( 'Disabled', 'ai-layer' ) ); ?>
+				</span>
+				<a href="<?php echo esc_url( admin_url( 'admin.php?page=wpail_aitxt' ) ); ?>"><?php esc_html_e( 'Configure', 'ai-layer' ); ?></a>
+			</div>
+		</div>
+		<?php if ( $has_conflicts ) : ?>
+			<div class="notice notice-warning inline" style="margin-bottom:24px;">
+				<?php foreach ( $conflicts as $conflict ) : ?>
+					<p><?php echo wp_kses_post( $conflict['message'] ); ?></p>
+				<?php endforeach; ?>
+			</div>
+		<?php endif; ?>
 		<?php
 	}
 

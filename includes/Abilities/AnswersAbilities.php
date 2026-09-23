@@ -8,6 +8,7 @@
 declare(strict_types=1);
 
 namespace WPAIL\Abilities;
+use WPAIL\Abilities\AbilityPermissions;
 
 use WPAIL\Repositories\AnswerRepository;
 use WPAIL\Support\AnswerEngine;
@@ -37,7 +38,7 @@ class AnswersAbilities {
 				$answers = ( new AnswerRepository() )->get_all();
 				return array_map( fn( $a ) => $this->resolve( $a ), $answers );
 			},
-			'permission_callback' => fn() => current_user_can( 'edit_posts' ),
+			'permission_callback' => [ AbilityPermissions::class, 'can_write' ],
 			'meta' => [
 				'annotations' => [ 'readonly' => true, 'destructive' => false, 'idempotent' => true ],
 				'mcp'         => [ 'public' => true, 'type' => 'tool' ],
@@ -63,7 +64,7 @@ class AnswersAbilities {
 				}
 				return $this->resolve( $answer );
 			},
-			'permission_callback' => fn() => current_user_can( 'edit_posts' ),
+			'permission_callback' => [ AbilityPermissions::class, 'can_write' ],
 			'meta' => [
 				'annotations' => [ 'readonly' => true, 'destructive' => false, 'idempotent' => true ],
 				'mcp'         => [ 'public' => true, 'type' => 'tool' ],
@@ -111,7 +112,7 @@ class AnswersAbilities {
 				}
 				return $this->resolve( $answer );
 			},
-			'permission_callback' => fn() => current_user_can( 'edit_posts' ),
+			'permission_callback' => [ AbilityPermissions::class, 'can_write' ],
 			'meta' => [
 				'annotations' => [ 'readonly' => false, 'destructive' => false, 'idempotent' => false ],
 				'mcp'         => [ 'public' => true, 'type' => 'tool' ],
@@ -156,7 +157,7 @@ class AnswersAbilities {
 				}
 				return $this->resolve( $updated );
 			},
-			'permission_callback' => fn() => current_user_can( 'edit_posts' ),
+			'permission_callback' => [ AbilityPermissions::class, 'can_write' ],
 			'meta' => [
 				'annotations' => [ 'readonly' => false, 'destructive' => false, 'idempotent' => true ],
 				'mcp'         => [ 'public' => true, 'type' => 'tool' ],
@@ -188,7 +189,7 @@ class AnswersAbilities {
 
 				return [ 'deleted' => true, 'id' => $post_id ];
 			},
-			'permission_callback' => fn() => current_user_can( 'delete_posts' ),
+			'permission_callback' => [ AbilityPermissions::class, 'can_delete' ],
 			'meta' => [
 				'annotations' => [ 'readonly' => false, 'destructive' => true, 'idempotent' => true ],
 				'mcp'         => [ 'public' => true, 'type' => 'tool' ],
@@ -227,7 +228,7 @@ class AnswersAbilities {
 
 				return $result;
 			},
-			'permission_callback' => fn() => Features::answers_enabled(),
+			'permission_callback' => [ AbilityPermissions::class, 'can_query_answers' ],
 			'meta' => [
 				'annotations' => [ 'readonly' => true, 'destructive' => false, 'idempotent' => true ],
 				'mcp'         => [ 'public' => true, 'type' => 'tool' ],

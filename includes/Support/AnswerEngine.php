@@ -82,6 +82,16 @@ class AnswerEngine {
 				$faqs = array_values( $service_faqs );
 			}
 		}
+		if ( $location !== null ) {
+			$location_faqs = array_filter(
+				$faqs,
+				fn( FaqModel $f ) => empty( $f->related_location_ids )
+					|| in_array( $location->id, $f->related_location_ids, true )
+			);
+			if ( ! empty( $location_faqs ) ) {
+				$faqs = array_values( $location_faqs );
+			}
+		}
 		$best_faq = $faqs[0] ?? null;
 
 		// Step 5: assemble answer model.

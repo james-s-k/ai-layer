@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace WPAIL\WellKnown;
 
 use WPAIL\Admin\SettingsPage;
+use WPAIL\Support\EndpointCache;
 
 class AiLayerController {
 
@@ -53,7 +54,7 @@ class AiLayerController {
 		$data = $this->get_cached_data();
 
 		header( 'Content-Type: application/json; charset=utf-8' );
-		header( 'Cache-Control: public, max-age=3600' );
+		header( 'Cache-Control: ' . EndpointCache::header_value() );
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo wp_json_encode( $data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES );
 		exit;

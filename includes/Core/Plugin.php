@@ -14,6 +14,8 @@ use WPAIL\Admin\AiImportPage;
 use WPAIL\Admin\Assets;
 use WPAIL\Admin\BusinessProfilePage;
 use WPAIL\Admin\LLMsTxtPage;
+use WPAIL\Admin\ActivationRedirect;
+use WPAIL\Admin\McpAvailabilityNotice;
 use WPAIL\Admin\PageSearchAjax;
 use WPAIL\Admin\AiTxtPage;
 use WPAIL\Admin\SetupWizardPage;
@@ -158,6 +160,8 @@ final class Plugin {
 		( new SettingsPage() )->register();
 		( new Assets() )->register();
 		( new PageSearchAjax() )->register();
+		( new ActivationRedirect() )->register();
+		( new McpAvailabilityNotice() )->register();
 
 		( new ServiceMetaBox() )->register();
 		( new LocationMetaBox() )->register();

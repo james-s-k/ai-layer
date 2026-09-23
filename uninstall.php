@@ -59,6 +59,11 @@ $wpdb->query(
 	    OR option_name LIKE '\_transient\_wpail\_%'
 	    OR option_name LIKE '\_transient\_timeout\_wpail\_%'"
 );
+
+$analytics_table = $wpdb->prefix . 'wpail_analytics';
+$audit_table     = $wpdb->prefix . 'wpail_audit_log';
+$wpdb->query( "DROP TABLE IF EXISTS {$analytics_table}" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+$wpdb->query( "DROP TABLE IF EXISTS {$audit_table}" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 // phpcs:enable WordPress.DB.DirectDatabaseQuery
 
 // ------------------------------------------------------------------

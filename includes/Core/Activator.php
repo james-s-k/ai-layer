@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace WPAIL\Core;
 
+use WPAIL\Admin\ActivationRedirect;
+
 class Activator {
 
 	/**
@@ -40,6 +42,7 @@ class Activator {
 
 		if ( '' === $installed ) {
 			add_option( 'wpail_version', WPAIL_VERSION );
+			ActivationRedirect::flag();
 		} elseif ( version_compare( $installed, WPAIL_VERSION, '<' ) ) {
 			self::upgrade( $installed );
 			update_option( 'wpail_version', WPAIL_VERSION );

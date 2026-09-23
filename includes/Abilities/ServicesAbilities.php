@@ -8,6 +8,7 @@
 declare(strict_types=1);
 
 namespace WPAIL\Abilities;
+use WPAIL\Abilities\AbilityPermissions;
 
 use WPAIL\Repositories\ServiceRepository;
 use WPAIL\Support\FieldDefinitions;
@@ -34,7 +35,7 @@ class ServicesAbilities {
 				$services = ( new ServiceRepository() )->get_all();
 				return array_map( fn( $s ) => $s->to_summary_array(), $services );
 			},
-			'permission_callback' => fn() => true,
+			'permission_callback' => [ AbilityPermissions::class, 'can_read' ],
 			'meta' => [
 				'annotations' => [ 'readonly' => true, 'destructive' => false, 'idempotent' => true ],
 				'mcp'         => [ 'public' => true, 'type' => 'tool' ],
@@ -60,7 +61,7 @@ class ServicesAbilities {
 				}
 				return $this->resolve( $service );
 			},
-			'permission_callback' => fn() => true,
+			'permission_callback' => [ AbilityPermissions::class, 'can_read' ],
 			'meta' => [
 				'annotations' => [ 'readonly' => true, 'destructive' => false, 'idempotent' => true ],
 				'mcp'         => [ 'public' => true, 'type' => 'tool' ],
@@ -104,7 +105,7 @@ class ServicesAbilities {
 				}
 				return $this->resolve( $service );
 			},
-			'permission_callback' => fn() => current_user_can( 'edit_posts' ),
+			'permission_callback' => [ AbilityPermissions::class, 'can_write' ],
 			'meta' => [
 				'annotations' => [ 'readonly' => false, 'destructive' => false, 'idempotent' => false ],
 				'mcp'         => [ 'public' => true, 'type' => 'tool' ],
@@ -148,7 +149,7 @@ class ServicesAbilities {
 				}
 				return $this->resolve( $updated );
 			},
-			'permission_callback' => fn() => current_user_can( 'edit_posts' ),
+			'permission_callback' => [ AbilityPermissions::class, 'can_write' ],
 			'meta' => [
 				'annotations' => [ 'readonly' => false, 'destructive' => false, 'idempotent' => true ],
 				'mcp'         => [ 'public' => true, 'type' => 'tool' ],
@@ -180,7 +181,7 @@ class ServicesAbilities {
 
 				return [ 'deleted' => true, 'id' => $post_id ];
 			},
-			'permission_callback' => fn() => current_user_can( 'delete_posts' ),
+			'permission_callback' => [ AbilityPermissions::class, 'can_delete' ],
 			'meta' => [
 				'annotations' => [ 'readonly' => false, 'destructive' => true, 'idempotent' => true ],
 				'mcp'         => [ 'public' => true, 'type' => 'tool' ],

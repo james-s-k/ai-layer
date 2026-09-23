@@ -14,6 +14,8 @@ declare(strict_types=1);
 
 namespace WPAIL\Discovery;
 
+use WPAIL\Support\EndpointCache;
+
 class SitemapController {
 
 	/**
@@ -44,7 +46,7 @@ class SitemapController {
 		$xml = $this->build_sitemap();
 
 		header( 'Content-Type: application/xml; charset=utf-8' );
-		header( 'Cache-Control: public, max-age=3600' );
+		header( 'Cache-Control: ' . EndpointCache::header_value() );
 
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo $xml;

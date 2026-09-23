@@ -15,6 +15,7 @@ use WPAIL\Repositories\BusinessRepository;
 use WPAIL\Admin\SettingsPage;
 use WPAIL\LLMsTxt\LLMsTxtSettings;
 use WPAIL\AiTxt\AiTxtSettings;
+use WPAIL\Support\EndpointCache;
 
 class ManifestController extends BaseController {
 
@@ -87,7 +88,7 @@ class ManifestController extends BaseController {
 		];
 
 		$response = new \WP_REST_Response( $manifest, 200 );
-		$response->header( 'Cache-Control', 'public, max-age=3600' );
+		$response->header( 'Cache-Control', EndpointCache::header_value() );
 
 		return $response;
 	}

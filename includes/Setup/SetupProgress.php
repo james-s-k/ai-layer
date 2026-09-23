@@ -234,26 +234,6 @@ class SetupProgress {
 			self::is_any_provider_configured()
 		);
 
-		$items[] = self::item(
-			self::TIER_RECOMMENDED,
-			'schema_output',
-			__( 'Schema.org output', 'ai-layer' ),
-			__( 'JSON-LD in your site head — disable if an SEO plugin already handles schema.', 'ai-layer' ),
-			admin_url( 'admin.php?page=wpail_settings' ),
-			$schema_on
-		);
-
-		if ( $schema_on ) {
-			$items[] = self::item(
-				self::TIER_RECOMMENDED,
-				'schema_faq',
-				__( 'FAQPage schema', 'ai-layer' ),
-				__( 'Output FAQPage JSON-LD from your published FAQs.', 'ai-layer' ),
-				admin_url( 'admin.php?page=wpail_settings' ),
-				(bool) SettingsPage::get( SettingsPage::SETTING_SCHEMA_FAQ_ENABLED, false )
-			);
-		}
-
 		if ( $has_woo ) {
 			$items[] = self::item(
 				self::TIER_RECOMMENDED,
@@ -278,6 +258,26 @@ class SetupProgress {
 			admin_url( 'edit.php?post_type=wpail_answer' ),
 			$answer_counts['total'] > 0
 		);
+
+		$items[] = self::item(
+			self::TIER_OPTIONAL,
+			'schema_output',
+			__( 'Schema.org output', 'ai-layer' ),
+			__( 'JSON-LD in your site head — skip if an SEO plugin already handles schema.', 'ai-layer' ),
+			admin_url( 'admin.php?page=wpail_settings' ),
+			$schema_on
+		);
+
+		if ( $schema_on ) {
+			$items[] = self::item(
+				self::TIER_OPTIONAL,
+				'schema_faq',
+				__( 'FAQPage schema', 'ai-layer' ),
+				__( 'Output FAQPage JSON-LD from your published FAQs.', 'ai-layer' ),
+				admin_url( 'admin.php?page=wpail_settings' ),
+				(bool) SettingsPage::get( SettingsPage::SETTING_SCHEMA_FAQ_ENABLED, false )
+			);
+		}
 
 		$items[] = self::item(
 			self::TIER_OPTIONAL,

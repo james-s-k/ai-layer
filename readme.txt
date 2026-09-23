@@ -4,7 +4,7 @@ Tags:              ai, structured data, rest api, llms.txt, ai discovery
 Requires at least: 6.0
 Tested up to:      6.7
 Requires PHP:      8.1
-Stable tag:        1.5.0
+Stable tag:        1.6.0
 License:           GPLv2 or later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -36,14 +36,14 @@ Read endpoints are public. Write endpoints (POST, PATCH, DELETE) require authent
 * `/faqs` — FAQs, filterable by service or location; `/faqs/{id}` for single item
 * `/proof` — Testimonials, case studies, accreditations, and other trust signals; `/proof/{id}` for single item
 * `/actions` — Calls-to-action; booking links, phone numbers, contact forms; `/actions/{id}` for single item
-* `/answers` — List all manually-authored Answers; `/answers?query=...` runs the rules-based engine (Pro); `/answers/{id}` for single item; POST/PATCH/DELETE for full CRUD management
+* `/answers` — List all manually-authored Answers; `/answers?query=...` runs the rules-based answer engine; `/answers/{id}` for single item; POST/PATCH/DELETE for full CRUD management
 * `/products` — Live WooCommerce product catalogue (requires WooCommerce + setting enabled)
 
 **MCP integration (WordPress 6.9+ with WordPress MCP Adapter plugin)**
 
 AI Layer registers 33 WordPress Abilities that the MCP Adapter plugin automatically exposes as MCP tools. Connect any MCP-compatible AI client to your site and manage all AI Layer content without touching the admin UI.
 
-Tools cover: read and update for the business profile; full CRUD (list, get, create, update, delete) for Services, Locations, FAQs, Proof & Trust, Actions, and Answers; and a natural-language answer engine query tool. Read tools require a logged-in user. Write tools require `edit_posts`. Delete tools require `delete_posts`.
+Tools cover: read and update for the business profile; full CRUD (list, get, create, update, delete) for Services, Locations, FAQs, Proof & Trust, Actions, and Answers; and a natural-language answer engine query tool. Write and delete tools require the `wpail_manage_content` capability (same as REST writes).
 
 See the [WordPress MCP Adapter](https://github.com/wordpress/mcp-adapter) documentation for connection instructions.
 
@@ -309,6 +309,9 @@ Single-site only in the current version. Multisite support is not explicitly blo
 * Freemius licensing infrastructure
 
 == Upgrade Notice ==
+
+= 1.6.0 =
+AI Import, multi-provider AI support, improved onboarding, encrypted local API keys, and MCP permission alignment. Flush permalinks after upgrading if discovery URLs 404.
 
 = 1.5.0 =
 No data migration required. Ten new discovery channels are activated automatically — all enabled by default and independently toggleable in AI Layer → Settings → AI Discovery. Flush your permalinks once after upgrading (Settings → Permalinks → Save Changes) to register the new rewrite rules for `/ai-layer`, `/ai-layer.md`, and `/ai-layer-sitemap.xml`.

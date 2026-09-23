@@ -286,6 +286,21 @@ class SettingsPage {
 						</td>
 					</tr>
 					<tr>
+						<th scope="row"><?php esc_html_e( 'Discovery cache TTL', 'ai-layer' ); ?></th>
+						<td>
+							<input type="number"
+							       name="<?php echo esc_attr( self::SETTING_ENDPOINT_CACHE_TTL ); ?>"
+							       value="<?php echo $cache_ttl > 0 ? esc_attr( (string) $cache_ttl ) : ''; ?>"
+							       min="60"
+							       placeholder="3600"
+							       class="small-text">
+							<span><?php esc_html_e( 'seconds', 'ai-layer' ); ?></span>
+							<p class="description">
+								<?php esc_html_e( 'Cache-Control max-age for manifest, OpenAPI, llms.txt, ai.txt, well-known JSON, and sitemap responses. Leave blank for 3600 (1 hour).', 'ai-layer' ); ?>
+							</p>
+						</td>
+					</tr>
+					<tr>
 						<th scope="row"><?php esc_html_e( 'Products Endpoint', 'ai-layer' ); ?></th>
 						<td>
 							<label>

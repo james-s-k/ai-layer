@@ -20,6 +20,69 @@ use WPAIL\AI\ProviderFactory;
 
 class AiImportPage {
 
+	/**
+	 * Script config passed to assets/js/ai-import.js via wp_localize_script.
+	 *
+	 * @return array<string, mixed>
+	 */
+	public static function get_script_config(): array {
+		return [
+			'ajaxUrl'        => admin_url( 'admin-ajax.php' ),
+			'nonce'          => wp_create_nonce( 'wpail_ai_import' ),
+			'labels'         => [
+				'services'  => __( 'Services', 'ai-layer' ),
+				'faqs'      => __( 'FAQs', 'ai-layer' ),
+				'locations' => __( 'Locations', 'ai-layer' ),
+				'proof'     => __( 'Proof & Trust', 'ai-layer' ),
+				'actions'   => __( 'Actions', 'ai-layer' ),
+				'link'      => __( 'Relationships', 'ai-layer' ),
+			],
+			'reviewUrls'     => [
+				'services'  => admin_url( 'edit.php?post_type=wpail_service&post_status=draft' ),
+				'faqs'      => admin_url( 'edit.php?post_type=wpail_faq&post_status=draft' ),
+				'locations' => admin_url( 'edit.php?post_type=wpail_location&post_status=draft' ),
+				'proof'     => admin_url( 'edit.php?post_type=wpail_proof&post_status=draft' ),
+				'actions'   => admin_url( 'edit.php?post_type=wpail_action&post_status=draft' ),
+			],
+			'importPresets'  => [
+				ImportPageSuggestions::PRESET_ESSENTIAL  => ImportPageSuggestions::get_preset_pages( ImportPageSuggestions::PRESET_ESSENTIAL ),
+				ImportPageSuggestions::PRESET_TOP_LEVEL  => ImportPageSuggestions::get_preset_pages( ImportPageSuggestions::PRESET_TOP_LEVEL ),
+			],
+			'recommendedMax' => ImportPageSuggestions::RECOMMENDED_MAX,
+			'i18n'           => [
+				'tooManyPagesWarning'      => sprintf(
+					/* translators: %d: recommended maximum pages per import */
+					__( 'You have selected more than %d pages. Large imports take longer and cost more. Consider splitting into smaller runs.', 'ai-layer' ),
+					ImportPageSuggestions::RECOMMENDED_MAX
+				),
+				'remove'                   => __( 'Remove', 'ai-layer' ),
+				'noPresetPages'            => __( 'No matching pages were found for this preset.', 'ai-layer' ),
+				'sectionAddsOne'           => __( 'Adds 1 page (this page has no sub-pages).', 'ai-layer' ),
+				'sectionAddsSubtree'       => __( 'Adds this page plus all published sub-pages underneath it.', 'ai-layer' ),
+				'sectionLoadFailed'        => __( 'Could not load pages for that section.', 'ai-layer' ),
+				'noPagesFound'             => __( 'No pages found.', 'ai-layer' ),
+				'selectPages'              => __( 'Select at least one page using the suggestions, a preset, or advanced search.', 'ai-layer' ),
+				'confirmManyPages'         => __( 'You selected many pages. Imports this large may be slow and costly. Continue anyway?', 'ai-layer' ),
+				'selectTypes'              => __( 'Select at least one entity type to extract.', 'ai-layer' ),
+				'preparing'                => __( 'Preparing…', 'ai-layer' ),
+				'linkingRelationships'     => __( 'Linking relationships…', 'ai-layer' ),
+				'extracting'               => __( 'Extracting', 'ai-layer' ),
+				'duplicatesSkipped'        => __( 'duplicates skipped', 'ai-layer' ),
+				'reviewDrafts'             => __( 'Review drafts', 'ai-layer' ),
+				'somethingWrong'           => __( 'Something went wrong.', 'ai-layer' ),
+				'confirmResync'            => __( 'This will repair any missing inverse links using existing relationship data. Continue?', 'ai-layer' ),
+				'resyncing'                => __( 'Resyncing…', 'ai-layer' ),
+				'donePrefix'               => __( 'Done —', 'ai-layer' ),
+				'postsProcessed'           => __( 'posts processed.', 'ai-layer' ),
+				'confirmFindRelationships' => __( 'This will use AI to discover and add new relationships. Existing links will not be removed. Continue?', 'ai-layer' ),
+				'findingRelationships'     => __( 'Asking AI to find relationships…', 'ai-layer' ),
+				'entitiesUpdated'          => __( 'entities updated.', 'ai-layer' ),
+				'confirmRebuildRelationships' => __( 'This will replace all existing relationship data using AI. Any links not confirmed by the AI will be removed. Continue?', 'ai-layer' ),
+				'rebuildingRelationships'  => __( 'Rebuilding relationships via AI — this may take a moment…', 'ai-layer' ),
+			],
+		];
+	}
+
 	public function register(): void {
 		( new AiSettings() )->register();
 		add_action( 'wp_ajax_wpail_ai_start',    [ $this, 'ajax_start' ] );
@@ -186,10 +249,6 @@ class AiImportPage {
 		$connectors_url  = ConnectorBridge::get_admin_url();
 		$suggestions     = ImportPageSuggestions::get_suggested_pages();
 		$section_parents = ImportPageSuggestions::get_section_parents();
-		$presets         = [
-			ImportPageSuggestions::PRESET_ESSENTIAL => ImportPageSuggestions::get_preset_pages( ImportPageSuggestions::PRESET_ESSENTIAL ),
-			ImportPageSuggestions::PRESET_TOP_LEVEL => ImportPageSuggestions::get_preset_pages( ImportPageSuggestions::PRESET_TOP_LEVEL ),
-		];
 		?>
 		<div class="wrap wpail-admin">
 
@@ -591,477 +650,6 @@ class AiImportPage {
 			</div>
 
 		</div>
-
-		<script>
-		(function () {
-			const ajaxUrl  = <?php echo wp_json_encode( admin_url( 'admin-ajax.php' ) ); ?>;
-			const nonce    = <?php echo wp_json_encode( wp_create_nonce( 'wpail_ai_import' ) ); ?>;
-			const labels  = {
-				services:  <?php echo wp_json_encode( __( 'Services', 'ai-layer' ) ); ?>,
-				faqs:      <?php echo wp_json_encode( __( 'FAQs', 'ai-layer' ) ); ?>,
-				locations: <?php echo wp_json_encode( __( 'Locations', 'ai-layer' ) ); ?>,
-				proof:     <?php echo wp_json_encode( __( 'Proof & Trust', 'ai-layer' ) ); ?>,
-				actions:   <?php echo wp_json_encode( __( 'Actions', 'ai-layer' ) ); ?>,
-				link:      <?php echo wp_json_encode( __( 'Relationships', 'ai-layer' ) ); ?>,
-			};
-			const reviewUrls = {
-				services:  <?php echo wp_json_encode( admin_url( 'edit.php?post_type=wpail_service&post_status=draft' ) ); ?>,
-				faqs:      <?php echo wp_json_encode( admin_url( 'edit.php?post_type=wpail_faq&post_status=draft' ) ); ?>,
-				locations: <?php echo wp_json_encode( admin_url( 'edit.php?post_type=wpail_location&post_status=draft' ) ); ?>,
-				proof:     <?php echo wp_json_encode( admin_url( 'edit.php?post_type=wpail_proof&post_status=draft' ) ); ?>,
-				actions:   <?php echo wp_json_encode( admin_url( 'edit.php?post_type=wpail_action&post_status=draft' ) ); ?>,
-			};
-			const importPresets = <?php echo wp_json_encode( $presets ); ?>;
-			const recommendedMax = <?php echo (int) ImportPageSuggestions::RECOMMENDED_MAX; ?>;
-
-			// ── Page selection (presets, suggestions, search, sections) ───
-			let selectedPages = [];
-			const picker           = document.getElementById('wpail-import-picker');
-			const searchInput      = picker?.querySelector('.wpail-page-picker__search');
-			const dropdown         = picker?.querySelector('.wpail-page-picker__dropdown');
-			const selectedWrap     = document.getElementById('wpail-selected-pages');
-			const clearAllLink     = document.getElementById('wpail-clear-pages');
-			const selectedCountEl  = document.getElementById('wpail-selected-count');
-			const selectedEmptyEl  = document.getElementById('wpail-selected-empty');
-			const selectedWarnEl   = document.getElementById('wpail-selected-warn');
-			const suggestCheckboxes = document.querySelectorAll('.wpail-suggest-cb');
-			const sectionSelect    = document.getElementById('wpail-section-parent');
-			const sectionAddBtn    = document.getElementById('wpail-section-add-btn');
-			const sectionHint      = document.getElementById('wpail-section-hint');
-			let searchCache = {};
-			let debounce;
-
-			function isSelected(id) {
-				return selectedPages.some(p => p.id === id);
-			}
-
-			function addPages(pages) {
-				pages.forEach(page => {
-					const id = parseInt(page.id, 10);
-					if (!id || isSelected(id)) return;
-					selectedPages.push({ id, title: page.title || '' });
-				});
-				syncUi();
-			}
-
-			function removePage(id) {
-				selectedPages = selectedPages.filter(p => p.id !== id);
-				syncUi();
-			}
-
-			function syncSuggestionCheckboxes() {
-				suggestCheckboxes.forEach(cb => {
-					const id = parseInt(cb.value, 10);
-					cb.checked = isSelected(id);
-				});
-			}
-
-			function updateCountWarning() {
-				const count = selectedPages.length;
-				if (selectedCountEl) {
-					selectedCountEl.textContent = '(' + count + ')';
-				}
-				if (selectedEmptyEl) {
-					selectedEmptyEl.style.display = count > 0 ? 'none' : '';
-				}
-				if (clearAllLink) {
-					clearAllLink.style.display = count > 0 ? '' : 'none';
-				}
-				if (!selectedWarnEl) return;
-				if (count > recommendedMax) {
-					selectedWarnEl.style.display = '';
-					selectedWarnEl.textContent = <?php echo wp_json_encode(
-						sprintf(
-							/* translators: %d: recommended maximum pages per import */
-							__( 'You have selected more than %d pages. Large imports take longer and cost more. Consider splitting into smaller runs.', 'ai-layer' ),
-							ImportPageSuggestions::RECOMMENDED_MAX
-						)
-					); ?>;
-				} else {
-					selectedWarnEl.style.display = 'none';
-					selectedWarnEl.textContent = '';
-				}
-			}
-
-			function renderChips() {
-				if (!selectedWrap) return;
-				selectedWrap.innerHTML = '';
-				selectedPages.forEach(page => {
-					const chip = document.createElement('span');
-					chip.className = 'wpail-import-pages__chip';
-					chip.textContent = page.title;
-					const rm = document.createElement('button');
-					rm.type = 'button';
-					rm.className = 'wpail-import-pages__chip-remove';
-					rm.textContent = '×';
-					rm.title = <?php echo wp_json_encode( __( 'Remove', 'ai-layer' ) ); ?>;
-					rm.addEventListener('click', () => removePage(page.id));
-					chip.appendChild(rm);
-					selectedWrap.appendChild(chip);
-				});
-				updateCountWarning();
-			}
-
-			function syncUi() {
-				syncSuggestionCheckboxes();
-				renderChips();
-			}
-
-			function collectCheckedSuggestions() {
-				const pages = [];
-				suggestCheckboxes.forEach(cb => {
-					if (!cb.checked) return;
-					pages.push({
-						id: parseInt(cb.value, 10),
-						title: cb.dataset.title || '',
-					});
-				});
-				return pages;
-			}
-
-			function applySuggestionSelection() {
-				const checkedIds = new Set(
-					collectCheckedSuggestions().map(p => p.id)
-				);
-				selectedPages = selectedPages.filter(p => {
-					const cb = document.querySelector('.wpail-suggest-cb[value="' + p.id + '"]');
-					return !cb || checkedIds.has(p.id);
-				});
-				collectCheckedSuggestions().forEach(page => {
-					if (!isSelected(page.id)) {
-						selectedPages.push(page);
-					}
-				});
-				syncUi();
-			}
-
-			suggestCheckboxes.forEach(cb => {
-				cb.addEventListener('change', applySuggestionSelection);
-			});
-
-			document.getElementById('wpail-suggest-select-all')?.addEventListener('click', function (e) {
-				e.preventDefault();
-				suggestCheckboxes.forEach(cb => { cb.checked = true; });
-				applySuggestionSelection();
-			});
-
-			document.getElementById('wpail-suggest-select-none')?.addEventListener('click', function (e) {
-				e.preventDefault();
-				suggestCheckboxes.forEach(cb => { cb.checked = false; });
-				applySuggestionSelection();
-			});
-
-			document.querySelectorAll('.wpail-import-preset-btn').forEach(btn => {
-				btn.addEventListener('click', function () {
-					const preset = btn.dataset.preset;
-					const pages = importPresets[preset] || [];
-					if (!pages.length) {
-						alert(<?php echo wp_json_encode( __( 'No matching pages were found for this preset.', 'ai-layer' ) ); ?>);
-						return;
-					}
-					addPages(pages);
-					suggestCheckboxes.forEach(cb => {
-						const id = parseInt(cb.value, 10);
-						cb.checked = isSelected(id);
-					});
-				});
-			});
-
-			clearAllLink?.addEventListener('click', function (e) {
-				e.preventDefault();
-				selectedPages = [];
-				suggestCheckboxes.forEach(cb => { cb.checked = false; });
-				syncUi();
-			});
-
-			sectionSelect?.addEventListener('change', function () {
-				const opt = sectionSelect.options[sectionSelect.selectedIndex];
-				const childCount = parseInt(opt?.dataset.childCount || '0', 10);
-				if (sectionAddBtn) {
-					sectionAddBtn.disabled = !sectionSelect.value;
-				}
-				if (!sectionHint) return;
-				if (!sectionSelect.value) {
-					sectionHint.textContent = '';
-					return;
-				}
-				const total = childCount + 1;
-				sectionHint.textContent = total === 1
-					? <?php echo wp_json_encode( __( 'Adds 1 page (this page has no sub-pages).', 'ai-layer' ) ); ?>
-					: <?php echo wp_json_encode( __( 'Adds this page plus all published sub-pages underneath it.', 'ai-layer' ) ); ?>;
-			});
-
-			sectionAddBtn?.addEventListener('click', async function () {
-				const parentId = parseInt(sectionSelect.value, 10);
-				if (!parentId) return;
-				sectionAddBtn.disabled = true;
-				const body = new FormData();
-				body.append('action', 'wpail_ai_pages_under_parent');
-				body.append('nonce', nonce);
-				body.append('parent_id', String(parentId));
-				try {
-					const res = await fetch(ajaxUrl, { method: 'POST', body });
-					const json = await res.json();
-					if (!json.success) {
-						alert(json.data?.message || <?php echo wp_json_encode( __( 'Could not load pages for that section.', 'ai-layer' ) ); ?>);
-						return;
-					}
-					addPages(json.data.pages || []);
-				} catch (err) {
-					alert(<?php echo wp_json_encode( __( 'Could not load pages for that section.', 'ai-layer' ) ); ?>);
-				} finally {
-					sectionAddBtn.disabled = !sectionSelect.value;
-				}
-			});
-
-			function searchPages(term, callback) {
-				if (searchCache[term]) { callback(searchCache[term]); return; }
-				const body = new FormData();
-				body.append('action', 'wpail_ai_search_pages');
-				body.append('nonce', nonce);
-				body.append('term', term);
-				fetch(ajaxUrl, { method: 'POST', body })
-					.then(r => r.json())
-					.then(data => {
-						const results = data.success && Array.isArray(data.data?.pages)
-							? data.data.pages.map(item => ({
-								id: parseInt(item.id, 10),
-								title: item.title || '',
-							}))
-							: [];
-						searchCache[term] = results;
-						callback(results);
-					})
-					.catch(() => callback([]));
-			}
-
-			function renderDropdown(results) {
-				if (!dropdown) return;
-				dropdown.innerHTML = '';
-				if (!results.length) {
-					const empty = document.createElement('div');
-					empty.className = 'wpail-page-picker__option wpail-page-picker__option--empty';
-					empty.textContent = <?php echo wp_json_encode( __( 'No pages found.', 'ai-layer' ) ); ?>;
-					dropdown.appendChild(empty);
-					dropdown.style.display = 'block';
-					return;
-				}
-				results.forEach(page => {
-					const opt = document.createElement('div');
-					opt.className = 'wpail-page-picker__option';
-					opt.textContent = page.title;
-					if (isSelected(page.id)) {
-						opt.style.opacity = '0.45';
-						opt.style.cursor = 'default';
-					}
-					opt.addEventListener('mousedown', function (e) {
-						e.preventDefault();
-						if (isSelected(page.id)) return;
-						addPages([page]);
-						if (searchInput) {
-							searchInput.value = '';
-						}
-						dropdown.style.display = 'none';
-					});
-					dropdown.appendChild(opt);
-				});
-				dropdown.style.display = 'block';
-			}
-
-			if (searchInput && dropdown && picker) {
-				searchInput.addEventListener('input', function () {
-					clearTimeout(debounce);
-					const term = searchInput.value.trim();
-					if (term.length < 2) {
-						dropdown.innerHTML = '';
-						dropdown.style.display = 'none';
-						return;
-					}
-					debounce = setTimeout(() => searchPages(term, renderDropdown), 300);
-				});
-
-				searchInput.addEventListener('focus', function () {
-					const term = searchInput.value.trim();
-					if (term.length >= 2) searchPages(term, renderDropdown);
-				});
-
-				document.addEventListener('click', function (e) {
-					if (!picker.contains(e.target)) dropdown.style.display = 'none';
-				});
-			}
-
-			// Initialise from pre-checked suggestions (wizard / default).
-			applySuggestionSelection();
-
-			// ── Extraction ────────────────────────────────────────────────
-			const btn         = document.getElementById('wpail-ai-start-btn');
-			const progress    = document.getElementById('wpail-ai-progress');
-			const bar         = document.getElementById('wpail-ai-bar');
-			const statusTxt   = document.getElementById('wpail-ai-status-text');
-			const results     = document.getElementById('wpail-ai-results');
-			const resultsBody = document.getElementById('wpail-ai-results-body');
-			const errorBox    = document.getElementById('wpail-ai-error');
-			const errorTxt    = document.getElementById('wpail-ai-error-text');
-
-			btn?.addEventListener('click', async function () {
-				const checkedTypes = [...document.querySelectorAll('.wpail-ai-type-cb:checked')].map(cb => cb.value);
-
-				if (!selectedPages.length) {
-					alert(<?php echo wp_json_encode( __( 'Select at least one page using the suggestions, a preset, or advanced search.', 'ai-layer' ) ); ?>);
-					return;
-				}
-				if (selectedPages.length > recommendedMax) {
-					const ok = confirm(<?php echo wp_json_encode( __( 'You selected many pages. Imports this large may be slow and costly. Continue anyway?', 'ai-layer' ) ); ?>);
-					if (!ok) return;
-				}
-				if (!checkedTypes.length) {
-					alert(<?php echo wp_json_encode( __( 'Select at least one entity type to extract.', 'ai-layer' ) ); ?>);
-					return;
-				}
-
-				btn.disabled = true;
-				errorBox.style.display = 'none';
-				results.style.display  = 'none';
-				resultsBody.innerHTML  = '';
-				progress.style.display = 'block';
-				bar.style.width        = '0';
-				statusTxt.textContent  = <?php echo wp_json_encode( __( 'Preparing…', 'ai-layer' ) ); ?>;
-
-				const startData = new FormData();
-				startData.append('action', 'wpail_ai_start');
-				startData.append('nonce', nonce);
-				selectedPages.forEach(p => startData.append('post_ids[]', p.id));
-				checkedTypes.forEach(t => startData.append('types[]', t));
-
-				let jobId, activeTypes;
-				try {
-					const startRes  = await fetch(ajaxUrl, { method: 'POST', body: startData });
-					const startJson = await startRes.json();
-					if (!startJson.success) throw new Error(startJson.data?.message || 'Failed to start job.');
-					jobId       = startJson.data.job_id;
-					activeTypes = startJson.data.types;
-				} catch (err) {
-					showError(err.message);
-					return;
-				}
-
-				for (let i = 0; i < activeTypes.length; i++) {
-					bar.style.width       = Math.round((i / activeTypes.length) * 100) + '%';
-					statusTxt.textContent = activeTypes[i] === 'link'
-						? <?php echo wp_json_encode( __( 'Linking relationships…', 'ai-layer' ) ); ?>
-						: <?php echo wp_json_encode( __( 'Extracting', 'ai-layer' ) ); ?> + ' ' + (labels[activeTypes[i]] || activeTypes[i]) + '…';
-
-					const stepData = new FormData();
-					stepData.append('action', 'wpail_ai_run_step');
-					stepData.append('nonce', nonce);
-					stepData.append('job_id', jobId);
-
-					try {
-						const stepRes  = await fetch(ajaxUrl, { method: 'POST', body: stepData });
-						const stepJson = await stepRes.json();
-						if (!stepJson.success) throw new Error(stepJson.data?.message || 'Step failed.');
-
-						const d = stepJson.data;
-						if (d.step_name) {
-							const tr = document.createElement('tr');
-							if (d.step_name === 'link') {
-								tr.innerHTML = `<td>${labels.link}</td><td><strong>${d.created}</strong></td><td>—</td>`;
-							} else {
-								tr.innerHTML = `<td>${labels[d.step_name] || d.step_name}</td>` +
-									`<td><strong>${d.created}</strong></td>` +
-									`<td>${d.created > 0 ? '<a href="' + reviewUrls[d.step_name] + '"><?php echo esc_js( __( 'Review drafts', 'ai-layer' ) ); ?></a>' : '—'}</td>`;
-							}
-							resultsBody.appendChild(tr);
-						}
-					} catch (err) {
-						showError(err.message);
-						return;
-					}
-				}
-
-				bar.style.width = '100%';
-				progress.style.display = 'none';
-				results.style.display  = 'block';
-				btn.disabled = false;
-			});
-
-			function showError(msg) {
-				progress.style.display = 'none';
-				errorTxt.textContent   = msg;
-				errorBox.style.display = 'block';
-				btn.disabled           = false;
-			}
-		})();
-
-		(function () {
-			const ajaxUrl = <?php echo wp_json_encode( admin_url( 'admin-ajax.php' ) ); ?>;
-			const nonce   = <?php echo wp_json_encode( wp_create_nonce( 'wpail_ai_import' ) ); ?>;
-
-			async function runAction( action, btn, statusEl, pendingMsg, successFn ) {
-				btn.disabled         = true;
-				statusEl.style.color = '#646970';
-				statusEl.textContent = pendingMsg;
-				const data = new FormData();
-				data.append('action', action);
-				data.append('nonce', nonce);
-				try {
-					const res  = await fetch(ajaxUrl, { method: 'POST', body: data });
-					const json = await res.json();
-					if (json.success) {
-						statusEl.style.color = '#00a32a';
-						statusEl.textContent = successFn(json.data);
-					} else {
-						statusEl.style.color = '#d63638';
-						statusEl.textContent = json.data?.message || <?php echo wp_json_encode( __( 'Something went wrong.', 'ai-layer' ) ); ?>;
-					}
-				} catch (err) {
-					statusEl.style.color = '#d63638';
-					statusEl.textContent = err.message;
-				} finally {
-					btn.disabled = false;
-				}
-			}
-
-			document.getElementById('wpail-resync-btn')?.addEventListener('click', function () {
-				if ( ! confirm( <?php echo wp_json_encode( __( 'This will repair any missing inverse links using existing relationship data. Continue?', 'ai-layer' ) ); ?> ) ) {
-					return;
-				}
-				runAction(
-					'wpail_ai_resync',
-					this,
-					document.getElementById('wpail-resync-status'),
-					<?php echo wp_json_encode( __( 'Resyncing…', 'ai-layer' ) ); ?>,
-					data => <?php echo wp_json_encode( __( 'Done —', 'ai-layer' ) ); ?> + ' ' + data.processed + ' ' + <?php echo wp_json_encode( __( 'posts processed.', 'ai-layer' ) ); ?>
-				);
-			});
-
-			document.getElementById('wpail-find-rel-btn')?.addEventListener('click', function () {
-				if ( ! confirm( <?php echo wp_json_encode( __( 'This will use AI to discover and add new relationships. Existing links will not be removed. Continue?', 'ai-layer' ) ); ?> ) ) {
-					return;
-				}
-				runAction(
-					'wpail_ai_find_relationships',
-					this,
-					document.getElementById('wpail-find-rel-status'),
-					<?php echo wp_json_encode( __( 'Asking AI to find relationships…', 'ai-layer' ) ); ?>,
-					data => <?php echo wp_json_encode( __( 'Done —', 'ai-layer' ) ); ?> + ' ' + data.updated + ' ' + <?php echo wp_json_encode( __( 'entities updated.', 'ai-layer' ) ); ?>
-				);
-			});
-
-			document.getElementById('wpail-rebuild-rel-btn')?.addEventListener('click', function () {
-				if ( ! confirm( <?php echo wp_json_encode( __( 'This will replace all existing relationship data using AI. Any links not confirmed by the AI will be removed. Continue?', 'ai-layer' ) ); ?> ) ) {
-					return;
-				}
-				runAction(
-					'wpail_ai_rebuild_relationships',
-					this,
-					document.getElementById('wpail-rebuild-rel-status'),
-					<?php echo wp_json_encode( __( 'Rebuilding relationships via AI — this may take a moment…', 'ai-layer' ) ); ?>,
-					data => <?php echo wp_json_encode( __( 'Done —', 'ai-layer' ) ); ?> + ' ' + data.updated + ' ' + <?php echo wp_json_encode( __( 'entities updated.', 'ai-layer' ) ); ?>
-				);
-			});
-		})();
-		</script>
 		<?php
 	}
 }

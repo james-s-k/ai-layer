@@ -1,0 +1,13 @@
+{
+    "name": "strivewp/ai-layer",
+    "description": "Structured business knowledge layer for WordPress",
+    "type": "wordpress-plugin",
+    "require-dev": {
+        "phpunit/phpunit": "^10.5"
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WPAIL\\Tests\\": "tests/"
+        }
+    }
+}

@@ -217,7 +217,9 @@ A revisitable, step-by-step wizard that pre-populates your AI Layer data from ex
 | 1. Detect | Scans installed plugins and WordPress settings; shows a summary of available data sources and what was found |
 | 2. Business Profile | Lists suggested field values with source badges; tick what to apply, leave unticked to skip |
 | 3. WooCommerce *(shown only when WooCommerce is active)* | Prompts to enable the `/products` endpoint; shows current status if already enabled |
-| 4. Done | Completion summary with direct links to remaining setup tasks |
+| 4. Discovery | Endpoint mode, discovery signals, llms.txt, and AI.txt |
+| 5. AI Setup | Optional provider connection and model selection for AI Import |
+| 6. Add content | Choose AI Import or manual entity setup |
 
 **Data sources:**
 
@@ -254,7 +256,7 @@ Configure your AI provider and API key at the top of the AI Import page. Three p
 
 > **Tip:** GPT-4o Mini works well for entity extraction. The relationship-linking step — which requires cross-entity reasoning across all your content — benefits from a stronger model: GPT-4.1, Claude Sonnet 4.6, or Gemini 2.5 Pro will produce more accurate results there.
 
-Each provider has a separate API key field. Keys are stored encrypted in `wp_options`. Leave a key field blank to keep the existing key. A saved-key indicator is shown when a key is already stored.
+Each provider has a separate API key field. Keys are encrypted at rest in `wp_options` when OpenSSL is available. Leave a key field blank to keep the existing key. A saved-key indicator is shown when a key is already stored.
 
 **Settings stored under `wpail_ai_*` option keys.**
 

@@ -44,6 +44,22 @@ class Assets {
 				'searchPagesNonce' => wp_create_nonce( PageSearchAjax::NONCE_ACTION ),
 			]
 		);
+
+		if ( str_contains( $hook, 'wpail_ai_import' ) ) {
+			wp_enqueue_script(
+				'wpail-ai-import',
+				WPAIL_PLUGIN_URL . 'assets/js/ai-import.js',
+				[],
+				WPAIL_VERSION,
+				true
+			);
+
+			wp_localize_script(
+				'wpail-ai-import',
+				'wpailAiImport',
+				AiImportPage::get_script_config()
+			);
+		}
 	}
 
 	private function is_wpail_page( string $hook ): bool {

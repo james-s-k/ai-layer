@@ -2,7 +2,7 @@
 /**
  * Manages a single AI extraction run.
  *
- * A job is created once (storing source content in a transient), then stepped
+ * A job is created once (stored in wp_options for 24 hours), then stepped
  * through one entity type at a time via run_step(). Each step calls the AI
  * provider, parses the response, and saves draft CPTs.
  *
@@ -22,9 +22,9 @@ use WPAIL\Support\RelationshipSync;
 class ExtractionJob {
 
 	const STEPS             = [ 'services', 'faqs', 'locations', 'proof', 'actions' ];
-	const TRANSIENT_PREFIX  = 'wpail_ai_job_';
-	const TRANSIENT_TTL     = HOUR_IN_SECONDS;
-	const CONTENT_CHAR_LIMIT = 12000;
+	const OPTION_PREFIX     = 'wpail_ai_job_';
+	const JOB_TTL           = DAY_IN_SECONDS;
+	const CONTENT_CHAR_LIMIT = 20000;
 
 	/** Post types that participate in the relationship graph. */
 	const RELATIONSHIP_TYPES = [ 'wpail_service', 'wpail_faq', 'wpail_location', 'wpail_proof', 'wpail_action' ];
@@ -49,8 +49,8 @@ class ExtractionJob {
 
 		$content = self::collect_content( $post_ids );
 
-		set_transient(
-			self::TRANSIENT_PREFIX . $job_id,
+		self::save_job(
+			$job_id,
 			[
 				'content'     => $content,
 				'types'       => $types,
@@ -59,8 +59,7 @@ class ExtractionJob {
 				'results'     => [],
 				'created_ids' => [],
 				'error'       => null,
-			],
-			self::TRANSIENT_TTL
+			]
 		);
 
 		return [ 'job_id' => $job_id, 'types' => $types ];
@@ -72,7 +71,7 @@ class ExtractionJob {
 	 * @return array{done: bool, step_name?: string, created?: int, results?: array<string,int>, error?: string}
 	 */
 	public static function run_step( string $job_id, ProviderInterface $provider ): array {
-		$job = get_transient( self::TRANSIENT_PREFIX . $job_id );
+		$job = self::load_job( $job_id );
 
 		if ( ! is_array( $job ) ) {
 			return [ 'done' => false, 'error' => 'Job not found or expired.' ];
@@ -87,7 +86,7 @@ class ExtractionJob {
 
 		$step_name = $types[ $step ];
 		$job['status'] = 'running';
-		set_transient( self::TRANSIENT_PREFIX . $job_id, $job, self::TRANSIENT_TTL );
+		self::save_job( $job_id, $job );
 
 		// The 'link' step is handled separately — it cross-references all created items.
 		if ( 'link' === $step_name ) {
@@ -95,13 +94,13 @@ class ExtractionJob {
 			if ( is_wp_error( $linked ) ) {
 				$job['status'] = 'failed';
 				$job['error']  = $linked->get_error_message();
-				set_transient( self::TRANSIENT_PREFIX . $job_id, $job, self::TRANSIENT_TTL );
+				self::save_job( $job_id, $job );
 				return [ 'done' => false, 'error' => $job['error'] ];
 			}
 			$job['results']['link'] = $linked;
 			$job['step']            = $step + 1;
 			$job['status']          = 'complete';
-			set_transient( self::TRANSIENT_PREFIX . $job_id, $job, self::TRANSIENT_TTL );
+			self::save_job( $job_id, $job );
 			return [
 				'done'      => true,
 				'step_name' => 'link',
@@ -115,22 +114,26 @@ class ExtractionJob {
 		if ( is_wp_error( $items ) ) {
 			$job['status'] = 'failed';
 			$job['error']  = $items->get_error_message();
-			set_transient( self::TRANSIENT_PREFIX . $job_id, $job, self::TRANSIENT_TTL );
+			self::save_job( $job_id, $job );
 			return [ 'done' => false, 'error' => $job['error'] ];
 		}
 
-		$ids                              = self::save_drafts( $step_name, $items );
+		[ 'ids' => $ids, 'skipped' => $skipped ] = self::save_drafts( $step_name, $items );
 		$job['created_ids'][ $step_name ] = $ids;
 		$job['results'][ $step_name ]     = count( $ids );
+		if ( $skipped > 0 ) {
+			$job['results'][ $step_name . '_skipped' ] = $skipped;
+		}
 		$job['step']                      = $step + 1;
 		$job['status']                    = ( $job['step'] >= count( $types ) ) ? 'complete' : 'running';
 
-		set_transient( self::TRANSIENT_PREFIX . $job_id, $job, self::TRANSIENT_TTL );
+		self::save_job( $job_id, $job );
 
 		return [
 			'done'      => 'complete' === $job['status'],
 			'step_name' => $step_name,
 			'created'   => count( $ids ),
+			'skipped'   => $skipped,
 			'results'   => $job['results'],
 		];
 	}
@@ -324,18 +327,24 @@ PROMPT;
 	 * @param array<int, array<string, mixed>> $items
 	 * @return int[] Post IDs of created drafts.
 	 */
+	/**
+	 * @return array{ids: list<int>, skipped: int}
+	 */
 	private static function save_drafts( string $type, array $items ): array {
-		$ids = [];
+		$ids     = [];
+		$skipped = 0;
 		foreach ( $items as $item ) {
-			$id = self::create_draft( $type, $item );
-			if ( false !== $id ) {
-				$ids[] = $id;
+			$result = self::create_draft( $type, $item );
+			if ( is_int( $result ) && $result > 0 ) {
+				$ids[] = $result;
+			} elseif ( -1 === $result ) {
+				++$skipped;
 			}
 		}
-		return $ids;
+		return [ 'ids' => $ids, 'skipped' => $skipped ];
 	}
 
-	/** @param array<string, mixed> $item */
+	/** @param array<string, mixed> $item @return int|false|-1 post ID, false on error, -1 when skipped as duplicate */
 	private static function create_draft( string $type, array $item ): int|false {
 		$post_type_map = [
 			'services'  => 'wpail_service',
@@ -374,7 +383,7 @@ PROMPT;
 		] );
 
 		if ( ! empty( $existing ) ) {
-			return false;
+			return -1;
 		}
 
 		$post_id = wp_insert_post(
@@ -1241,5 +1250,26 @@ PROMPT;
 		}
 
 		return $processed;
+	}
+
+	/** @return array<string, mixed>|null */
+	private static function load_job( string $job_id ): ?array {
+		$job = get_option( self::OPTION_PREFIX . $job_id, null );
+		if ( ! is_array( $job ) ) {
+			return null;
+		}
+
+		if ( (int) ( $job['expires_at'] ?? 0 ) < time() ) {
+			delete_option( self::OPTION_PREFIX . $job_id );
+			return null;
+		}
+
+		return $job;
+	}
+
+	/** @param array<string, mixed> $job */
+	private static function save_job( string $job_id, array $job ): void {
+		$job['expires_at'] = time() + self::JOB_TTL;
+		update_option( self::OPTION_PREFIX . $job_id, $job, false );
 	}
 }

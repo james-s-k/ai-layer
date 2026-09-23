@@ -31,8 +31,7 @@ class AnswerRepository {
 				if ( '' === $pattern ) {
 					continue;
 				}
-				// Exact contains check. Future: regex or fuzzy match.
-				if ( str_contains( $query, $pattern ) || str_contains( $pattern, $query ) ) {
+				if ( self::pattern_matches( $query, $pattern ) ) {
 					return $answer;
 				}
 			}
@@ -61,5 +60,14 @@ class AnswerRepository {
 			fn( \WP_Post $p ) => AnswerTransformer::from_post( $p ),
 			$posts
 		);
+	}
+
+	private static function pattern_matches( string $query, string $pattern ): bool {
+		if ( str_contains( $pattern, '*' ) ) {
+			$regex = '/^' . str_replace( '\*', '.*', preg_quote( $pattern, '/' ) ) . '$/iu';
+			return (bool) preg_match( $regex, $query );
+		}
+
+		return str_contains( $query, $pattern ) || str_contains( $pattern, $query );
 	}
 }

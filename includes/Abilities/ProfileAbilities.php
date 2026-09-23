@@ -8,6 +8,7 @@
 declare(strict_types=1);
 
 namespace WPAIL\Abilities;
+use WPAIL\Abilities\AbilityPermissions;
 
 use WPAIL\Repositories\BusinessRepository;
 
@@ -24,7 +25,7 @@ class ProfileAbilities {
 			'execute_callback'    => function ( array $input ): array {
 				return ( new BusinessRepository() )->get()->to_public_array();
 			},
-			'permission_callback' => fn() => true,
+			'permission_callback' => [ AbilityPermissions::class, 'can_read' ],
 			'meta' => [
 				'annotations' => [ 'readonly' => true, 'destructive' => false, 'idempotent' => true ],
 				'mcp'         => [ 'public' => true, 'type' => 'tool' ],
@@ -69,7 +70,7 @@ class ProfileAbilities {
 				$repo->save( array_merge( $current, $input ) );
 				return $repo->get()->to_public_array();
 			},
-			'permission_callback' => fn() => current_user_can( 'edit_posts' ),
+			'permission_callback' => [ AbilityPermissions::class, 'can_write' ],
 			'meta' => [
 				'annotations' => [ 'readonly' => false, 'destructive' => false, 'idempotent' => true ],
 				'mcp'         => [ 'public' => true, 'type' => 'tool' ],

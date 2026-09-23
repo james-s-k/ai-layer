@@ -99,7 +99,7 @@ class HelpPage {
 					<?php
 					printf(
 						/* translators: %s: link to WordPress MCP Adapter GitHub repo */
-						esc_html__( 'MCP support requires the %s to be installed and active alongside AI Layer.', 'ai-layer' ),
+						esc_html__( 'MCP support requires WordPress 6.9+ and the %s to be installed and active alongside AI Layer.', 'ai-layer' ),
 						'<a href="https://github.com/wordpress/mcp-adapter" target="_blank" rel="noopener noreferrer">' . esc_html__( 'WordPress MCP Adapter plugin', 'ai-layer' ) . '</a>'
 					);
 					?>
@@ -115,8 +115,13 @@ class HelpPage {
 					?>
 				</p>
 
+				<p>
+					<?php esc_html_e( 'Default MCP endpoint (when MCP Adapter is active):', 'ai-layer' ); ?>
+					<code><?php echo esc_html( $mcp_url ); ?></code>
+				</p>
+
 				<h3 class="wpail-help__subheading"><?php esc_html_e( 'Available MCP tools', 'ai-layer' ); ?></h3>
-				<p><?php esc_html_e( 'AI Layer registers the following tool groups. All tool names are prefixed with ai-layer/.', 'ai-layer' ); ?></p>
+				<p><?php esc_html_e( 'All tool names are prefixed with ai-layer/. Write and delete tools require wpail_manage_content (same as REST writes).', 'ai-layer' ); ?></p>
 				<table class="widefat striped">
 					<thead>
 						<tr>
@@ -127,44 +132,45 @@ class HelpPage {
 					</thead>
 					<tbody>
 						<?php
+						$write_cap = WPAIL_CAP_WRITE;
 						$tools = [
-							[ 'get-business-profile',    __( 'Read the full Business Profile', 'ai-layer' ),                          __( 'read', 'ai-layer' ) ],
-							[ 'update-business-profile', __( 'Update Business Profile fields', 'ai-layer' ),                          __( 'edit_posts', 'ai-layer' ) ],
-							[ 'list-services',           __( 'List all published Services', 'ai-layer' ),                             __( 'read', 'ai-layer' ) ],
-							[ 'get-service',             __( 'Get a single Service by ID or slug', 'ai-layer' ),                      __( 'read', 'ai-layer' ) ],
-							[ 'create-service',          __( 'Create a new Service', 'ai-layer' ),                                    __( 'edit_posts', 'ai-layer' ) ],
-							[ 'update-service',          __( 'Update an existing Service', 'ai-layer' ),                              __( 'edit_posts', 'ai-layer' ) ],
-							[ 'delete-service',          __( 'Delete a Service', 'ai-layer' ),                                        __( 'delete_posts', 'ai-layer' ) ],
-							[ 'list-locations',          __( 'List all published Locations', 'ai-layer' ),                            __( 'read', 'ai-layer' ) ],
-							[ 'get-location',            __( 'Get a single Location by ID or slug', 'ai-layer' ),                     __( 'read', 'ai-layer' ) ],
-							[ 'create-location',         __( 'Create a new Location', 'ai-layer' ),                                   __( 'edit_posts', 'ai-layer' ) ],
-							[ 'update-location',         __( 'Update an existing Location', 'ai-layer' ),                             __( 'edit_posts', 'ai-layer' ) ],
-							[ 'delete-location',         __( 'Delete a Location', 'ai-layer' ),                                       __( 'delete_posts', 'ai-layer' ) ],
-							[ 'list-faqs',               __( 'List all published FAQs', 'ai-layer' ),                                 __( 'read', 'ai-layer' ) ],
-							[ 'get-faq',                 __( 'Get a single FAQ by ID', 'ai-layer' ),                                  __( 'read', 'ai-layer' ) ],
-							[ 'create-faq',              __( 'Create a new FAQ', 'ai-layer' ),                                        __( 'edit_posts', 'ai-layer' ) ],
-							[ 'update-faq',              __( 'Update an existing FAQ', 'ai-layer' ),                                  __( 'edit_posts', 'ai-layer' ) ],
-							[ 'delete-faq',              __( 'Delete a FAQ', 'ai-layer' ),                                            __( 'delete_posts', 'ai-layer' ) ],
-							[ 'list-proof',              __( 'List all published Proof & Trust items', 'ai-layer' ),                  __( 'read', 'ai-layer' ) ],
-							[ 'get-proof',               __( 'Get a single Proof item by ID', 'ai-layer' ),                           __( 'read', 'ai-layer' ) ],
-							[ 'create-proof',            __( 'Create a new Proof item', 'ai-layer' ),                                 __( 'edit_posts', 'ai-layer' ) ],
-							[ 'update-proof',            __( 'Update an existing Proof item', 'ai-layer' ),                           __( 'edit_posts', 'ai-layer' ) ],
-							[ 'delete-proof',            __( 'Delete a Proof item', 'ai-layer' ),                                     __( 'delete_posts', 'ai-layer' ) ],
-							[ 'list-actions',            __( 'List all published Actions', 'ai-layer' ),                              __( 'read', 'ai-layer' ) ],
-							[ 'get-action',              __( 'Get a single Action by ID', 'ai-layer' ),                               __( 'read', 'ai-layer' ) ],
-							[ 'create-action',           __( 'Create a new Action', 'ai-layer' ),                                     __( 'edit_posts', 'ai-layer' ) ],
-							[ 'update-action',           __( 'Update an existing Action', 'ai-layer' ),                               __( 'edit_posts', 'ai-layer' ) ],
-							[ 'delete-action',           __( 'Delete an Action', 'ai-layer' ),                                        __( 'delete_posts', 'ai-layer' ) ],
-							[ 'query-answer-engine',     __( 'Ask the answer engine a natural language question and return the structured response', 'ai-layer' ), __( 'read', 'ai-layer' ) ],
+							[ 'get-profile',       __( 'Read the full Business Profile', 'ai-layer' ), 'read' ],
+							[ 'update-profile',    __( 'Update Business Profile fields', 'ai-layer' ), $write_cap ],
+							[ 'list-services',     __( 'List all published Services', 'ai-layer' ), 'read' ],
+							[ 'get-service',       __( 'Get a single Service by ID or slug', 'ai-layer' ), 'read' ],
+							[ 'create-service',    __( 'Create a new Service', 'ai-layer' ), $write_cap ],
+							[ 'update-service',    __( 'Update an existing Service', 'ai-layer' ), $write_cap ],
+							[ 'delete-service',    __( 'Delete a Service', 'ai-layer' ), $write_cap ],
+							[ 'list-locations',    __( 'List all published Locations', 'ai-layer' ), 'read' ],
+							[ 'get-location',      __( 'Get a single Location by ID or slug', 'ai-layer' ), 'read' ],
+							[ 'create-location',   __( 'Create a new Location', 'ai-layer' ), $write_cap ],
+							[ 'update-location',   __( 'Update an existing Location', 'ai-layer' ), $write_cap ],
+							[ 'delete-location',   __( 'Delete a Location', 'ai-layer' ), $write_cap ],
+							[ 'list-faqs',         __( 'List all published FAQs', 'ai-layer' ), 'read' ],
+							[ 'get-faq',           __( 'Get a single FAQ by ID', 'ai-layer' ), 'read' ],
+							[ 'create-faq',        __( 'Create a new FAQ', 'ai-layer' ), $write_cap ],
+							[ 'update-faq',        __( 'Update an existing FAQ', 'ai-layer' ), $write_cap ],
+							[ 'delete-faq',        __( 'Delete a FAQ', 'ai-layer' ), $write_cap ],
+							[ 'list-proof',        __( 'List all published Proof & Trust items', 'ai-layer' ), 'read' ],
+							[ 'get-proof-item',    __( 'Get a single Proof item by ID', 'ai-layer' ), 'read' ],
+							[ 'create-proof-item', __( 'Create a new Proof item', 'ai-layer' ), $write_cap ],
+							[ 'update-proof-item', __( 'Update an existing Proof item', 'ai-layer' ), $write_cap ],
+							[ 'delete-proof-item', __( 'Delete a Proof item', 'ai-layer' ), $write_cap ],
+							[ 'list-actions',      __( 'List all published Actions', 'ai-layer' ), 'read' ],
+							[ 'get-action',        __( 'Get a single Action by ID', 'ai-layer' ), 'read' ],
+							[ 'create-action',     __( 'Create a new Action', 'ai-layer' ), $write_cap ],
+							[ 'update-action',     __( 'Update an existing Action', 'ai-layer' ), $write_cap ],
+							[ 'delete-action',     __( 'Delete an Action', 'ai-layer' ), $write_cap ],
+							[ 'query-answers',     __( 'Ask the answer engine a natural language question', 'ai-layer' ), 'read' ],
 						];
 
 						if ( Features::answers_enabled() ) {
 							$tools = array_merge( $tools, [
-								[ 'list-answers',   __( 'List all manually-authored Answers', 'ai-layer' ),  __( 'read', 'ai-layer' ) ],
-								[ 'get-answer',     __( 'Get a single Answer by ID', 'ai-layer' ),           __( 'read', 'ai-layer' ) ],
-								[ 'create-answer',  __( 'Create a new manually-authored Answer', 'ai-layer' ), __( 'edit_posts', 'ai-layer' ) ],
-								[ 'update-answer',  __( 'Update an existing Answer', 'ai-layer' ),            __( 'edit_posts', 'ai-layer' ) ],
-								[ 'delete-answer',  __( 'Delete an Answer', 'ai-layer' ),                     __( 'delete_posts', 'ai-layer' ) ],
+								[ 'list-answers',  __( 'List all manually-authored Answers', 'ai-layer' ), 'read' ],
+								[ 'get-answer',    __( 'Get a single Answer by ID', 'ai-layer' ), 'read' ],
+								[ 'create-answer', __( 'Create a new manually-authored Answer', 'ai-layer' ), $write_cap ],
+								[ 'update-answer', __( 'Update an existing Answer', 'ai-layer' ), $write_cap ],
+								[ 'delete-answer', __( 'Delete an Answer', 'ai-layer' ), $write_cap ],
 							] );
 						}
 

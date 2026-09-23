@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace WPAIL\Rest;
 
 use WPAIL\Admin\SettingsPage;
+use WPAIL\Support\EndpointCache;
 
 class OpenApiController extends BaseController {
 
@@ -67,7 +68,7 @@ class OpenApiController extends BaseController {
 
 		$response = new \WP_REST_Response( $spec, 200 );
 		$response->header( 'Content-Type', 'application/json' );
-		$response->header( 'Cache-Control', 'public, max-age=3600' );
+		$response->header( 'Cache-Control', EndpointCache::header_value() );
 
 		return $response;
 	}
